@@ -39,7 +39,7 @@ const NAV: Record<Role, NavItem[]> = {
   ],
   CLIENT: [
     { label: 'My memberships', icon: 'id-card', link: '/client', exact: true },
-    { label: 'Find a gym', icon: 'magnifying-glass', link: '/client/gyms' },
+    { label: 'Gyms', icon: 'magnifying-glass', link: '/client/gyms' },
     { label: 'Coaches', icon: 'user-tie', link: '/client/coaches' },
   ],
 };

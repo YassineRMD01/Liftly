@@ -24,7 +24,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
   selector: 'app-admin-clients',
   imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader],
   template: `
-    <app-page-header title="Clients" subtitle="Members and their subscriptions at your gym.">
+    <app-page-header title="Clients" subtitle="Only you can register members — create their account and membership here.">
       <p-button label="Add client" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
     </app-page-header>
 
@@ -175,17 +175,25 @@ export class AdminClients {
 
   submit() {
     let clientId = this.form.clientId;
+    let created = false;
     if (this.mode === 'new') {
       const { firstName, lastName, email } = this.form;
       if (!firstName || !lastName || !email) return this.err('Fill in the new member details.');
       if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) return this.err('Email already registered — use "Existing member".');
       clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, password: 'welcome', ...(this.form.gender ? { gender: this.form.gender } : {}) }).id;
+      created = true;
     }
     if (!clientId) return this.err('Choose a client.');
     if (this.form.promo && !this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo).ok) return this.err('Promo code is not valid.');
     this.store.subscribeClient({ gymId: this.gymId(), clientId, planId: this.form.planId, coachId: this.form.coachId, promoCode: this.form.promo || undefined });
     this.visible = false;
     this.toast.add({ severity: 'success', summary: 'Subscription created', detail: this.store.fullName(clientId) });
+    if (created) {
+      this.toast.add({
+        severity: 'info', sticky: true, summary: 'Member account created',
+        detail: `Give the member their login: ${this.form.email} / temporary password "welcome".`,
+      });
+    }
   }
 
   private err(detail: string) { this.toast.add({ severity: 'error', summary: 'Cannot subscribe', detail }); }

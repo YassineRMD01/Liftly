@@ -33,7 +33,7 @@ import { CoachCard, PageHeader, Stars } from '../../shared/ui';
           <p-button label="Reviews" size="small" [outlined]="true" (onClick)="openReviews(c)" />
         </app-coach-card>
       } @empty {
-        <div class="card md:col-span-2 xl:col-span-3 text-center py-12 muted">Join a gym to see its coaches.</div>
+        <div class="card md:col-span-2 xl:col-span-3 text-center py-12 muted">Once a gym registers you, its coaches appear here.</div>
       }
     </div>
 

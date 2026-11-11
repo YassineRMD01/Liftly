@@ -93,7 +93,7 @@ import { ThemeService } from '../../core/theme.service';
     <section id="pricing" class="max-w-7xl mx-auto px-4 py-16">
       <div class="text-center">
         <h2 class="text-3xl font-bold">Simple pricing for gym owners</h2>
-        <p class="muted mt-2">Coaches and members always join for free.</p>
+        <p class="muted mt-2">Coaches join for free. Members are registered by their gym.</p>
         <p-selectbutton class="mt-6 inline-flex" [options]="cycles" optionLabel="label" optionValue="value" [(ngModel)]="cycle" [allowEmpty]="false" />
       </div>
       <div class="grid md:grid-cols-3 gap-6 mt-10">
@@ -148,8 +148,8 @@ export class Landing {
   ];
   protected readonly roles: { icon: IconProp; title: string; items: string[] }[] = [
     { icon: 'crown', title: 'Platform owner', items: ['Manage pricing plans', 'Monitor all gyms & MRR', 'Suspend or activate gyms'] },
-    { icon: 'building', title: 'Gym admin', items: ['Membership plans & promo codes', 'Opening hours: mixed, men-only & women-only', 'Multi-sport gyms', 'Custom theme color'] },
+    { icon: 'building', title: 'Gym admin', items: ['Register clients & memberships', 'Membership plans & promo codes', 'Opening hours: mixed, men-only & women-only', 'Multi-sport gyms', 'Custom theme color'] },
     { icon: 'user-tie', title: 'Coach', items: ['Work at multiple gyms', 'Star ratings & comments', 'Public profile'] },
-    { icon: 'person-running', title: 'Member', items: ['Join many gyms', 'See hours open to you', 'Apply promo codes', 'Rate your coaches'] },
+    { icon: 'person-running', title: 'Member', items: ['Registered by each gym', 'Member of many gyms', 'See hours open to you', 'Rate your coaches'] },
   ];
 }

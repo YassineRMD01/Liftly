@@ -34,8 +34,9 @@ export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimmin
       <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
         <h1 class="page-title">Create your account</h1>
         <p class="muted mt-1">Who are you joining as?</p>
+        <p class="text-sm muted mt-1"><fa-icon icon="circle-info" class="text-primary" /> Members don't sign up here — your gym creates your account and sends you your login.</p>
 
-        <div class="grid sm:grid-cols-3 gap-3 mt-6">
+        <div class="grid sm:grid-cols-2 gap-3 mt-6">
           @for (r of roleOptions; track r.value) {
             <button type="button" (click)="setRole(r.value)"
               class="card !p-4 text-left cursor-pointer transition-all"
@@ -142,7 +143,6 @@ export class Signup implements OnInit {
   protected readonly roleOptions: { value: Role; label: string; hint: string; icon: IconProp }[] = [
     { value: 'ADMIN', label: 'Gym owner', hint: 'Subscribe and manage your gym', icon: 'building' },
     { value: 'COACH', label: 'Coach', hint: 'Free — work with many gyms', icon: 'user-tie' },
-    { value: 'CLIENT', label: 'Member', hint: 'Free — join gyms & rate coaches', icon: 'person-running' },
   ];
 
   protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, city: '', color: '6366f1', card: '', expiry: '' };
@@ -150,7 +150,7 @@ export class Signup implements OnInit {
   ngOnInit() {
     if (this.plan()) this.planId.set(this.plan()!);
     const as = this.as()?.toUpperCase();
-    if (as === 'COACH' || as === 'CLIENT') this.role.set(as);
+    if (as === 'COACH') this.role.set(as);
     const qp = new URLSearchParams(location.search).get('cycle');
     if (qp === 'YEARLY') this.cycle.set('YEARLY');
   }

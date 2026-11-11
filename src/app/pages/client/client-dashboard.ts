@@ -17,7 +17,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
   imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekSchedule],
   template: `
     <app-page-header [title]="'Hey ' + auth.user()?.firstName + ' 👋'" subtitle="Your memberships across all your gyms.">
-      <p-button label="Find a gym" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
+      <p-button label="Browse gyms" [outlined]="true" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
     </app-page-header>
 
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -50,8 +50,8 @@ import { statusSeverity } from '../super-admin/sa-gyms';
         <div class="card md:col-span-2 xl:col-span-3 text-center py-12">
           <fa-icon icon="dumbbell" class="text-4xl text-primary" />
           <p class="mt-3 font-semibold">No active membership</p>
-          <p class="muted text-sm mb-4">Browse gyms near you and join in a minute.</p>
-          <p-button label="Find a gym" routerLink="/client/gyms" />
+          <p class="muted text-sm mb-4">Your gym registers your membership — ask at the front desk or contact them.</p>
+          <p-button label="Browse gyms" [outlined]="true" routerLink="/client/gyms" />
         </div>
       }
     </div>
