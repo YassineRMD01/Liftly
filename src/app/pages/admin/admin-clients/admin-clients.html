@@ -1,0 +1,105 @@
+<app-page-header title="Clients" subtitle="Only you can register members — create their account and membership here.">
+  <p-button label="Add client" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="card">
+  <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [globalFilterFields]="['clientName', 'planName']" [tableStyle]="{ 'min-width': '64rem' }">
+    <ng-template #caption>
+      <div class="flex flex-wrap gap-3 items-center">
+        <p-iconfield>
+          <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
+          <input pInputText placeholder="Search client or plan" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+        </p-iconfield>
+        <div class="flex-1"></div>
+        <p-selectbutton [options]="filters" optionLabel="label" optionValue="value" [ngModel]="status()" (ngModelChange)="status.set($event)" [allowEmpty]="false" />
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="clientName">Client <p-sorticon field="clientName" /></th>
+        <th>Plan</th><th>Coach</th><th>Paid</th><th pSortableColumn="endDate">Period <p-sorticon field="endDate" /></th><th>Status</th><th></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-r>
+      <tr>
+        <td>
+          <div class="font-medium">{{ r.clientName }}</div>
+          <div class="text-xs muted">{{ r.email }}</div>
+        </td>
+        <td>{{ r.planName }}</td>
+        <td>
+          <p-select [options]="coaches()" [optionLabel]="'label'" optionValue="id" [ngModel]="r.m.coachId" (ngModelChange)="setCoach(r.m, $event)"
+            placeholder="Assign" [showClear]="true" size="small" appendTo="body" styleClass="w-40" />
+        </td>
+        <td>
+          {{ r.m.pricePaid | money: cur() }}
+          @if (r.promo) { <p-tag [value]="r.promo" severity="info" styleClass="ml-1 !text-[10px]" /> }
+        </td>
+        <td class="text-sm">{{ r.m.startDate | date: 'mediumDate' }} → {{ r.m.endDate | date: 'mediumDate' }}</td>
+        <td><p-tag [value]="r.m.status" [severity]="sev(r.m.status)" /></td>
+        <td class="whitespace-nowrap">
+          <p-button [text]="true" [rounded]="true" pTooltip="Payments calendar" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
+          <p-button [text]="true" [rounded]="true" pTooltip="Renew" (onClick)="renew(r.m)"><fa-icon icon="rotate" /></p-button>
+          @if (r.m.status === 'ACTIVE') {
+            <p-button [text]="true" [rounded]="true" severity="danger" pTooltip="Cancel" (onClick)="cancel(r.m)"><fa-icon icon="ban" /></p-button>
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage><tr><td colspan="7" class="text-center muted py-8">No clients found.</td></tr></ng-template>
+  </p-table>
+</div>
+
+<app-payment-calendar />
+
+<p-dialog header="Add client subscription" [(visible)]="visible" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="space-y-4">
+    <p-selectbutton [options]="modes" optionLabel="label" optionValue="value" [(ngModel)]="mode" [allowEmpty]="false" />
+    @if (mode === 'existing') {
+      <div class="field">
+        <label>Client</label>
+        <p-select [options]="allClients()" optionLabel="label" optionValue="id" [(ngModel)]="form.clientId" [filter]="true" filterBy="label" placeholder="Search a member" styleClass="w-full" appendTo="body" />
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field"><label>First name</label><input pInputText [(ngModel)]="form.firstName" /></div>
+        <div class="field"><label>Last name</label><input pInputText [(ngModel)]="form.lastName" /></div>
+        <div class="field col-span-2"><label>Email</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
+        <div class="field col-span-2"><label>Gender</label><p-selectbutton [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="form.gender" /></div>
+      </div>
+      <p class="text-xs muted">A member account is created with the temporary password <b>welcome</b>.</p>
+    }
+    <div class="field">
+      <label>Membership plan</label>
+      <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="form.planId" (ngModelChange)="promoResult.set(null)" placeholder="Choose a plan" styleClass="w-full" appendTo="body">
+        <ng-template #item let-p><div class="flex justify-between w-full gap-4"><span>{{ p.name }}</span><span class="muted">{{ p.price | money: cur() }}</span></div></ng-template>
+      </p-select>
+    </div>
+    <div class="field">
+      <label>Coach (optional)</label>
+      <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="form.coachId" [showClear]="true" placeholder="No coach" styleClass="w-full" appendTo="body" />
+    </div>
+    <div class="field">
+      <label>Promo code</label>
+      <div class="flex gap-2">
+        <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="form.promo" [disabled]="!form.planId" />
+        <p-button label="Apply" [outlined]="true" (onClick)="applyPromo()" [disabled]="!form.planId || !form.promo" />
+      </div>
+      @if (promoResult(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
+    </div>
+    @if (form.planId) {
+      <div class="flex justify-between items-center p-3 rounded-xl bg-surface-100 dark:bg-surface-800">
+        <span class="muted">Total</span>
+        <span class="text-xl font-bold">
+          @if (promoResult()?.ok) { <s class="text-sm muted mr-2">{{ planPrice() | money: cur() }}</s> }
+          {{ (promoResult()?.ok ? promoResult()!.finalPrice : planPrice()) | money: cur() }}
+        </span>
+      </div>
+    }
+    @if (limitReached()) { <p-message severity="warn">Client limit of your plan reached — upgrade in Billing.</p-message> }
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="visible = false" />
+    <p-button label="Subscribe" (onClick)="submit()" [disabled]="!form.planId || limitReached()" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,50 @@
+<app-page-header title="Membership plans" subtitle="Subscriptions your clients can buy.">
+  <p-button label="New plan" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+  @for (p of plans(); track p.id) {
+    <div class="card flex flex-col" [class.opacity-60]="!p.active">
+      <div class="flex justify-between items-start gap-2">
+        <h3 class="text-lg font-bold">{{ p.name }}</h3>
+        <p-tag [value]="p.active ? 'On sale' : 'Hidden'" [severity]="p.active ? 'success' : 'secondary'" />
+      </div>
+      <p class="text-sm muted mt-1 flex-1">{{ p.description }}</p>
+      <div class="text-3xl font-extrabold mt-4">{{ p.price | money: cur() }}</div>
+      <div class="text-sm muted">for {{ p.durationDays }} days</div>
+      <div class="flex flex-wrap gap-3 text-sm mt-4">
+        <span><fa-icon icon="calendar-check" class="text-primary" /> {{ p.sessionsPerWeek === -1 ? 'Unlimited' : p.sessionsPerWeek + '×/week' }}</span>
+        @if (p.includesCoaching) { <span><fa-icon icon="user-tie" class="text-primary" /> Coaching</span> }
+        <span><fa-icon icon="users" class="text-primary" /> {{ subscribers(p.id) }} subscribers</span>
+      </div>
+      <div class="flex gap-2 mt-5">
+        <p-button label="Edit" size="small" [outlined]="true" (onClick)="edit(p)" />
+        <p-button label="Delete" size="small" severity="danger" [text]="true" (onClick)="remove(p)" />
+      </div>
+    </div>
+  } @empty {
+    <div class="card md:col-span-2 xl:col-span-3 text-center py-12">
+      <fa-icon icon="id-card" class="text-4xl text-primary" />
+      <p class="mt-3 font-semibold">No membership plans yet</p>
+      <p class="muted text-sm">Create your first plan so clients can subscribe.</p>
+    </div>
+  }
+</div>
+
+<p-dialog [header]="draft().id ? 'Edit plan' : 'New plan'" [(visible)]="visible" [modal]="true" [style]="{ width: '36rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div class="field sm:col-span-2"><label>Name</label><input pInputText [(ngModel)]="draft().name" placeholder="e.g. Monthly unlimited" /></div>
+    <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
+    <div class="field"><label>Price</label><p-inputnumber [(ngModel)]="draft().price" mode="currency" [currency]="cur()" [min]="0" /></div>
+    <div class="field"><label>Duration (days)</label><p-inputnumber [(ngModel)]="draft().durationDays" [min]="1" [showButtons]="true" /></div>
+    <div class="field"><label>Sessions / week (-1 = ∞)</label><p-inputnumber [(ngModel)]="draft().sessionsPerWeek" [min]="-1" [showButtons]="true" /></div>
+    <div class="flex flex-col gap-3 justify-end">
+      <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().includesCoaching" /> Includes coaching</label>
+      <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> On sale</label>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="visible = false" />
+    <p-button label="Save" (onClick)="save()" [disabled]="!draft().name || !draft().durationDays" />
+  </ng-template>
+</p-dialog>

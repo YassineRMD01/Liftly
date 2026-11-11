@@ -1,0 +1,83 @@
+<app-page-header title="Branding" subtitle="Make the app look like your gym — your members and coaches will see it too.">
+  <p-button label="Reset" severity="secondary" [outlined]="true" (onClick)="load()" />
+  <p-button label="Save changes" (onClick)="save()" />
+</app-page-header>
+
+@if (!allowed()) {
+  <p-message severity="warn" styleClass="mb-6">
+    <span>Custom colors are part of the <b>Pro</b> plan. You can preview them here, then <a routerLink="/admin/billing" class="underline font-semibold">upgrade</a> to save.</span>
+  </p-message>
+}
+
+<div class="grid lg:grid-cols-5 gap-6">
+  <div class="lg:col-span-3 space-y-6">
+    <div class="card space-y-5">
+      <h2 class="font-semibold">Brand color</h2>
+      <div class="flex flex-wrap gap-3">
+        @for (c of presets; track c) {
+          <button type="button" (click)="setColor(c)" [style.background]="c" [attr.aria-label]="'Use ' + c"
+            class="w-10 h-10 rounded-xl cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 transition"
+            [class.ring-2]="color() === c" [class.ring-surface-900]="color() === c"></button>
+        }
+      </div>
+      <div class="flex items-center gap-4">
+        <p-colorpicker [ngModel]="color().slice(1)" (ngModelChange)="setColor('#' + $event)" />
+        <input pInputText class="w-32 font-mono" [ngModel]="color()" (ngModelChange)="onHex($event)" />
+        <span class="text-sm muted">Any hex color</span>
+      </div>
+      <label class="flex items-center gap-3"><p-toggleswitch [ngModel]="theme.dark()" (ngModelChange)="theme.dark.set($event)" /> Preview in dark mode</label>
+    </div>
+
+    <div class="card space-y-4">
+      <h2 class="font-semibold">Gym identity</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="field"><label>Gym name</label><input pInputText [(ngModel)]="draft.name" /></div>
+        <div class="field"><label>Logo initials</label><input pInputText maxlength="3" class="uppercase" [ngModel]="logo()" (ngModelChange)="setLogo($event)" /></div>
+        <div class="field"><label>Sports / activities</label><p-multiselect [options]="sports" [(ngModel)]="draft.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" appendTo="body" /></div>
+        <div class="field"><label>City</label><input pInputText [(ngModel)]="draft.city" /></div>
+        <div class="field sm:col-span-2">
+          <label>Currency</label>
+          <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" appendTo="body">
+            <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
+            <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+          </p-select>
+          <small class="muted">Used for membership prices, promo codes and client payments. Existing amounts are not converted.</small>
+        </div>
+        <div class="field sm:col-span-2"><label>Address</label><input pInputText [(ngModel)]="draft.address" /></div>
+        <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="3" [(ngModel)]="draft.description"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- live preview -->
+  <div class="lg:col-span-2">
+    <div class="sticky top-24">
+      <div class="text-sm font-semibold mb-2">Live preview — member app</div>
+      <div class="card !p-0 overflow-hidden">
+        <div class="bg-primary text-primary-contrast p-5">
+          <div class="flex items-center gap-3">
+            <span class="w-11 h-11 rounded-xl bg-white/20 grid place-items-center font-extrabold">{{ logo() }}</span>
+            <div>
+              <div class="font-bold text-lg">{{ draft.name || 'Your gym' }}</div>
+              <div class="text-sm opacity-80">{{ draft.sports.join(', ') }} · {{ draft.city }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="p-5 space-y-4">
+          <p class="text-sm muted">{{ draft.description || 'Your description appears here.' }}</p>
+          <div class="flex gap-2 flex-wrap">
+            <p-tag value="Open now" /><p-tag value="Coaching" severity="secondary" />
+          </div>
+          <div class="p-4 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-950">
+            <div class="font-semibold">Monthly unlimited</div>
+            <div class="text-2xl font-bold text-primary">{{ 49 | money: draft.currency }}</div>
+          </div>
+          <div class="flex gap-2">
+            <p-button label="Join now" styleClass="flex-1" class="flex-1" />
+            <p-button [outlined]="true"><fa-icon icon="heart" /></p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

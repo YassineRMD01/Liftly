@@ -1,0 +1,10 @@
+<div class="card flex items-center gap-4">
+  <div class="w-12 h-12 rounded-xl grid place-items-center bg-primary-50 dark:bg-primary-950 text-primary text-xl">
+    <fa-icon [icon]="icon()" />
+  </div>
+  <div class="min-w-0">
+    <div class="text-sm muted">{{ label() }}</div>
+    <div class="text-2xl font-bold">{{ value() }}</div>
+    @if (hint()) { <div class="text-xs muted mt-0.5">{{ hint() }}</div> }
+  </div>
+</div>

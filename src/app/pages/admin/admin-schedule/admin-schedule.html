@@ -1,0 +1,154 @@
+@if (gym(); as g) {
+  <app-page-header title="Schedule" subtitle="Opening hours per day — mixed, men-only or women-only sessions, per sport or for the whole gym.">
+    <p-menu #tpl [model]="templates" [popup]="true" appendTo="body" />
+    <p-button label="Templates" severity="secondary" [outlined]="true" (onClick)="tpl.toggle($event)">
+      <ng-template #icon><fa-icon icon="wand-magic-sparkles" /></ng-template>
+    </p-button>
+    <p-button label="Add time slot" (onClick)="openSlot()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+  </app-page-header>
+
+  <div class="card mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+    <div class="flex-1"><div class="text-sm muted mb-1">Right now</div><app-open-status [gymId]="g.id" /></div>
+    <div class="flex flex-wrap gap-4 text-sm">
+      <span><b>{{ weeklyHours().MIXED }}</b>h <span class="muted">mixed</span></span>
+      <span><b>{{ weeklyHours().MEN }}</b>h <span class="muted">men</span></span>
+      <span><b>{{ weeklyHours().WOMEN }}</b>h <span class="muted">women</span></span>
+      <span class="muted">per week</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 mb-4">
+    <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false">
+      <ng-template #item let-o><fa-icon [icon]="o.icon" class="mr-1.5" />{{ o.label }}</ng-template>
+    </p-selectbutton>
+    @if (view() === 'calendar') { <span class="text-sm muted">Click a session to edit it.</span> }
+  </div>
+
+  @if (view() === 'calendar') {
+    <div class="card mb-6">
+      <app-week-calendar [gymId]="g.id" [editable]="true" (slotClick)="openSlot($event.day, $event)" />
+    </div>
+  }
+
+  <div class="grid gap-6" [class.xl:grid-cols-5]="view() === 'list'">
+    <!-- editor -->
+    <div class="xl:col-span-3 space-y-3" [class.hidden]="view() === 'calendar'">
+      @for (d of week(); track d.day) {
+        <div class="card !p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="font-semibold flex-1" [class.text-primary]="d.today">{{ d.label }} @if (d.today) { <span class="text-xs font-normal muted">· today</span> }</h3>
+            @if (d.slots.length) {
+              <p-button [text]="true" size="small" severity="secondary" pTooltip="Copy this day to…" (onClick)="openCopy(d.day)"><fa-icon icon="copy" /></p-button>
+              <p-button [text]="true" size="small" severity="danger" pTooltip="Clear day" (onClick)="clearDay(d.day)"><fa-icon icon="trash" /></p-button>
+            }
+            <p-button [text]="true" size="small" label="Add" (onClick)="openSlot(d.day)"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+          </div>
+          @for (s of d.slots; track s.id) {
+            <div class="flex flex-wrap items-center gap-2 py-2 border-t border-surface-100 dark:border-surface-800">
+              <span class="font-mono text-sm tabular-nums w-28">{{ s.open }} – {{ s.close }}</span>
+              <app-audience-tag [audience]="s.audience" />
+              <span class="text-sm">{{ s.sport ?? 'Whole gym' }}</span>
+              @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
+              <span class="flex-1"></span>
+              <p-button [text]="true" [rounded]="true" size="small" (onClick)="openSlot(d.day, s)" pTooltip="Edit"><fa-icon icon="pen" /></p-button>
+              <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="removeSlot(s)" pTooltip="Delete"><fa-icon icon="trash" /></p-button>
+            </div>
+          } @empty {
+            <div class="text-sm muted border-t border-surface-100 dark:border-surface-800 pt-2">Closed all day</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- side: preview + closures -->
+    <div class="space-y-6" [class.xl:col-span-2]="view() === 'list'">
+      <div class="card">
+        <h2 class="font-semibold mb-1">Closures & holidays</h2>
+        <p class="text-xs muted mb-3">The gym is closed all day on these dates, whatever the weekly schedule says.</p>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <p-datepicker [(ngModel)]="closureDate" [minDate]="today" [showIcon]="true" placeholder="Date" appendTo="body" styleClass="w-full sm:w-44" />
+          <input pInputText class="flex-1" placeholder="Reason (e.g. National holiday)" [(ngModel)]="closureReason" />
+          <p-button label="Add" (onClick)="addClosure()" [disabled]="!closureDate || !closureReason" />
+        </div>
+        <div class="mt-3 space-y-1">
+          @for (c of closures(); track c.id) {
+            <div class="flex items-center gap-2 text-sm py-1">
+              <fa-icon icon="calendar-xmark" class="text-red-500" />
+              <span class="font-medium">{{ c.date | date: 'EEE, MMM d, y' }}</span>
+              <span class="muted flex-1">{{ c.reason }}</span>
+              <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="store.deleteClosure(c.id)"><fa-icon icon="xmark" /></p-button>
+            </div>
+          } @empty { <p class="text-sm muted">No closures planned.</p> }
+        </div>
+      </div>
+
+      <div class="card" [class.hidden]="view() === 'calendar'">
+        <h2 class="font-semibold mb-3">What members see</h2>
+        <app-week-schedule [gymId]="g.id" />
+      </div>
+    </div>
+  </div>
+
+  <!-- slot dialog -->
+  <p-dialog [header]="draft.id ? 'Edit time slot' : 'New time slot'" [(visible)]="slotVisible" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <div class="space-y-4">
+      <div class="field">
+        <label>{{ draft.id ? 'Day' : 'Days' }}</label>
+        <div class="flex flex-wrap gap-1.5">
+          @for (d of weekOrder; track d) {
+            <button type="button" (click)="toggleDay(d)"
+              class="w-12 py-1.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors border-surface-300 dark:border-surface-600"
+              [class.!bg-primary]="draft.days.includes(d)" [class.!text-primary-contrast]="draft.days.includes(d)" [class.!border-primary]="draft.days.includes(d)">
+              {{ dayShort[d] }}
+            </button>
+          }
+        </div>
+        @if (!draft.id) {
+          <div class="flex gap-3 text-xs mt-1">
+            <a class="text-primary cursor-pointer" (click)="draft.days = [1, 2, 3, 4, 5]">Weekdays</a>
+            <a class="text-primary cursor-pointer" (click)="draft.days = [6, 0]">Weekend</a>
+            <a class="text-primary cursor-pointer" (click)="draft.days = [1, 2, 3, 4, 5, 6, 0]">Every day</a>
+          </div>
+        }
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="field"><label>Opens</label><input pInputText type="time" [(ngModel)]="draft.open" /></div>
+        <div class="field"><label>Closes</label><input pInputText type="time" [(ngModel)]="draft.close" /></div>
+      </div>
+      <div class="field">
+        <label>Who can attend</label>
+        <p-selectbutton [options]="audiences" optionLabel="label" optionValue="value" [(ngModel)]="draft.audience" [allowEmpty]="false">
+          <ng-template #item let-o><fa-icon [icon]="o.icon" class="mr-1.5" [style.color]="o.color" />{{ o.label }}</ng-template>
+        </p-selectbutton>
+      </div>
+      <div class="field">
+        <label>Area / sport</label>
+        <p-select [options]="sportOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.sport" styleClass="w-full" appendTo="body" />
+      </div>
+      <div class="field"><label>Note (optional)</label><input pInputText [(ngModel)]="draft.note" placeholder="e.g. Ladies hours, Kids class" /></div>
+      @if (error()) { <p-message severity="error">{{ error() }}</p-message> }
+      <p class="text-xs muted">Men-only and women-only sessions may run at the same time (separate areas). Any other overlap on the same area is refused.</p>
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="slotVisible = false" />
+      <p-button label="Save" (onClick)="saveSlot()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- copy dialog -->
+  <p-dialog [header]="'Copy ' + (copyFrom() !== null ? dayLabel[copyFrom()!] : '') + ' to…'" [(visible)]="copyVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+    <div class="flex flex-wrap gap-1.5">
+      @for (d of weekOrder; track d) {
+        @if (d !== copyFrom()) {
+          <button type="button" (click)="toggleCopy(d)" class="w-12 py-1.5 rounded-lg text-sm font-medium border cursor-pointer border-surface-300 dark:border-surface-600"
+            [class.!bg-primary]="copyTo.includes(d)" [class.!text-primary-contrast]="copyTo.includes(d)" [class.!border-primary]="copyTo.includes(d)">{{ dayShort[d] }}</button>
+        }
+      }
+    </div>
+    <p class="text-xs muted mt-3">The selected days' current slots are replaced.</p>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="copyVisible = false" />
+      <p-button label="Copy" (onClick)="copy()" [disabled]="!copyTo.length" />
+    </ng-template>
+  </p-dialog>
+}

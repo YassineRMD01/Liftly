@@ -6,10 +6,7 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, Toast, ConfirmDialog],
-  template: `
-    <router-outlet />
-    <p-toast position="top-right" />
-    <p-confirmdialog />
-  `,
+  templateUrl: './app.html',
+  styleUrl: './app.css',
 })
 export class App {}

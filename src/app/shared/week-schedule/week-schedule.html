@@ -1,0 +1,43 @@
+<div class="flex flex-wrap gap-2 mb-3 text-xs">
+  <app-audience-tag audience="MIXED" /><app-audience-tag audience="MEN" /><app-audience-tag audience="WOMEN" />
+  @if (gender()) { <span class="muted self-center">Faded slots are not open to you.</span> }
+</div>
+<div class="divide-y divide-surface-200 dark:divide-surface-800">
+  @for (d of days(); track d.day) {
+    <div class="py-2.5 grid grid-cols-[5.5rem_1fr] gap-3 items-start" [class.font-semibold]="d.today">
+      <div class="text-sm pt-0.5" [class.text-primary]="d.today">{{ d.label }}</div>
+      <div class="min-w-0">
+        @if (d.slots.length) {
+          <!-- timeline -->
+          <div class="relative h-2.5 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden mb-2">
+            @for (s of d.slots; track s.id) {
+              <div class="absolute top-0 h-full" [style.left.%]="pos(s.open)" [style.width.%]="pos(s.close) - pos(s.open)"
+                [style.background]="color(s)" [class.opacity-25]="!s.ok"
+                [pTooltip]="s.open + '–' + s.close + ' · ' + label(s)"></div>
+            }
+          </div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+            @for (s of d.slots; track s.id) {
+              <span class="inline-flex items-center gap-1.5 text-sm font-normal" [class.opacity-40]="!s.ok">
+                <span class="tabular-nums">{{ s.open }}–{{ s.close }}</span>
+                <app-audience-tag [audience]="s.audience" [short]="true" />
+                @if (s.sport) { <span class="text-xs muted">{{ s.sport }}</span> }
+                @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
+              </span>
+            }
+          </div>
+        } @else {
+          <span class="text-sm muted font-normal">Closed</span>
+        }
+      </div>
+    </div>
+  }
+</div>
+@if (closures().length) {
+  <div class="mt-4 text-sm">
+    <div class="font-semibold mb-1"><fa-icon icon="calendar-xmark" class="text-red-500" /> Upcoming closures</div>
+    @for (c of closures(); track c.id) {
+      <div class="muted">{{ c.date | date: 'EEE, MMM d' }} — {{ c.reason }}</div>
+    }
+  </div>
+}

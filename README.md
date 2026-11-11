@@ -14,6 +14,7 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 ### Currency
 - Each gym has its own currency (`Gym.currency`, ISO 4217 — USD, EUR, GBP, MAD, DZD, TND, AED, SAR…), chosen at sign-up and changeable in Admin → Branding.
 - Membership prices, promo codes, client payments and revenue are shown in the gym's currency with the `money` pipe (`{{ amount | money: gym.currency }}`); changing it does not convert existing amounts.
+- Coaches set the currency of their hourly rate on their profile (`CoachProfile.currency`).
 - Liftly's own SaaS pricing (what gym owners pay) stays in USD.
 
 ### Payments
@@ -48,13 +49,27 @@ Get one at https://primeui.dev/licenses and paste it into `src/app/core/app-sett
 
 ## Structure
 
+Every component lives in its own folder with three files — `name.ts` (logic), `name.html` (template) and `name.css` (styles; Tailwind utilities are used in the templates, so most are empty):
+
 ```
 src/app/
-  core/       models.ts, seed.ts, store.service.ts (mock backend, localStorage),
-              auth.service.ts, guards.ts, theme.service.ts (white-label palette), icons.ts
-  layout/     shell.ts (role-based sidebar, gym switcher, dark mode)
-  shared/     ui.ts (page header, stat card, stars, coach card)
-  pages/      public/ super-admin/ admin/ coach/ client/
+  app.ts / app.html / app.css      root component
+  app.routes.ts, app.config.ts
+  core/        models.ts, seed.ts, store.service.ts (mock backend, localStorage), auth.service.ts,
+               guards.ts, theme.service.ts (white-label palette), schedule.ts, currency.ts (+ money pipe), icons.ts
+  layout/
+    shell/                         role-based sidebar, gym switcher, dark mode
+  shared/
+    page-header/  stat-card/  stars/  coach-card/
+    audience-tag/  open-status/  week-schedule/  week-calendar/
+    payment-calendar/
+  pages/
+    public/       landing/  login/  signup/
+    super-admin/  sa-dashboard/  sa-gyms/  sa-plans/  sa-users/
+    admin/        admin-dashboard/  admin-memberships/  admin-promos/  admin-clients/
+                  admin-coaches/  admin-schedule/  admin-branding/  admin-billing/
+    coach/        coach-dashboard/  coach-reviews/  coach-profile/
+    client/       client-dashboard/  client-gyms/  client-coaches/
 ```
 
 ### Wiring a real backend

@@ -1,0 +1,29 @@
+<app-page-header title="My profile" subtitle="This is what gym admins and members see.">
+  <p-button label="Save" (onClick)="save()" />
+</app-page-header>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 card space-y-4">
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="field"><label>First name</label><input pInputText [(ngModel)]="user.firstName" /></div>
+      <div class="field"><label>Last name</label><input pInputText [(ngModel)]="user.lastName" /></div>
+      <div class="field"><label>Email</label><input pInputText [(ngModel)]="user.email" /></div>
+      <div class="field"><label>Phone</label><input pInputText [(ngModel)]="user.phone" /></div>
+      <div class="field sm:col-span-2"><label>Gender</label><p-selectbutton [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="user.gender" /></div>
+      <div class="field sm:col-span-2"><label>Bio</label><textarea pTextarea rows="4" [(ngModel)]="profile.bio"></textarea></div>
+      <div class="field sm:col-span-2"><label>Specialties (comma separated)</label><input pInputText [(ngModel)]="specialties" placeholder="Boxing, HIIT, Nutrition" /></div>
+      <div class="field"><label>Years of experience</label><p-inputnumber [(ngModel)]="profile.yearsExperience" [min]="0" [showButtons]="true" /></div>
+      <div class="field"><label>Hourly rate</label><p-inputnumber [(ngModel)]="profile.hourlyRate" mode="currency" [currency]="profile.currency" [min]="0" /></div>
+      <div class="field">
+        <label>Currency</label>
+        <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+          <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
+          <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+        </p-select>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="text-sm font-semibold mb-2">Public card</div>
+    <app-coach-card [coachId]="user.id" />
+  </div>
+</div>

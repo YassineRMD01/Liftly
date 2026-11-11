@@ -1,0 +1,49 @@
+<app-page-header title="Coaches" subtitle="Rate and review the coaches at your gyms." >
+  <p-selectbutton [options]="scopes" optionLabel="label" optionValue="value" [ngModel]="scope()" (ngModelChange)="scope.set($event)" [allowEmpty]="false" />
+</app-page-header>
+
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+  @for (c of coaches(); track c.id) {
+    <app-coach-card [coachId]="c.id">
+      @if (canRate(c)) {
+        <p-button [label]="myReview(c) ? 'Edit my review' : 'Rate coach'" size="small" (onClick)="openRate(c)">
+          <ng-template #icon><fa-icon icon="star" /></ng-template>
+        </p-button>
+      }
+      <p-button label="Reviews" size="small" [outlined]="true" (onClick)="openReviews(c)" />
+    </app-coach-card>
+  } @empty {
+    <div class="card md:col-span-2 xl:col-span-3 text-center py-12 muted">Once a gym registers you, its coaches appear here.</div>
+  }
+</div>
+
+<p-dialog [header]="'Rate ' + (coach()?.firstName ?? '')" [(visible)]="rateVisible" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="space-y-4">
+    @if (rateGyms().length > 1) {
+      <div class="field"><label>At gym</label>
+        <p-select [options]="rateGyms()" optionLabel="name" optionValue="id" [(ngModel)]="form.gymId" (ngModelChange)="prefill()" styleClass="w-full" appendTo="body" /></div>
+    }
+    <div class="flex flex-col items-center gap-2 py-2">
+      <p-rating [(ngModel)]="form.rating" [stars]="5" styleClass="text-3xl" />
+      <span class="text-sm muted">{{ labels[form.rating] ?? 'Tap a star' }}</span>
+    </div>
+    <div class="field"><label>Comment</label><textarea pTextarea rows="4" [(ngModel)]="form.comment" placeholder="How was your experience?"></textarea></div>
+  </div>
+  <ng-template #footer>
+    @if (existing()) { <p-button label="Delete" severity="danger" [text]="true" (onClick)="remove()" /> }
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="rateVisible = false" />
+    <p-button label="Submit" (onClick)="submit()" [disabled]="!form.rating || !form.gymId" />
+  </ng-template>
+</p-dialog>
+
+<p-dialog [header]="'Reviews · ' + (coach()?.firstName ?? '')" [(visible)]="reviewsVisible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="space-y-3">
+    @for (r of coachReviews(); track r.id) {
+      <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800">
+        <div class="flex justify-between gap-2"><span class="font-medium">{{ store.fullName(r.clientId) }}</span><app-stars [value]="r.rating" /></div>
+        <p class="text-sm mt-2">{{ r.comment }}</p>
+        <div class="text-xs muted mt-2">{{ store.gym(r.gymId)?.name }} · {{ r.createdAt | date }}</div>
+      </div>
+    } @empty { <p class="muted text-center py-6">No reviews yet — be the first!</p> }
+  </div>
+</p-dialog>

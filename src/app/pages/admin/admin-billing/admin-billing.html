@@ -1,0 +1,54 @@
+@if (gym(); as g) {
+  <app-page-header title="Billing" subtitle="Your Liftly subscription." />
+
+  <div class="card flex flex-col md:flex-row md:items-center gap-6">
+    <div class="flex-1">
+      <div class="text-sm muted">Current plan</div>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="text-2xl font-bold">{{ current()?.name }}</span>
+        <p-tag [value]="g.status" [severity]="sev(g.status)" />
+      </div>
+      <div class="text-sm muted mt-1">
+        {{ price(current(), g.billingCycle) | currency }} / {{ g.billingCycle === 'MONTHLY' ? 'month' : 'year' }} ·
+        {{ g.status === 'TRIAL' ? 'Trial ends' : 'Renews' }} {{ g.renewsAt | date: 'longDate' }}
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <p-button [label]="g.billingCycle === 'MONTHLY' ? 'Switch to yearly (save ~17%)' : 'Switch to monthly'" [outlined]="true" (onClick)="switchCycle()" />
+      @if (g.status === 'TRIAL') { <p-button label="Activate now" (onClick)="activate()" /> }
+    </div>
+  </div>
+
+  <h2 class="font-semibold text-lg mt-8 mb-4">Change plan</h2>
+  <div class="grid md:grid-cols-3 gap-5">
+    @for (p of plans(); track p.id) {
+      <div class="card flex flex-col" [class.!border-primary]="p.id === g.saasPlanId" [class.ring-2]="p.id === g.saasPlanId" [class.ring-primary]="p.id === g.saasPlanId">
+        <div class="flex justify-between"><h3 class="text-lg font-bold">{{ p.name }}</h3>
+          @if (p.id === g.saasPlanId) { <p-tag value="Current" /> }</div>
+        <div class="text-3xl font-extrabold mt-3">{{ price(p, g.billingCycle) | currency: 'USD' : 'symbol' : '1.0-0' }}
+          <span class="text-sm font-normal muted">/{{ g.billingCycle === 'MONTHLY' ? 'mo' : 'yr' }}</span></div>
+        <ul class="mt-4 space-y-1.5 text-sm flex-1">
+          @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
+        </ul>
+        <p-button class="mt-5" styleClass="w-full" [disabled]="p.id === g.saasPlanId"
+          [label]="p.id === g.saasPlanId ? 'Current plan' : (price(p, 'MONTHLY') > price(current(), 'MONTHLY') ? 'Upgrade' : 'Downgrade')"
+          (onClick)="change(p)" />
+      </div>
+    }
+  </div>
+
+  <h2 class="font-semibold text-lg mt-8 mb-4">Invoices</h2>
+  <div class="card">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left muted"><th class="py-2">Date</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+      <tbody>
+        @for (i of invoices(); track i.date) {
+          <tr class="border-t border-surface-200 dark:border-surface-800">
+            <td class="py-3">{{ i.date | date }}</td><td>{{ i.label }}</td><td>{{ i.amount | currency }}</td>
+            <td class="text-right"><p-tag value="Paid" severity="success" /></td>
+          </tr>
+        } @empty { <tr><td colspan="4" class="py-6 text-center muted">No invoices during trial.</td></tr> }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,5 @@
+<span class="inline-flex items-center gap-2">
+  <p-rating [ngModel]="rounded()" [readonly]="true" [stars]="5" />
+  <span class="text-sm font-semibold">{{ value() ? value().toFixed(1) : '—' }}</span>
+  @if (count() !== undefined) { <span class="text-xs muted">({{ count() }})</span> }
+</span>

@@ -1,0 +1,72 @@
+<app-page-header title="Promo codes" subtitle="Discounts clients can apply when subscribing.">
+  <p-button label="New promo code" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="card">
+  <p-table [value]="promos()" [tableStyle]="{ 'min-width': '56rem' }">
+    <ng-template #header>
+      <tr><th>Code</th><th>Discount</th><th>Valid</th><th>Applies to</th><th style="width: 12rem">Usage</th><th>Status</th><th></th></tr>
+    </ng-template>
+    <ng-template #body let-p>
+      <tr>
+        <td>
+          <span class="font-mono font-bold tracking-wider px-2 py-1 rounded-md bg-primary-50 dark:bg-primary-950 text-primary">{{ p.code }}</span>
+          <p-button [text]="true" [rounded]="true" size="small" pTooltip="Copy" (onClick)="copy(p.code)"><fa-icon icon="copy" /></p-button>
+        </td>
+        <td class="font-semibold">{{ p.discountType === 'PERCENT' ? p.value + '%' : (p.value | money: cur()) }}</td>
+        <td class="text-sm">{{ p.validFrom | date: 'mediumDate' }} → {{ p.validUntil | date: 'mediumDate' }}</td>
+        <td class="text-sm muted">{{ planNames(p) }}</td>
+        <td>
+          <div class="text-xs muted mb-1">{{ p.uses }} / {{ p.maxUses === -1 ? '∞' : p.maxUses }}</div>
+          <p-progressbar [value]="p.maxUses === -1 ? 0 : (p.uses / p.maxUses) * 100" [showValue]="false" styleClass="!h-1.5" />
+        </td>
+        <td><p-tag [value]="state(p).label" [severity]="state(p).sev" /></td>
+        <td class="whitespace-nowrap">
+          <p-button [text]="true" [rounded]="true" (onClick)="edit(p)" pTooltip="Edit"><fa-icon icon="pen" /></p-button>
+          <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(p)" pTooltip="Delete"><fa-icon icon="trash" /></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage><tr><td colspan="7" class="text-center muted py-8">No promo codes yet.</td></tr></ng-template>
+  </p-table>
+</div>
+
+<p-dialog [header]="draft().id ? 'Edit promo code' : 'New promo code'" [(visible)]="visible" [modal]="true" [style]="{ width: '38rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div class="field sm:col-span-2">
+      <label>Code</label>
+      <p-inputgroup>
+        <input pInputText class="font-mono uppercase" [(ngModel)]="draft().code" placeholder="SUMMER25" />
+        <p-inputgroup-addon>
+          <p-button [text]="true" (onClick)="generate()" pTooltip="Generate"><fa-icon icon="wand-magic-sparkles" /></p-button>
+        </p-inputgroup-addon>
+      </p-inputgroup>
+    </div>
+    <div class="field">
+      <label>Discount type</label>
+      <p-selectbutton [options]="types" optionLabel="label" optionValue="value" [(ngModel)]="draft().discountType" [allowEmpty]="false" />
+    </div>
+    <div class="field">
+      <label>Value</label>
+      @if (draft().discountType === 'PERCENT') {
+        <p-inputnumber [(ngModel)]="draft().value" suffix=" %" [min]="1" [max]="100" />
+      } @else {
+        <p-inputnumber [(ngModel)]="draft().value" mode="currency" [currency]="cur()" [min]="0" />
+      }
+    </div>
+    <div class="field sm:col-span-2">
+      <label>Valid period</label>
+      <p-datepicker [(ngModel)]="range" selectionMode="range" [readonlyInput]="true" [showIcon]="true" styleClass="w-full" appendTo="body" />
+    </div>
+    <div class="field"><label>Max uses (-1 = ∞)</label><p-inputnumber [(ngModel)]="draft().maxUses" [min]="-1" [showButtons]="true" /></div>
+    <div class="field">
+      <label>Restrict to plans</label>
+      <p-multiselect [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="draft().planIds" placeholder="All plans" display="chip" styleClass="w-full" appendTo="body" />
+    </div>
+    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> Active</label>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="visible = false" />
+    <p-button label="Save" (onClick)="save()" [disabled]="!draft().code || !draft().value" />
+  </ng-template>
+</p-dialog>

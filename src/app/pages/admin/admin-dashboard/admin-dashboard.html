@@ -1,0 +1,69 @@
+@if (gym(); as g) {
+  <app-page-header [title]="'Welcome back, ' + auth.user()?.firstName" [subtitle]="g.name + ' · ' + g.sports.join(', ') + ' · ' + g.city">
+    <p-button label="New promo code" [outlined]="true" routerLink="/admin/promos" />
+    <p-button label="Add client" routerLink="/admin/clients" />
+  </app-page-header>
+
+  @if (g.status === 'TRIAL') {
+    <div class="card !bg-primary-50 dark:!bg-primary-950 !border-primary-200 dark:!border-primary-800 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div class="flex-1">
+        <b>You're on a free trial</b> — ends {{ g.renewsAt | date }}. Add billing to keep your gym running.
+      </div>
+      <p-button label="Manage billing" size="small" routerLink="/admin/billing" />
+    </div>
+  }
+
+  <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <app-stat-card icon="users" label="Active members" [value]="activeMembers()" />
+    <app-stat-card icon="sack-dollar" label="Total revenue" [value]="(revenue() | money: cur() : 0)!" />
+    <app-stat-card icon="user-tie" label="Coaches" [value]="coaches().length" />
+    <app-stat-card icon="ticket" label="Active promo codes" [value]="activePromos()" />
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6 mt-6">
+    <div class="card lg:col-span-2">
+      <h2 class="font-semibold mb-4">Recent memberships</h2>
+      <p-table [value]="recent()" [tableStyle]="{ 'min-width': '36rem' }">
+        <ng-template #header><tr><th>Client</th><th>Plan</th><th>Paid</th><th>Ends</th><th>Status</th></tr></ng-template>
+        <ng-template #body let-m>
+          <tr>
+            <td class="font-medium">{{ store.fullName(m.clientId) }}</td>
+            <td>{{ store.plan(m.planId)?.name }}</td>
+            <td>{{ m.pricePaid | money: cur() }}</td>
+            <td>{{ m.endDate | date }}</td>
+            <td><p-tag [value]="m.status" [severity]="sev(m.status)" /></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage><tr><td colspan="5" class="muted text-center py-6">No memberships yet.</td></tr></ng-template>
+      </p-table>
+    </div>
+    <div class="space-y-6">
+      <div class="card">
+        <h2 class="font-semibold mb-4">Plan usage · {{ saas()?.name }}</h2>
+        <div class="space-y-4 text-sm">
+          <div>
+            <div class="flex justify-between mb-1"><span>Coaches</span><span class="muted">{{ coaches().length }} / {{ limit(saas()?.maxCoaches) }}</span></div>
+            <p-progressbar [value]="pct(coaches().length, saas()?.maxCoaches)" [showValue]="false" styleClass="!h-2" />
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span>Clients</span><span class="muted">{{ clientCount() }} / {{ limit(saas()?.maxClients) }}</span></div>
+            <p-progressbar [value]="pct(clientCount(), saas()?.maxClients)" [showValue]="false" styleClass="!h-2" />
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="font-semibold mb-4">Top coaches</h2>
+        <div class="space-y-3">
+          @for (c of topCoaches(); track c.id) {
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-medium truncate">{{ c.firstName }} {{ c.lastName }}</span>
+              <app-stars [value]="c.avg" [count]="c.count" />
+            </div>
+          } @empty { <p class="text-sm muted">No coaches yet.</p> }
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <p class="muted">No gym found for this account.</p>
+}

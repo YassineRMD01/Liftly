@@ -1,0 +1,29 @@
+<app-page-header title="Reviews" subtitle="What your clients say about you, across all your gyms." />
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="card h-fit">
+    <div class="text-5xl font-extrabold">{{ rating().avg ? rating().avg.toFixed(1) : '—' }}</div>
+    <app-stars [value]="rating().avg" [count]="rating().count" />
+    <div class="space-y-2 mt-6">
+      @for (b of breakdown(); track b.stars) {
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-10">{{ b.stars }} ★</span>
+          <p-progressbar [value]="b.pct" [showValue]="false" styleClass="!h-2 flex-1" class="flex-1" />
+          <span class="w-6 text-right muted">{{ b.count }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="lg:col-span-2 space-y-4">
+    <p-select [options]="gymOptions()" optionLabel="name" optionValue="id" [ngModel]="gym()" (ngModelChange)="gym.set($event)" placeholder="All gyms" [showClear]="true" />
+    @for (r of filtered(); track r.id) {
+      <div class="card">
+        <div class="flex justify-between gap-2 items-center">
+          <span class="font-semibold">{{ store.fullName(r.clientId) }}</span>
+          <app-stars [value]="r.rating" />
+        </div>
+        <p class="mt-2">{{ r.comment }}</p>
+        <div class="text-xs muted mt-2">{{ store.gym(r.gymId)?.name }} · {{ r.createdAt | date: 'longDate' }}</div>
+      </div>
+    } @empty { <div class="card text-center muted py-10">No reviews yet.</div> }
+  </div>
+</div>

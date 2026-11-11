@@ -1,0 +1,76 @@
+<div class="min-h-screen flex">
+  <!-- mobile backdrop -->
+  @if (open()) {
+    <div class="fixed inset-0 bg-black/40 z-30 lg:hidden" (click)="open.set(false)"></div>
+  }
+
+  <aside
+    class="fixed lg:sticky top-0 z-40 h-screen w-64 shrink-0 flex flex-col bg-surface-0 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800 transition-transform lg:translate-x-0"
+    [class.-translate-x-full]="!open()"
+  >
+    <a routerLink="/" class="flex items-center gap-3 px-5 h-16 border-b border-surface-200 dark:border-surface-800">
+      <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center font-extrabold text-sm">
+        {{ brandLogo() }}
+      </span>
+      <span class="font-bold text-lg truncate">{{ brandName() }}</span>
+    </a>
+
+    @if (auth.adminGyms().length > 1) {
+      <div class="px-4 pt-4">
+        <p-select
+          class="w-full"
+          [options]="auth.adminGyms()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="auth.activeGym()?.id"
+          (ngModelChange)="auth.selectGym($event)"
+        />
+      </div>
+    }
+
+    <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+      @for (item of nav(); track item.link) {
+        <a
+          [routerLink]="item.link"
+          routerLinkActive="!bg-primary !text-primary-contrast shadow"
+          [routerLinkActiveOptions]="{ exact: !!item.exact }"
+          (click)="open.set(false)"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+        >
+          <fa-icon [icon]="item.icon" class="w-5 text-center" />
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="p-4 border-t border-surface-200 dark:border-surface-800 flex items-center gap-3">
+      <p-avatar [label]="initials()" shape="circle" styleClass="!bg-primary-100 !text-primary-700" />
+      <div class="min-w-0 flex-1">
+        <div class="text-sm font-semibold truncate">{{ auth.user()?.firstName }} {{ auth.user()?.lastName }}</div>
+        <div class="text-xs muted truncate">{{ auth.user()?.email }}</div>
+      </div>
+      <p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="auth.logout()" pTooltip="Sign out">
+        <fa-icon icon="right-from-bracket" />
+      </p-button>
+    </div>
+  </aside>
+
+  <div class="flex-1 min-w-0 flex flex-col">
+    <header class="sticky top-0 z-20 h-16 flex items-center gap-3 px-4 lg:px-8 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur border-b border-surface-200 dark:border-surface-800">
+      <p-button class="lg:hidden" [text]="true" severity="secondary" (onClick)="open.set(true)" ariaLabel="Open menu">
+        <fa-icon icon="bars" />
+      </p-button>
+      <p-tag [value]="roleLabel()" [rounded]="true" />
+      @if (auth.activeGym(); as g) {
+        <span class="hidden sm:inline text-sm muted">Managing <b class="text-surface-800 dark:text-surface-100">{{ g.name }}</b></span>
+      }
+      <div class="flex-1"></div>
+      <p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="theme.toggleDark()" [pTooltip]="theme.dark() ? 'Light mode' : 'Dark mode'" tooltipPosition="left">
+        <fa-icon [icon]="theme.dark() ? 'sun' : 'moon'" />
+      </p-button>
+    </header>
+    <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+      <router-outlet />
+    </main>
+  </div>
+</div>

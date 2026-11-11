@@ -1,0 +1,22 @@
+@if (coach(); as c) {
+  <div class="card h-full flex flex-col gap-4">
+    <div class="flex items-center gap-3">
+      <p-avatar [label]="c.firstName[0] + c.lastName[0]" size="large" shape="circle" styleClass="!bg-primary !text-primary-contrast" />
+      <div class="min-w-0">
+        <div class="font-semibold text-lg truncate">{{ c.firstName }} {{ c.lastName }}</div>
+        <app-stars [value]="rating().avg" [count]="rating().count" />
+      </div>
+    </div>
+    @if (profile(); as p) {
+      <p class="text-sm muted line-clamp-2">{{ p.bio || 'No bio yet.' }}</p>
+      <div class="flex flex-wrap gap-1.5">
+        @for (s of p.specialties; track s) { <p-chip [label]="s" styleClass="!text-xs !py-1" /> }
+      </div>
+      <div class="text-xs muted">{{ p.yearsExperience }} yrs experience · {{ p.hourlyRate | money: p.currency }}/h</div>
+    }
+    <div class="text-xs muted">
+      Coaches at: {{ gymNames() }}
+    </div>
+    <div class="mt-auto flex gap-2"><ng-content /></div>
+  </div>
+}
