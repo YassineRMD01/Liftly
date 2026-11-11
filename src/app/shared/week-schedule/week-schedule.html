@@ -2,20 +2,39 @@
   <app-audience-tag audience="MIXED" /><app-audience-tag audience="MEN" /><app-audience-tag audience="WOMEN" />
   @if (gender()) { <span class="muted self-center">{{ 'Faded slots are not open to you.' | t }}</span> }
 </div>
+<!-- weekly grid: days on the x-axis, hours on the y-axis -->
+<div class="grid grid-cols-[2.75rem_repeat(7,1fr)] mb-4 text-[10px]">
+  <div></div>
+  @for (d of grid(); track d.day) {
+    <div class="text-center font-semibold pb-1 truncate" [class.text-primary]="d.today">{{ d.short }}</div>
+  }
+  <!-- hour labels -->
+  <div class="relative h-56">
+    @for (tk of ticks(); track tk.label) {
+      <span class="absolute end-1.5 -translate-y-1/2 muted tabular-nums" [style.top.%]="tk.pct">{{ tk.label }}</span>
+    }
+  </div>
+  @for (d of grid(); track d.day) {
+    <div class="relative h-56 border-s border-surface-200 dark:border-surface-700" [class.bg-primary-50/50]="d.today" [class.dark:bg-primary-950/40]="d.today">
+      @for (tk of ticks(); track tk.label) {
+        <div class="absolute inset-x-0 border-t border-surface-100 dark:border-surface-800" [style.top.%]="tk.pct"></div>
+      }
+      @for (s of d.slots; track s.id) {
+        <div class="absolute rounded-sm border border-white/50 dark:border-black/40" [class.opacity-25]="!s.ok"
+          [style.top.%]="s.top" [style.height.%]="s.height"
+          [style.left]="'calc(' + (s.lane / s.lanes) * 100 + '% + 1px)'" [style.width]="'calc(' + 100 / s.lanes + '% - 2px)'"
+          [style.background]="color(s)" [pTooltip]="s.open + '–' + s.close + ' · ' + label(s)" tooltipPosition="top"></div>
+      }
+    </div>
+  }
+</div>
+
 <div class="divide-y divide-surface-200 dark:divide-surface-800">
   @for (d of days(); track d.day) {
     <div class="py-2.5 grid grid-cols-[5.5rem_1fr] gap-3 items-start" [class.font-semibold]="d.today">
       <div class="text-sm pt-0.5" [class.text-primary]="d.today">{{ d.label }}</div>
       <div class="min-w-0">
         @if (d.slots.length) {
-          <!-- timeline -->
-          <div class="relative h-2.5 rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden mb-2">
-            @for (s of d.slots; track s.id) {
-              <div class="absolute top-0 h-full" [style.left.%]="pos(s.open)" [style.width.%]="pos(s.close) - pos(s.open)"
-                [style.background]="color(s)" [class.opacity-25]="!s.ok"
-                [pTooltip]="s.open + '–' + s.close + ' · ' + label(s)"></div>
-            }
-          </div>
           <div class="flex flex-wrap gap-x-4 gap-y-1.5">
             @for (s of d.slots; track s.id) {
               <span class="inline-flex items-center gap-1.5 text-sm font-normal" [class.opacity-40]="!s.ok">

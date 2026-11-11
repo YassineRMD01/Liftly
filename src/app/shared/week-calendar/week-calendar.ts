@@ -1,5 +1,5 @@
 import { TranslatePipe, t, CURRENT_LANGUAGE } from '../../core/i18n/i18n';
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, inject, input, output, viewChild } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
 import { Gender, ScheduleSlot } from '../../core/models';
 import { AUDIENCE, DAY_LABEL, DAY_SHORT, WEEK, canAttend, isoDate, toMin } from '../../core/schedule';
@@ -9,7 +9,8 @@ import { AudienceTag } from '../audience-tag/audience-tag';
 interface PlacedSlot extends ScheduleSlot { ok: boolean; top: number; height: number; lane: number; lanes: number; }
 
 /**
- * Weekly time-grid calendar (Mon → Sun columns, hour rows).
+ * Weekly time-grid calendar: days on the x-axis (Mon → Sun columns), hours on the y-axis (rows).
+ * The grid scrolls vertically with the day header pinned, and opens at the current hour.
  * Parallel sessions (e.g. men & women, or two sports) are drawn side by side.
  * Emits slotClick when `editable` is set (admin).
  */
@@ -25,13 +26,15 @@ export class WeekCalendar {
   readonly gender = input<Gender>();
   readonly editable = input(false);
   readonly slotClick = output<ScheduleSlot>();
-  protected readonly hourPx = 44;
+  /** Height of one hour on the y-axis. */
+  protected readonly hourPx = 96;
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
   private readonly slots = computed(() => this.store.scheduleOfGym(this.gymId()));
-  /** Visible hour range: earliest opening → latest closing (default 06–22). */
+  /** Visible hour range: earliest opening → latest closing (00–23 when the gym has no sessions). */
   private readonly range = computed(() => {
     const all = this.slots();
-    if (!all.length) return { from: 6, to: 22 };
+    if (!all.length) return { from: 0, to: 23 };
     const from = Math.floor(Math.min(...all.map((s) => toMin(s.open))) / 60);
     const to = Math.ceil(Math.max(...all.map((s) => toMin(s.close))) / 60);
     return { from: Math.max(0, from), to: Math.min(24, Math.max(to, from + 1)) };
@@ -79,6 +82,19 @@ export class WeekCalendar {
     const min = n.getHours() * 60 + n.getMinutes();
     return min < from * 60 || min > to * 60 ? null : ((min - from * 60) / 60) * this.hourPx;
   });
+
+  constructor() {
+    afterNextRender(() => this.scrollToNow());
+  }
+
+  /** Scroll the y-axis to one hour before now (or to the first session when the gym is closed now). */
+  scrollToNow() {
+    const el = this.scroller()?.nativeElement;
+    if (!el) return;
+    const first = Math.min(...this.days().flatMap((d) => d.slots.map((s) => s.top)), Infinity);
+    const target = this.nowTop() ?? (Number.isFinite(first) ? first : 0);
+    el.scrollTop = Math.max(0, target - this.hourPx);
+  }
 
   pad(h: number) { return String(h).padStart(2, '0'); }
   color(s: ScheduleSlot) { return AUDIENCE[s.audience].color; }
