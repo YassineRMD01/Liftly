@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -18,12 +18,13 @@ import { AuthService } from '../../core/auth.service';
 import { ClientMembership, Gender } from '../../core/models';
 import { PromoCheck, StoreService } from '../../core/store.service';
 import { PageHeader } from '../../shared/ui';
+import { formatMoney, MoneyPipe } from '../../core/currency';
 import { PaymentCalendar } from '../../shared/payment-calendar';
 import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader, PaymentCalendar],
+  imports: [MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader, PaymentCalendar],
   template: `
     <app-page-header title="Clients" subtitle="Only you can register members — create their account and membership here.">
       <p-button label="Add client" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
@@ -59,7 +60,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
                 placeholder="Assign" [showClear]="true" size="small" appendTo="body" styleClass="w-40" />
             </td>
             <td>
-              {{ r.m.pricePaid | currency }}
+              {{ r.m.pricePaid | money: cur() }}
               @if (r.promo) { <p-tag [value]="r.promo" severity="info" styleClass="ml-1 !text-[10px]" /> }
             </td>
             <td class="text-sm">{{ r.m.startDate | date: 'mediumDate' }} → {{ r.m.endDate | date: 'mediumDate' }}</td>
@@ -99,7 +100,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
         <div class="field">
           <label>Membership plan</label>
           <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="form.planId" (ngModelChange)="promoResult.set(null)" placeholder="Choose a plan" styleClass="w-full" appendTo="body">
-            <ng-template #item let-p><div class="flex justify-between w-full gap-4"><span>{{ p.name }}</span><span class="muted">{{ p.price | currency }}</span></div></ng-template>
+            <ng-template #item let-p><div class="flex justify-between w-full gap-4"><span>{{ p.name }}</span><span class="muted">{{ p.price | money: cur() }}</span></div></ng-template>
           </p-select>
         </div>
         <div class="field">
@@ -118,8 +119,8 @@ import { statusSeverity } from '../super-admin/sa-gyms';
           <div class="flex justify-between items-center p-3 rounded-xl bg-surface-100 dark:bg-surface-800">
             <span class="muted">Total</span>
             <span class="text-xl font-bold">
-              @if (promoResult()?.ok) { <s class="text-sm muted mr-2">{{ planPrice() | currency }}</s> }
-              {{ (promoResult()?.ok ? promoResult()!.finalPrice : planPrice()) | currency }}
+              @if (promoResult()?.ok) { <s class="text-sm muted mr-2">{{ planPrice() | money: cur() }}</s> }
+              {{ (promoResult()?.ok ? promoResult()!.finalPrice : planPrice()) | money: cur() }}
             </span>
           </div>
         }
@@ -138,6 +139,7 @@ export class AdminClients {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected readonly sev = statusSeverity;
+  protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly payments = viewChild(PaymentCalendar);
   protected visible = false;
   protected mode: 'existing' | 'new' = 'existing';
@@ -212,7 +214,7 @@ export class AdminClients {
     const plan = this.store.plan(m.planId);
     if (!plan) return this.err('The plan no longer exists.');
     this.confirm.confirm({
-      header: 'Renew membership', message: `Renew ${plan.name} for ${this.store.fullName(m.clientId)} (${plan.price} USD)?`,
+      header: 'Renew membership', message: `Renew ${plan.name} for ${this.store.fullName(m.clientId)} (${formatMoney(plan.price, this.cur())})?`,
       accept: () => {
         if (m.status === 'ACTIVE') this.store.updateMembership({ ...m, status: 'EXPIRED' });
         this.store.subscribeClient({ gymId: m.gymId, clientId: m.clientId, planId: m.planId, coachId: m.coachId });

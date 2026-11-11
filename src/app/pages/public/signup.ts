@@ -11,6 +11,8 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectButton } from 'primeng/selectbutton';
 import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { CURRENCIES } from '../../core/currency';
 import { AuthService } from '../../core/auth.service';
 import { BillingCycle, Gender, Role } from '../../core/models';
 import { StoreService } from '../../core/store.service';
@@ -20,7 +22,7 @@ export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimmin
 
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect],
+  imports: [FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
   template: `
     <div class="min-h-screen flex flex-col">
       <header class="h-16 px-4 flex items-center max-w-5xl w-full mx-auto">
@@ -68,6 +70,13 @@ export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimmin
                 <div class="field"><label>Gym name</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
                 <div class="field"><label>Sports / activities</label><p-multiselect name="sp" [options]="sports" [(ngModel)]="form.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" /></div>
                 <div class="field"><label>City</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
+                <div class="field">
+                  <label>Currency <span class="muted font-normal">(for your members)</span></label>
+                  <p-select name="cur" [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" styleClass="w-full">
+                    <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
+                    <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+                  </p-select>
+                </div>
                 <div class="field">
                   <label>Brand color</label>
                   <div class="flex items-center gap-3">
@@ -132,6 +141,7 @@ export class Signup implements OnInit {
   readonly as = input<string>();
 
   protected readonly sports = SPORTS;
+  protected readonly currencies = CURRENCIES;
   protected readonly role = signal<Role>('ADMIN');
   protected readonly cycle = signal<BillingCycle>('MONTHLY');
   protected readonly planId = signal('sp-pro');
@@ -145,7 +155,7 @@ export class Signup implements OnInit {
     { value: 'COACH', label: 'Coach', hint: 'Free — work with many gyms', icon: 'user-tie' },
   ];
 
-  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, city: '', color: '6366f1', card: '', expiry: '' };
+  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, currency: 'USD', city: '', color: '6366f1', card: '', expiry: '' };
 
   ngOnInit() {
     if (this.plan()) this.planId.set(this.plan()!);
@@ -181,7 +191,7 @@ export class Signup implements OnInit {
     if (this.role() === 'ADMIN') {
       const now = new Date();
       this.store.addGym({
-        ownerId: user.id, name: f.gymName, sports: f.sports, city: f.city, address: '', description: '',
+        ownerId: user.id, name: f.gymName, sports: f.sports, currency: f.currency, city: f.city, address: '', description: '',
         theme: { primary: '#' + f.color, logoText: f.gymName.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() },
         saasPlanId: this.planId(), billingCycle: this.cycle(), status: 'TRIAL',
         subscribedAt: now.toISOString(), renewsAt: new Date(now.getTime() + 14 * 86400000).toISOString(),

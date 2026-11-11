@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
@@ -16,7 +17,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
+  imports: [MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
   template: `
     <app-page-header [title]="'Hey ' + auth.user()?.firstName + ' 👋'" subtitle="Your memberships across all your gyms.">
       <p-button label="Browse gyms" [outlined]="true" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
@@ -37,7 +38,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
             <app-open-status [gymId]="m.gymId" [gender]="auth.user()?.gender" />
             <div class="text-sm muted">{{ m.startDate | date }} → {{ m.endDate | date }}</div>
             <p-progressbar [value]="progress(m)" [showValue]="false" styleClass="!h-2" />
-            <div class="text-xs muted">{{ daysLeft(m) }} days left · paid {{ m.pricePaid | currency }}
+            <div class="text-xs muted">{{ daysLeft(m) }} days left · paid {{ m.pricePaid | money: store.currencyOf(m.gymId) }}
               @if (store.promo(m.promoCodeId); as p) { with <b>{{ p.code }}</b> }</div>
             @if (m.coachId) {
               <div class="text-sm flex items-center gap-2"><fa-icon icon="user-tie" class="text-primary" /> Coach: <b>{{ store.fullName(m.coachId) }}</b></div>

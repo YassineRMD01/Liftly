@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
@@ -23,7 +23,7 @@ import { PageHeader, Stars } from '../../shared/ui';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
+  imports: [MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   template: `
     <app-page-header title="Gyms" subtitle="Browse gyms, their sports, plans and opening hours. To become a member, ask the gym — they register you." />
 
@@ -51,7 +51,7 @@ import { PageHeader, Stars } from '../../shared/ui';
           <div class="p-5 flex-1 flex flex-col gap-3">
             <app-open-status [gymId]="g.id" [gender]="gender()" />
             <p class="text-sm muted">{{ g.description }}</p>
-            <div class="text-sm"><b>{{ store.coachesOfGym(g.id).length }}</b> coaches · from <b>{{ minPrice(g.id) | currency }}</b></div>
+            <div class="text-sm"><b>{{ store.coachesOfGym(g.id).length }}</b> coaches · from <b>{{ minPrice(g.id) | money: g.currency }}</b></div>
             <div class="mt-auto flex items-center gap-2">
               @if (isMember(g.id)) { <p-tag value="Member" severity="success" /> }
               <div class="flex-1"></div>
@@ -83,7 +83,7 @@ import { PageHeader, Stars } from '../../shared/ui';
                 <div class="p-4 rounded-xl border border-surface-200 dark:border-surface-700">
                   <div class="font-semibold">{{ p.name }}</div>
                   <div class="text-xs muted">{{ p.description }}</div>
-                  <div class="text-lg font-bold mt-2 text-primary">{{ p.price | currency }} <span class="text-xs muted font-normal">/ {{ p.durationDays }} days</span></div>
+                  <div class="text-lg font-bold mt-2 text-primary">{{ p.price | money: g.currency }} <span class="text-xs muted font-normal">/ {{ p.durationDays }} days</span></div>
                 </div>
               } @empty { <p class="text-sm muted">No plans published yet.</p> }
             </div>

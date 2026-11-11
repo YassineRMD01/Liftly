@@ -8,6 +8,8 @@ import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { CURRENCIES, MoneyPipe } from '../../core/currency';
 import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -22,7 +24,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Select, Tag, Textarea, ToggleSwitch, PageHeader],
   template: `
     <app-page-header title="Branding" subtitle="Make the app look like your gym — your members and coaches will see it too.">
       <p-button label="Reset" severity="secondary" [outlined]="true" (onClick)="load()" />
@@ -61,6 +63,14 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
             <div class="field"><label>Logo initials</label><input pInputText maxlength="3" class="uppercase" [ngModel]="logo()" (ngModelChange)="setLogo($event)" /></div>
             <div class="field"><label>Sports / activities</label><p-multiselect [options]="sports" [(ngModel)]="draft.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" appendTo="body" /></div>
             <div class="field"><label>City</label><input pInputText [(ngModel)]="draft.city" /></div>
+            <div class="field sm:col-span-2">
+              <label>Currency</label>
+              <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" appendTo="body">
+                <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
+                <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+              </p-select>
+              <small class="muted">Used for membership prices, promo codes and client payments. Existing amounts are not converted.</small>
+            </div>
             <div class="field sm:col-span-2"><label>Address</label><input pInputText [(ngModel)]="draft.address" /></div>
             <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="3" [(ngModel)]="draft.description"></textarea></div>
           </div>
@@ -88,7 +98,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
               </div>
               <div class="p-4 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-950">
                 <div class="font-semibold">Monthly unlimited</div>
-                <div class="text-2xl font-bold text-primary">$49</div>
+                <div class="text-2xl font-bold text-primary">{{ 49 | money: draft.currency }}</div>
               </div>
               <div class="flex gap-2">
                 <p-button label="Join now" styleClass="flex-1" class="flex-1" />
@@ -108,6 +118,7 @@ export class AdminBranding implements OnDestroy {
   private readonly toast = inject(MessageService);
   protected readonly presets = PRESETS;
   protected readonly sports = SPORTS;
+  protected readonly currencies = CURRENCIES;
   protected readonly color = signal('#6366f1');
   protected readonly logo = signal('');
   protected draft: Gym = this.auth.activeGym()!;

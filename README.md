@@ -11,6 +11,11 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 | **Coach** | Works at **many gyms**, dashboard of gyms & assigned athletes, **star ratings & comments** with rating breakdown, editable public profile |
 | **Client** | Account and memberships are **created only by the gym admin** (no self sign-up, no self checkout). Can be a member of **many gyms**, browses gyms (sports, plans, coaches, hours), sees live *open now* status, the gym schedule as a **weekly calendar** (hours open to them by gender), their **own payments** on the yearly calendar (read-only), **rates & reviews coaches** (1 review per coach per gym) |
 
+### Currency
+- Each gym has its own currency (`Gym.currency`, ISO 4217 — USD, EUR, GBP, MAD, DZD, TND, AED, SAR…), chosen at sign-up and changeable in Admin → Branding.
+- Membership prices, promo codes, client payments and revenue are shown in the gym's currency with the `money` pipe (`{{ amount | money: gym.currency }}`); changing it does not convert existing amounts.
+- Liftly's own SaaS pricing (what gym owners pay) stays in USD.
+
 ### Payments
 - `Payment` = gym + client + day + amount + method (cash / card / transfer) + note.
 - Creating a subscription in Admin → Clients records its payment automatically; more can be added from the calendar (Clients table → calendar icon).

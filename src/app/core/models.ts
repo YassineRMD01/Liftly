@@ -52,6 +52,8 @@ export interface Gym {
   ownerId: string; // ADMIN user
   name: string;
   sports: string[];
+  /** ISO 4217 code the gym prices memberships, promo codes and payments in. */
+  currency: string;
   city: string;
   address: string;
   description: string;

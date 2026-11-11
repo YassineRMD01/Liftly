@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { ProgressBar } from 'primeng/progressbar';
@@ -12,7 +13,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
+  imports: [MoneyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   template: `
     @if (gym(); as g) {
       <app-page-header [title]="'Welcome back, ' + auth.user()?.firstName" [subtitle]="g.name + ' · ' + g.sports.join(', ') + ' · ' + g.city">
@@ -31,7 +32,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
 
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <app-stat-card icon="users" label="Active members" [value]="activeMembers()" />
-        <app-stat-card icon="sack-dollar" label="Total revenue" [value]="(revenue() | currency: 'USD' : 'symbol' : '1.0-0')!" />
+        <app-stat-card icon="sack-dollar" label="Total revenue" [value]="(revenue() | money: cur() : 0)!" />
         <app-stat-card icon="user-tie" label="Coaches" [value]="coaches().length" />
         <app-stat-card icon="ticket" label="Active promo codes" [value]="activePromos()" />
       </div>
@@ -45,7 +46,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
               <tr>
                 <td class="font-medium">{{ store.fullName(m.clientId) }}</td>
                 <td>{{ store.plan(m.planId)?.name }}</td>
-                <td>{{ m.pricePaid | currency }}</td>
+                <td>{{ m.pricePaid | money: cur() }}</td>
                 <td>{{ m.endDate | date }}</td>
                 <td><p-tag [value]="m.status" [severity]="sev(m.status)" /></td>
               </tr>
@@ -89,6 +90,7 @@ export class AdminDashboard {
   protected readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
+  protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly gym = this.auth.activeGym;
   protected readonly saas = computed(() => this.store.saasPlan(this.gym()?.saasPlanId));
   private readonly memberships = computed(() => (this.gym() ? this.store.membershipsOfGym(this.gym()!.id) : []));

@@ -60,9 +60,9 @@ export const SEED: DbState = {
     { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true },
   ],
   gyms: [
-    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sports: ['Bodybuilding', 'Fitness', 'CrossFit'], city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
-    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sports: ['Swimming', 'Aqua Fitness'], city: 'San Diego', address: '4 Ocean Ave', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
-    { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sports: ['Karate', 'BJJ', 'Kickboxing'], city: 'Seattle', address: '88 Zen Rd', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(10) },
+    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sports: ['Bodybuilding', 'Fitness', 'CrossFit'], currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
+    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sports: ['Swimming', 'Aqua Fitness'], currency: 'EUR', city: 'San Diego', address: '4 Ocean Ave', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
+    { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sports: ['Karate', 'BJJ', 'Kickboxing'], currency: 'MAD', city: 'Seattle', address: '88 Zen Rd', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(10) },
   ],
   gymCoaches: [
     { gymId: 'g-iron', coachId: 'u-c1', since: d(-280) },
@@ -78,7 +78,7 @@ export const SEED: DbState = {
     { id: 'mp-3', gymId: 'g-iron', name: 'Annual Pass', description: '12 months unlimited, best value.', price: 450, durationDays: 365, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-4', gymId: 'g-wave', name: 'Lap Swim', description: 'Open lanes, every day.', price: 39, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-5', gymId: 'g-wave', name: 'Swim School', description: '2 lessons a week with a coach.', price: 99, durationDays: 30, sessionsPerWeek: 2, includesCoaching: true, active: true },
-    { id: 'mp-6', gymId: 'g-kumite', name: 'Dojo Monthly', description: 'All classes, all disciplines.', price: 89, durationDays: 30, sessionsPerWeek: -1, includesCoaching: true, active: true },
+    { id: 'mp-6', gymId: 'g-kumite', name: 'Dojo Monthly', description: 'All classes, all disciplines.', price: 450, durationDays: 30, sessionsPerWeek: -1, includesCoaching: true, active: true },
   ],
   promoCodes: [
     { id: 'pc-1', gymId: 'g-iron', code: 'IRON20', discountType: 'PERCENT', value: 20, validFrom: d(-30), validUntil: d(60), maxUses: 100, uses: 14, planIds: [], active: true },
@@ -91,13 +91,13 @@ export const SEED: DbState = {
     { id: 'm-3', gymId: 'g-iron', clientId: 'u-k2', planId: 'mp-1', pricePaid: 49, startDate: d(-40), endDate: d(-10), status: 'EXPIRED' },
     { id: 'm-4', gymId: 'g-iron', clientId: 'u-k3', planId: 'mp-3', pricePaid: 450, startDate: d(-80), endDate: d(285), status: 'ACTIVE' },
     { id: 'm-5', gymId: 'g-wave', clientId: 'u-k4', planId: 'mp-5', coachId: 'u-c2', pricePaid: 99, startDate: d(-3), endDate: d(27), status: 'ACTIVE' },
-    { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 89, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
-    { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 89, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
+    { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
+    { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 450, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
     ...history('g-iron', 'u-k1', 'mp-2', 149, 5, 2),
     ...history('g-iron', 'u-k2', 'mp-1', 49, 3, 10),
     ...history('g-wave', 'u-k1', 'mp-4', 39, 2, 6),
     ...history('g-wave', 'u-k4', 'mp-5', 99, 4, 8),
-    ...history('g-kumite', 'u-k5', 'mp-6', 89, 2, 4),
+    ...history('g-kumite', 'u-k5', 'mp-6', 450, 2, 4),
   ],
   reviews: [
     { id: 'r-1', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', rating: 5, comment: 'Added 40kg to my deadlift in 3 months. Jordan is the real deal.', createdAt: d(-6) },
@@ -137,7 +137,7 @@ export const SEED: DbState = {
     { id: 'p-ann', gymId: 'g-iron', clientId: 'u-k3', date: isoDay(-80), amount: 450, method: 'TRANSFER', note: 'Annual pass' },
     ...monthly('g-wave', 'u-k1', 39, 2, 6, 'CARD'),
     ...monthly('g-wave', 'u-k4', 99, 4, 8),
-    ...monthly('g-kumite', 'u-k5', 89, 2, 4),
-    ...monthly('g-kumite', 'u-k2', 89, 1, 9),
+    ...monthly('g-kumite', 'u-k5', 450, 2, 4),
+    ...monthly('g-kumite', 'u-k2', 450, 1, 9),
   ],
 };

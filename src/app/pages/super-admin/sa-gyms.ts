@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -19,7 +20,7 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [MoneyPipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   template: `
     <app-page-header title="Gyms" subtitle="All tenants subscribed to the platform." />
     <div class="card">
@@ -50,7 +51,7 @@ export const statusSeverity = (s: string) =>
                 (ngModelChange)="update(g, { saasPlanId: $event })" size="small" appendTo="body" />
             </td>
             <td>{{ store.coachesOfGym(g.id).length }} / {{ store.clientsOfGym(g.id).length }}</td>
-            <td>{{ store.gymRevenue(g.id) | currency }}</td>
+            <td>{{ store.gymRevenue(g.id) | money: g.currency }}</td>
             <td>{{ g.renewsAt | date }}</td>
             <td>
               <p-select [options]="statuses" [ngModel]="g.status" (ngModelChange)="update(g, { status: $event })" size="small" appendTo="body">

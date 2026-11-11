@@ -3,9 +3,10 @@ import {
   ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, Payment, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
 } from './models';
 import { openStatus } from './schedule';
+import { DEFAULT_CURRENCY, formatMoney } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v4';
+const STORAGE_KEY = 'liftly-db-v5';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -57,7 +58,7 @@ export class StoreService {
         db.schedule ??= [];
         db.closures ??= [];
         db.payments ??= [];
-        db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'] }));
+        db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'], currency: g.currency ?? DEFAULT_CURRENCY }));
         return db;
       }
     } catch { /* ignore */ }
@@ -75,6 +76,8 @@ export class StoreService {
   // ---------- lookups ----------
   user(id: string | undefined) { return this.users().find((u) => u.id === id); }
   gym(id: string | undefined) { return this.gyms().find((g) => g.id === id); }
+  /** Currency code of a gym (USD if unknown). */
+  currencyOf(gymId: string | undefined) { return this.gym(gymId)?.currency ?? DEFAULT_CURRENCY; }
   saasPlan(id: string | undefined) { return this.saasPlans().find((p) => p.id === id); }
   plan(id: string | undefined) { return this.membershipPlans().find((p) => p.id === id); }
   promo(id: string | undefined) { return this.promoCodes().find((p) => p.id === id); }
@@ -199,7 +202,7 @@ export class StoreService {
     if (promo.planIds.length && !promo.planIds.includes(planId)) return { ok: false, message: 'Not valid for this plan', finalPrice: price };
     const discount = promo.discountType === 'PERCENT' ? (price * promo.value) / 100 : promo.value;
     const finalPrice = Math.max(0, Math.round((price - discount) * 100) / 100);
-    const label = promo.discountType === 'PERCENT' ? `${promo.value}% off` : `$${promo.value} off`;
+    const label = promo.discountType === 'PERCENT' ? `${promo.value}% off` : `${formatMoney(promo.value, this.currencyOf(gymId))} off`;
     return { ok: true, message: `Code applied: ${label}`, promo, finalPrice };
   }
 

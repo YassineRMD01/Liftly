@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -17,7 +17,7 @@ import { PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'app-admin-memberships',
-  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   template: `
     <app-page-header title="Membership plans" subtitle="Subscriptions your clients can buy.">
       <p-button label="New plan" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
@@ -31,7 +31,7 @@ import { PageHeader } from '../../shared/ui';
             <p-tag [value]="p.active ? 'On sale' : 'Hidden'" [severity]="p.active ? 'success' : 'secondary'" />
           </div>
           <p class="text-sm muted mt-1 flex-1">{{ p.description }}</p>
-          <div class="text-3xl font-extrabold mt-4">{{ p.price | currency }}</div>
+          <div class="text-3xl font-extrabold mt-4">{{ p.price | money: cur() }}</div>
           <div class="text-sm muted">for {{ p.durationDays }} days</div>
           <div class="flex flex-wrap gap-3 text-sm mt-4">
             <span><fa-icon icon="calendar-check" class="text-primary" /> {{ p.sessionsPerWeek === -1 ? 'Unlimited' : p.sessionsPerWeek + '×/week' }}</span>
@@ -56,7 +56,7 @@ import { PageHeader } from '../../shared/ui';
       <div class="grid sm:grid-cols-2 gap-4">
         <div class="field sm:col-span-2"><label>Name</label><input pInputText [(ngModel)]="draft().name" placeholder="e.g. Monthly unlimited" /></div>
         <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
-        <div class="field"><label>Price</label><p-inputnumber [(ngModel)]="draft().price" mode="currency" currency="USD" [min]="0" /></div>
+        <div class="field"><label>Price</label><p-inputnumber [(ngModel)]="draft().price" mode="currency" [currency]="cur()" [min]="0" /></div>
         <div class="field"><label>Duration (days)</label><p-inputnumber [(ngModel)]="draft().durationDays" [min]="1" [showButtons]="true" /></div>
         <div class="field"><label>Sessions / week (-1 = ∞)</label><p-inputnumber [(ngModel)]="draft().sessionsPerWeek" [min]="-1" [showButtons]="true" /></div>
         <div class="flex flex-col gap-3 justify-end">
@@ -77,6 +77,7 @@ export class AdminMemberships {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected visible = false;
+  protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly draft = signal<MembershipPlan>(this.empty());
   protected readonly plans = computed(() => (this.auth.activeGym() ? this.store.plansOfGym(this.auth.activeGym()!.id) : []));
 

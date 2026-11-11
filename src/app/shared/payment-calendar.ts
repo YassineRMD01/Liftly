@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -11,6 +11,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { Tooltip } from 'primeng/tooltip';
 import { Payment, PaymentMethod } from '../core/models';
 import { isoDate } from '../core/schedule';
+import { formatMoney, MoneyPipe } from '../core/currency';
 import { StoreService } from '../core/store.service';
 
 interface CalendarDay {
@@ -40,7 +41,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
  */
 @Component({
   selector: 'app-payment-calendar',
-  imports: [CurrencyPipe, DatePipe, NgClass, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, SelectButton, Tooltip],
+  imports: [MoneyPipe, DatePipe, NgClass, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, SelectButton, Tooltip],
   template: `
     <p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [closable]="false" [dismissableMask]="true" [draggable]="false"
       [style]="{ width: '82rem' }" [breakpoints]="{ '1400px': '95vw' }"
@@ -72,10 +73,10 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
             </div>
             <!-- summary -->
             <div class="flex flex-wrap gap-x-6 gap-y-1 mt-3 text-sm">
-              <span><span class="opacity-80">Paid in {{ year() }}:&nbsp;</span><b>{{ yearTotal() | currency }}</b></span>
+              <span><span class="opacity-80">Paid in {{ year() }}:&nbsp;</span><b>{{ yearTotal() | money: cur() }}</b></span>
               <span><span class="opacity-80">Payments:&nbsp;</span><b>{{ yearCount() }}</b></span>
               <span><span class="opacity-80">Months subscribed:&nbsp;</span><b>{{ coveredMonths() }}/12</b></span>
-              <span><span class="opacity-80">All time:&nbsp;</span><b>{{ allTimeTotal() | currency }}</b></span>
+              <span><span class="opacity-80">All time:&nbsp;</span><b>{{ allTimeTotal() | money: cur() }}</b></span>
             </div>
           </div>
 
@@ -98,7 +99,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
                   <div class="flex items-center justify-between px-3 py-1.5 text-sm font-semibold text-white"
                     [ngClass]="month.status === 'present' ? 'bg-green-600 dark:bg-green-700' : 'bg-surface-400 dark:bg-surface-600'">
                     <span>{{ month.label }}</span>
-                    @if (month.paid) { <span class="text-xs font-medium opacity-90">{{ month.paid | currency }}</span> }
+                    @if (month.paid) { <span class="text-xs font-medium opacity-90">{{ month.paid | money: cur() }}</span> }
                   </div>
                   <div class="grid grid-cols-7 text-center text-[10px] font-semibold muted px-1 pt-1">
                     @for (w of weekdays; track w) { <div>{{ w }}</div> }
@@ -152,13 +153,13 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
             </div>
             @if (action() === 'view') {
               <div class="text-center space-y-1">
-                <div class="text-3xl font-extrabold text-green-600">{{ amount | currency }}</div>
+                <div class="text-3xl font-extrabold text-green-600">{{ amount | money: cur() }}</div>
                 <div class="text-sm muted">{{ methodLabel[method] }}@if (note) { · {{ note }} }</div>
               </div>
             } @else {
               <div class="field">
                 <label>Amount</label>
-                <p-inputnumber [(ngModel)]="amount" mode="currency" currency="USD" [min]="0" inputStyleClass="w-full" styleClass="w-full" [autofocus]="true" />
+                <p-inputnumber [(ngModel)]="amount" mode="currency" [currency]="cur()" [min]="0" inputStyleClass="w-full" styleClass="w-full" [autofocus]="true" />
                 @if (touched && !(amount > 0)) { <small class="text-red-500">Please enter a valid amount.</small> }
               </div>
               <div class="field">
@@ -168,7 +169,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
               <div class="field"><label>Note (optional)</label><input pInputText [(ngModel)]="note" placeholder="e.g. March membership" /></div>
               @if (suggested(); as s) {
                 <button type="button" class="text-xs text-primary cursor-pointer" (click)="amount = s.price; note = note || s.name">
-                  Use plan price: {{ s.name }} ({{ s.price | currency }})
+                  Use plan price: {{ s.name }} ({{ s.price | money: cur() }})
                 </button>
               }
             }
@@ -212,6 +213,8 @@ export class PaymentCalendar {
   protected note = '';
   protected touched = false;
 
+  /** Currency of the gym this calendar belongs to. */
+  protected readonly cur = computed(() => this.store.currencyOf(this.gymId()));
   protected readonly clientName = computed(() => this.store.fullName(this.clientId()));
   protected readonly gymName = computed(() => this.store.gym(this.gymId())?.name ?? '');
   private readonly payments = computed(() => this.store.paymentsOf(this.gymId(), this.clientId()));
@@ -234,6 +237,7 @@ export class PaymentCalendar {
     const y = this.year();
     const byDay = this.paymentsByDay();
     const todayKey = isoDate(this.today());
+    const cur = this.cur();
     const periods = this.memberships().map((m) => [m.startDate.slice(0, 10), m.endDate.slice(0, 10)] as const);
     const isCovered = (key: string) => periods.some(([s, e]) => s <= key && key <= e);
 
@@ -251,7 +255,7 @@ export class PaymentCalendar {
           date, key, payment,
           isToday: key === todayKey,
           covered: isCovered(key),
-          tooltip: payment ? `💰 $${payment.amount} · ${METHOD_LABEL[payment.method]}${payment.note ? ' · ' + payment.note : ''}` : '',
+          tooltip: payment ? `💰 ${formatMoney(payment.amount, cur)} · ${METHOD_LABEL[payment.method]}${payment.note ? ' · ' + payment.note : ''}` : '',
         });
       }
       const mStart = isoDate(first);
@@ -300,14 +304,14 @@ export class PaymentCalendar {
       ...(this.note.trim() ? { note: this.note.trim() } : {}),
     });
     this.editVisible.set(false);
-    this.toast.add({ severity: 'success', summary: this.editing ? 'Payment updated' : 'Payment added', detail: `$${this.amount} on ${isoDate(this.selectedDate())}` });
+    this.toast.add({ severity: 'success', summary: this.editing ? 'Payment updated' : 'Payment added', detail: `${formatMoney(this.amount, this.cur())} on ${isoDate(this.selectedDate())}` });
   }
 
   remove() {
     const p = this.editing;
     if (!p) return;
     this.confirm.confirm({
-      header: 'Delete payment', message: `Delete the $${p.amount} payment of ${p.date}?`, acceptButtonStyleClass: 'p-button-danger',
+      header: 'Delete payment', message: `Delete the ${formatMoney(p.amount, this.cur())} payment of ${p.date}?`, acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.store.deletePayment(p.id);
         this.editVisible.set(false);

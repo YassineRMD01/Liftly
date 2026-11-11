@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { MoneyPipe } from '../../core/currency';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -26,7 +27,7 @@ type PromoState = { label: string; sev: 'success' | 'warn' | 'danger' | 'seconda
 
 @Component({
   selector: 'app-admin-promos',
-  imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, Button, DatePicker, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText, MultiSelect, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
+  imports: [MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, DatePicker, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText, MultiSelect, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
   template: `
     <app-page-header title="Promo codes" subtitle="Discounts clients can apply when subscribing.">
       <p-button label="New promo code" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
@@ -43,7 +44,7 @@ type PromoState = { label: string; sev: 'success' | 'warn' | 'danger' | 'seconda
               <span class="font-mono font-bold tracking-wider px-2 py-1 rounded-md bg-primary-50 dark:bg-primary-950 text-primary">{{ p.code }}</span>
               <p-button [text]="true" [rounded]="true" size="small" pTooltip="Copy" (onClick)="copy(p.code)"><fa-icon icon="copy" /></p-button>
             </td>
-            <td class="font-semibold">{{ p.discountType === 'PERCENT' ? p.value + '%' : (p.value | currency) }}</td>
+            <td class="font-semibold">{{ p.discountType === 'PERCENT' ? p.value + '%' : (p.value | money: cur()) }}</td>
             <td class="text-sm">{{ p.validFrom | date: 'mediumDate' }} → {{ p.validUntil | date: 'mediumDate' }}</td>
             <td class="text-sm muted">{{ planNames(p) }}</td>
             <td>
@@ -81,7 +82,7 @@ type PromoState = { label: string; sev: 'success' | 'warn' | 'danger' | 'seconda
           @if (draft().discountType === 'PERCENT') {
             <p-inputnumber [(ngModel)]="draft().value" suffix=" %" [min]="1" [max]="100" />
           } @else {
-            <p-inputnumber [(ngModel)]="draft().value" mode="currency" currency="USD" [min]="0" />
+            <p-inputnumber [(ngModel)]="draft().value" mode="currency" [currency]="cur()" [min]="0" />
           }
         </div>
         <div class="field sm:col-span-2">
@@ -108,9 +109,10 @@ export class AdminPromos {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected visible = false;
+  protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected range: Date[] | null = null;
   protected readonly draft = signal<PromoCode>(this.empty());
-  protected readonly types = [{ label: '%', value: 'PERCENT' }, { label: '$', value: 'FIXED' }];
+  protected readonly types = [{ label: 'Percent', value: 'PERCENT' }, { label: 'Fixed amount', value: 'FIXED' }];
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
   protected readonly promos = computed(() => this.store.promosOfGym(this.gymId()));
   protected readonly plans = computed(() => this.store.plansOfGym(this.gymId()));
