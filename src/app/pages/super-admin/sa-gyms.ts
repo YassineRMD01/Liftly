@@ -23,7 +23,7 @@ export const statusSeverity = (s: string) =>
   template: `
     <app-page-header title="Gyms" subtitle="All tenants subscribed to the platform." />
     <div class="card">
-      <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sport', 'city']" [tableStyle]="{ 'min-width': '60rem' }">
+      <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sports', 'city']" [tableStyle]="{ 'min-width': '60rem' }">
         <ng-template #caption>
           <p-iconfield>
             <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
@@ -41,7 +41,7 @@ export const statusSeverity = (s: string) =>
             <td>
               <div class="flex items-center gap-3">
                 <span class="w-9 h-9 rounded-lg grid place-items-center text-white text-xs font-bold" [style.background]="g.theme.primary">{{ g.theme.logoText }}</span>
-                <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ g.sport }} · {{ g.city }}</div></div>
+                <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ g.sports.join(', ') }} · {{ g.city }}</div></div>
               </div>
             </td>
             <td>{{ store.fullName(g.ownerId) }}</td>

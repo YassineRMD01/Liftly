@@ -28,6 +28,7 @@ const NAV: Record<Role, NavItem[]> = {
     { label: 'Promo codes', icon: 'ticket', link: '/admin/promos' },
     { label: 'Clients', icon: 'users', link: '/admin/clients' },
     { label: 'Coaches', icon: 'user-tie', link: '/admin/coaches' },
+    { label: 'Schedule', icon: 'clock', link: '/admin/schedule' },
     { label: 'Branding', icon: 'palette', link: '/admin/branding' },
     { label: 'Billing', icon: 'credit-card', link: '/admin/billing' },
   ],

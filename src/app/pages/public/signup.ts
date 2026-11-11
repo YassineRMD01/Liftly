@@ -10,17 +10,17 @@ import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectButton } from 'primeng/selectbutton';
-import { Select } from 'primeng/select';
+import { MultiSelect } from 'primeng/multiselect';
 import { AuthService } from '../../core/auth.service';
-import { BillingCycle, Role } from '../../core/models';
+import { BillingCycle, Gender, Role } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
 
-export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Swimming', 'Martial Arts', 'Boxing', 'Yoga', 'Pilates', 'Tennis', 'Climbing', 'Dance', 'Cycling', 'Other'];
+export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimming', 'Aqua Fitness', 'Martial Arts', 'Karate', 'BJJ', 'Kickboxing', 'Boxing', 'Yoga', 'Pilates', 'Tennis', 'Padel', 'Squash', 'Climbing', 'Dance', 'Cycling', 'Football', 'Basketball', 'Other'];
 
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, Select],
+  imports: [FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect],
   template: `
     <div class="min-h-screen flex flex-col">
       <header class="h-16 px-4 flex items-center max-w-5xl w-full mx-auto">
@@ -55,13 +55,17 @@ export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Swimming', 'Marti
               <div class="field"><label>Last name</label><input pInputText name="ln" [(ngModel)]="form.lastName" required /></div>
               <div class="field"><label>Email</label><input pInputText type="email" name="em" [(ngModel)]="form.email" required /></div>
               <div class="field"><label>Password</label><input pInputText type="password" name="pw" [(ngModel)]="form.password" required /></div>
+              <div class="field sm:col-span-2">
+                <label>Gender <span class="muted font-normal">(used to show men-only / women-only hours that apply to you)</span></label>
+                <p-selectbutton name="gd" [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="form.gender" />
+              </div>
             </div>
 
             @if (role() === 'ADMIN') {
               <h2 class="font-semibold text-lg pt-2">Your gym</h2>
               <div class="grid sm:grid-cols-2 gap-4">
                 <div class="field"><label>Gym name</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
-                <div class="field"><label>Sport</label><p-select name="sp" [options]="sports" [(ngModel)]="form.sport" styleClass="w-full" /></div>
+                <div class="field"><label>Sports / activities</label><p-multiselect name="sp" [options]="sports" [(ngModel)]="form.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" /></div>
                 <div class="field"><label>City</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
                 <div class="field">
                   <label>Brand color</label>
@@ -133,6 +137,7 @@ export class Signup implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly plans = computed(() => this.store.saasPlans().filter((p) => p.active));
   protected readonly selectedPlan = computed(() => this.store.saasPlan(this.planId()));
+  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
   protected readonly cycles = [{ label: 'Monthly', value: 'MONTHLY' }, { label: 'Yearly', value: 'YEARLY' }];
   protected readonly roleOptions: { value: Role; label: string; hint: string; icon: IconProp }[] = [
     { value: 'ADMIN', label: 'Gym owner', hint: 'Subscribe and manage your gym', icon: 'building' },
@@ -140,7 +145,7 @@ export class Signup implements OnInit {
     { value: 'CLIENT', label: 'Member', hint: 'Free — join gyms & rate coaches', icon: 'person-running' },
   ];
 
-  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sport: 'Fitness', city: '', color: '6366f1', card: '', expiry: '' };
+  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, city: '', color: '6366f1', card: '', expiry: '' };
 
   ngOnInit() {
     if (this.plan()) this.planId.set(this.plan()!);
@@ -170,12 +175,13 @@ export class Signup implements OnInit {
     if (!f.firstName || !f.lastName || !f.email || !f.password) return this.error.set('Please fill in all your details.');
     if (this.store.users().some((u) => u.email.toLowerCase() === f.email.toLowerCase())) return this.error.set('This email is already registered.');
     if (this.role() === 'ADMIN' && !f.gymName) return this.error.set('Please give your gym a name.');
+    if (this.role() === 'ADMIN' && !f.sports.length) return this.error.set('Pick at least one sport.');
 
-    const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password });
+    const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password, ...(f.gender ? { gender: f.gender } : {}) });
     if (this.role() === 'ADMIN') {
       const now = new Date();
       this.store.addGym({
-        ownerId: user.id, name: f.gymName, sport: f.sport, city: f.city, address: '', description: '',
+        ownerId: user.id, name: f.gymName, sports: f.sports, city: f.city, address: '', description: '',
         theme: { primary: '#' + f.color, logoText: f.gymName.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() },
         saasPlanId: this.planId(), billingCycle: this.cycle(), status: 'TRIAL',
         subscribedAt: now.toISOString(), renewsAt: new Date(now.getTime() + 14 * 86400000).toISOString(),

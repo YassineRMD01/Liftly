@@ -15,7 +15,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
   imports: [CurrencyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   template: `
     @if (gym(); as g) {
-      <app-page-header [title]="'Welcome back, ' + auth.user()?.firstName" [subtitle]="g.name + ' · ' + g.sport + ' · ' + g.city">
+      <app-page-header [title]="'Welcome back, ' + auth.user()?.firstName" [subtitle]="g.name + ' · ' + g.sports.join(', ') + ' · ' + g.city">
         <p-button label="New promo code" [outlined]="true" routerLink="/admin/promos" />
         <p-button label="Add client" routerLink="/admin/clients" />
       </app-page-header>

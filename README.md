@@ -7,9 +7,15 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 | Role | What they can do |
 |---|---|
 | **Super-admin** | Platform KPIs (MRR, gyms, users), manage the SaaS **pricing plans**, change a gym's plan/status (active / trial / suspended), activate/deactivate users, impersonate |
-| **Gym admin** | Subscribes to a SaaS plan (sign-up + billing page: upgrade/downgrade, monthly↔yearly), **custom theme color & logo** (live preview, Pro+ plans), membership plans CRUD, **promo codes** (% or fixed, date range, max uses, plan restriction), clients & their subscriptions (add / renew / cancel / assign coach, apply promo), link coaches from the network or invite new ones; plan limits are enforced |
+| **Gym admin** | Runs a gym with **one or more sports**, manages the **weekly schedule** (opening/closing hours per day as mixed, men-only or women-only sessions, for the whole gym or one sport/area; templates, copy-a-day, holiday closures, overlap checks), subscribes to a SaaS plan (sign-up + billing page: upgrade/downgrade, monthly↔yearly), **custom theme color & logo** (live preview, Pro+ plans), membership plans CRUD, **promo codes** (% or fixed, date range, max uses, plan restriction), clients & their subscriptions (add / renew / cancel / assign coach, apply promo), link coaches from the network or invite new ones; plan limits are enforced |
 | **Coach** | Works at **many gyms**, dashboard of gyms & assigned athletes, **star ratings & comments** with rating breakdown, editable public profile |
-| **Client** | Joins **many gyms**, picks plan + coach + promo code at checkout (the dialog takes the gym's colors), sees memberships, **rates & reviews coaches** (1 review per coach per gym) |
+| **Client** | Joins **many gyms**, sees live *open now* status and the hours **open to them** (by gender), picks plan + coach + promo code at checkout (the dialog takes the gym's colors), sees memberships, **rates & reviews coaches** (1 review per coach per gym) |
+
+### Schedule rules
+- A slot = day + open/close time + audience (`MIXED` / `MEN` / `WOMEN`) + optional sport (empty = whole gym).
+- Overlapping slots on the same day and area are refused, **except** a men-only and a women-only session running in parallel (separate areas).
+- Closures (holidays, maintenance) close the gym all day on a date.
+- "Open now" uses the viewer's browser clock and gender; members without a gender see all sessions.
 
 Relationships: `Gym ⟷ Coach` many-to-many (`GymCoach`), `Gym ⟷ Client` many-to-many through `ClientMembership`.
 

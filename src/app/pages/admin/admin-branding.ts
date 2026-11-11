@@ -7,7 +7,7 @@ import { Button } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { Select } from 'primeng/select';
+import { MultiSelect } from 'primeng/multiselect';
 import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -22,7 +22,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, Select, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Tag, Textarea, ToggleSwitch, PageHeader],
   template: `
     <app-page-header title="Branding" subtitle="Make the app look like your gym — your members and coaches will see it too.">
       <p-button label="Reset" severity="secondary" [outlined]="true" (onClick)="load()" />
@@ -59,7 +59,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="field"><label>Gym name</label><input pInputText [(ngModel)]="draft.name" /></div>
             <div class="field"><label>Logo initials</label><input pInputText maxlength="3" class="uppercase" [ngModel]="logo()" (ngModelChange)="setLogo($event)" /></div>
-            <div class="field"><label>Sport</label><p-select [options]="sports" [(ngModel)]="draft.sport" styleClass="w-full" /></div>
+            <div class="field"><label>Sports / activities</label><p-multiselect [options]="sports" [(ngModel)]="draft.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" appendTo="body" /></div>
             <div class="field"><label>City</label><input pInputText [(ngModel)]="draft.city" /></div>
             <div class="field sm:col-span-2"><label>Address</label><input pInputText [(ngModel)]="draft.address" /></div>
             <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="3" [(ngModel)]="draft.description"></textarea></div>
@@ -77,7 +77,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
                 <span class="w-11 h-11 rounded-xl bg-white/20 grid place-items-center font-extrabold">{{ logo() }}</span>
                 <div>
                   <div class="font-bold text-lg">{{ draft.name || 'Your gym' }}</div>
-                  <div class="text-sm opacity-80">{{ draft.sport }} · {{ draft.city }}</div>
+                  <div class="text-sm opacity-80">{{ draft.sports.join(', ') }} · {{ draft.city }}</div>
                 </div>
               </div>
             </div>
@@ -135,6 +135,10 @@ export class AdminBranding implements OnDestroy {
   save() {
     const current = this.auth.activeGym();
     if (!current) return;
+    if (!this.draft.sports.length) {
+      this.toast.add({ severity: 'error', summary: 'Pick at least one sport' });
+      return;
+    }
     const keepColor = this.allowed() ? this.color() : current.theme.primary;
     this.store.updateGym({ ...this.draft, theme: { primary: keepColor, logoText: this.logo() } });
     if (!this.allowed()) {

@@ -148,8 +148,8 @@ export class Landing {
   ];
   protected readonly roles: { icon: IconProp; title: string; items: string[] }[] = [
     { icon: 'crown', title: 'Platform owner', items: ['Manage pricing plans', 'Monitor all gyms & MRR', 'Suspend or activate gyms'] },
-    { icon: 'building', title: 'Gym admin', items: ['Membership plans & promo codes', 'Recruit coaches', 'Custom theme color'] },
+    { icon: 'building', title: 'Gym admin', items: ['Membership plans & promo codes', 'Opening hours: mixed, men-only & women-only', 'Multi-sport gyms', 'Custom theme color'] },
     { icon: 'user-tie', title: 'Coach', items: ['Work at multiple gyms', 'Star ratings & comments', 'Public profile'] },
-    { icon: 'person-running', title: 'Member', items: ['Join many gyms', 'Apply promo codes', 'Rate your coaches'] },
+    { icon: 'person-running', title: 'Member', items: ['Join many gyms', 'See hours open to you', 'Apply promo codes', 'Rate your coaches'] },
   ];
 }

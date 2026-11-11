@@ -26,6 +26,7 @@ export const routes: Routes = [
       { path: 'promos', loadComponent: () => import('./pages/admin/admin-promos').then((m) => m.AdminPromos) },
       { path: 'clients', loadComponent: () => import('./pages/admin/admin-clients').then((m) => m.AdminClients) },
       { path: 'coaches', loadComponent: () => import('./pages/admin/admin-coaches').then((m) => m.AdminCoaches) },
+      { path: 'schedule', loadComponent: () => import('./pages/admin/admin-schedule').then((m) => m.AdminSchedule) },
       { path: 'branding', loadComponent: () => import('./pages/admin/admin-branding').then((m) => m.AdminBranding) },
       { path: 'billing', loadComponent: () => import('./pages/admin/admin-billing').then((m) => m.AdminBilling) },
     ],

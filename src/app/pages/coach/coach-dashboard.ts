@@ -5,10 +5,11 @@ import { Button } from 'primeng/button';
 import { AuthService } from '../../core/auth.service';
 import { StoreService } from '../../core/store.service';
 import { PageHeader, StatCard, Stars } from '../../shared/ui';
+import { OpenStatusBadge } from '../../shared/schedule-ui';
 
 @Component({
   selector: 'app-coach-dashboard',
-  imports: [DatePipe, RouterLink, Button, PageHeader, StatCard, Stars],
+  imports: [DatePipe, RouterLink, Button, PageHeader, StatCard, Stars, OpenStatusBadge],
   template: `
     <app-page-header [title]="'Hi coach ' + auth.user()?.firstName" subtitle="Your gyms, your athletes, your reputation.">
       <p-button label="Edit profile" [outlined]="true" routerLink="/coach/profile" />
@@ -30,7 +31,8 @@ import { PageHeader, StatCard, Stars } from '../../shared/ui';
               <span class="w-10 h-10 rounded-lg grid place-items-center text-white text-xs font-bold" [style.background]="g.theme.primary">{{ g.theme.logoText }}</span>
               <div class="flex-1 min-w-0">
                 <div class="font-medium">{{ g.name }}</div>
-                <div class="text-xs muted">{{ g.sport }} · {{ g.city }}</div>
+                <div class="text-xs muted">{{ g.sports.join(', ') }} · {{ g.city }}</div>
+                <app-open-status [gymId]="g.id" />
               </div>
               <span class="text-sm muted">{{ athletesAt(g.id) }} clients</span>
             </div>

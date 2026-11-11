@@ -15,7 +15,7 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from '../../core/auth.service';
-import { ClientMembership } from '../../core/models';
+import { ClientMembership, Gender } from '../../core/models';
 import { PromoCheck, StoreService } from '../../core/store.service';
 import { PageHeader } from '../../shared/ui';
 import { statusSeverity } from '../super-admin/sa-gyms';
@@ -88,6 +88,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
             <div class="field"><label>First name</label><input pInputText [(ngModel)]="form.firstName" /></div>
             <div class="field"><label>Last name</label><input pInputText [(ngModel)]="form.lastName" /></div>
             <div class="field col-span-2"><label>Email</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
+            <div class="field col-span-2"><label>Gender</label><p-selectbutton [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="form.gender" /></div>
           </div>
           <p class="text-xs muted">A member account is created with the temporary password <b>welcome</b>.</p>
         }
@@ -135,11 +136,12 @@ export class AdminClients {
   protected readonly sev = statusSeverity;
   protected visible = false;
   protected mode: 'existing' | 'new' = 'existing';
+  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
   protected readonly modes = [{ label: 'Existing member', value: 'existing' }, { label: 'New member', value: 'new' }];
   protected readonly filters = [{ label: 'All', value: 'ALL' }, { label: 'Active', value: 'ACTIVE' }, { label: 'Expired', value: 'EXPIRED' }, { label: 'Cancelled', value: 'CANCELLED' }];
   protected readonly status = signal('ALL');
   protected readonly promoResult = signal<PromoCheck | null>(null);
-  protected form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined as string | undefined, promo: '' };
+  protected form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined as string | undefined, promo: '', gender: null as Gender | null };
 
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
   protected readonly plans = computed(() => this.store.plansOfGym(this.gymId()).filter((p) => p.active));
@@ -164,7 +166,7 @@ export class AdminClients {
   planPrice() { return this.store.plan(this.form.planId)?.price ?? 0; }
 
   open() {
-    this.form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined, promo: '' };
+    this.form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined, promo: '', gender: null };
     this.promoResult.set(null);
     this.visible = true;
   }
@@ -177,7 +179,7 @@ export class AdminClients {
       const { firstName, lastName, email } = this.form;
       if (!firstName || !lastName || !email) return this.err('Fill in the new member details.');
       if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) return this.err('Email already registered — use "Existing member".');
-      clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, password: 'welcome' }).id;
+      clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, password: 'welcome', ...(this.form.gender ? { gender: this.form.gender } : {}) }).id;
     }
     if (!clientId) return this.err('Choose a client.');
     if (this.form.promo && !this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo).ok) return this.err('Promo code is not valid.');

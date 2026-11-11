@@ -16,17 +16,18 @@ import { Gym } from '../../core/models';
 import { PromoCheck, StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
 import { PageHeader, Stars } from '../../shared/ui';
+import { OpenStatusBadge, WeekSchedule } from '../../shared/schedule-ui';
 
 @Component({
   selector: 'app-client-gyms',
-  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars],
+  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekSchedule],
   template: `
     <app-page-header title="Find a gym" subtitle="Join as many gyms as you like — any sport." />
 
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <p-iconfield class="flex-1">
         <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
-        <input pInputText class="w-full" placeholder="Search by name or city" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+        <input pInputText class="w-full" placeholder="Search by name, city or sport" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </p-iconfield>
       <p-select [options]="sports()" [ngModel]="sport()" (ngModelChange)="sport.set($event)" placeholder="All sports" [showClear]="true" />
     </div>
@@ -35,24 +36,36 @@ import { PageHeader, Stars } from '../../shared/ui';
       @for (g of gyms(); track g.id) {
         <div class="card !p-0 overflow-hidden flex flex-col">
           <div class="h-28 p-5 flex items-end text-white relative" [style.background]="'linear-gradient(135deg,' + g.theme.primary + ', #0f172a)'">
-            <span class="absolute top-4 right-4"><p-tag [value]="g.sport" severity="contrast" [rounded]="true" /></span>
+            <span class="absolute top-4 right-4 flex flex-wrap justify-end gap-1 max-w-[60%]">
+              @for (s of g.sports.slice(0, 3); track s) { <p-tag [value]="s" severity="contrast" [rounded]="true" /> }
+              @if (g.sports.length > 3) { <p-tag [value]="'+' + (g.sports.length - 3)" severity="contrast" [rounded]="true" /> }
+            </span>
             <div class="flex items-center gap-3">
               <span class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur grid place-items-center font-extrabold">{{ g.theme.logoText }}</span>
               <div><div class="font-bold text-lg">{{ g.name }}</div><div class="text-sm opacity-80"><fa-icon icon="location-dot" /> {{ g.city }}</div></div>
             </div>
           </div>
           <div class="p-5 flex-1 flex flex-col gap-3">
+            <app-open-status [gymId]="g.id" [gender]="gender()" />
             <p class="text-sm muted">{{ g.description }}</p>
             <div class="text-sm"><b>{{ store.coachesOfGym(g.id).length }}</b> coaches · from <b>{{ minPrice(g.id) | currency }}</b></div>
             <div class="mt-auto flex items-center gap-2">
               @if (isMember(g.id)) { <p-tag value="Member" severity="success" /> }
               <div class="flex-1"></div>
+              <p-button label="Hours" [outlined]="true" severity="secondary" (onClick)="showHours(g)"><ng-template #icon><fa-icon icon="clock" /></ng-template></p-button>
               <p-button [label]="isMember(g.id) ? 'Add plan' : 'Join'" (onClick)="open(g)" [disabled]="!store.plansOfGym(g.id).length" />
             </div>
           </div>
         </div>
       } @empty { <p class="muted">No gyms match your search.</p> }
     </div>
+
+    <p-dialog [header]="'Opening hours · ' + (hoursGym()?.name ?? '')" [(visible)]="hoursVisible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+      @if (hoursGym(); as hg) {
+        <div class="mb-3"><app-open-status [gymId]="hg.id" [gender]="gender()" /></div>
+        <app-week-schedule [gymId]="hg.id" [gender]="gender()" />
+      }
+    </p-dialog>
 
     <p-dialog [header]="'Join ' + (gym()?.name ?? '')" [(visible)]="visible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }" (onHide)="theme.preview.set(null)">
       @if (gym(); as g) {
@@ -84,6 +97,11 @@ import { PageHeader, Stars } from '../../shared/ui';
               } @empty { <p class="text-sm muted">No coaches at this gym yet.</p> }
             </div>
           </div>
+
+          <details class="text-sm">
+            <summary class="cursor-pointer font-semibold"><fa-icon icon="clock" class="text-primary" /> Opening hours</summary>
+            <div class="mt-3"><app-week-schedule [gymId]="g.id" [gender]="gender()" /></div>
+          </details>
 
           <div>
             <div class="text-sm font-semibold mb-2">3. Promo code</div>
@@ -126,12 +144,15 @@ export class ClientGyms {
   protected readonly coachId = signal<string | undefined>(undefined);
   protected readonly promo = signal<PromoCheck | null>(null);
 
-  protected readonly sports = computed(() => [...new Set(this.store.gyms().map((g) => g.sport))].sort());
+  protected readonly sports = computed(() => [...new Set(this.store.gyms().flatMap((g) => g.sports))].sort());
+  protected readonly gender = computed(() => this.auth.user()?.gender);
+  protected hoursVisible = false;
+  protected readonly hoursGym = signal<Gym | null>(null);
   protected readonly gyms = computed(() => {
     const q = this.q().toLowerCase();
     return this.store.gyms().filter((g) => g.status !== 'SUSPENDED' &&
-      (!this.sport() || g.sport === this.sport()) &&
-      (!q || `${g.name} ${g.city}`.toLowerCase().includes(q)));
+      (!this.sport() || g.sports.includes(this.sport()!)) &&
+      (!q || `${g.name} ${g.city} ${g.sports.join(' ')}`.toLowerCase().includes(q)));
   });
   protected readonly plans = computed(() => (this.gym() ? this.store.plansOfGym(this.gym()!.id).filter((p) => p.active) : []));
   protected readonly coaches = computed(() => (this.gym() ? this.store.coachesOfGym(this.gym()!.id) : []));
@@ -143,6 +164,11 @@ export class ClientGyms {
   }
   isMember(gymId: string) {
     return this.store.membershipsOfClient(this.auth.user()!.id).some((m) => m.gymId === gymId && m.status === 'ACTIVE');
+  }
+
+  showHours(g: Gym) {
+    this.hoursGym.set(g);
+    this.hoursVisible = true;
   }
 
   open(g: Gym) {

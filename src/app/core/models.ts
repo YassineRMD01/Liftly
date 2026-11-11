@@ -1,4 +1,5 @@
 export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COACH' | 'CLIENT';
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface User {
   id: string;
@@ -9,6 +10,7 @@ export interface User {
   password: string; // demo only — never store plain passwords in a real app
   phone?: string;
   avatarUrl?: string;
+  gender?: Gender;
   createdAt: string;
   active: boolean;
 }
@@ -49,7 +51,7 @@ export interface Gym {
   id: string;
   ownerId: string; // ADMIN user
   name: string;
-  sport: string;
+  sports: string[];
   city: string;
   address: string;
   description: string;
@@ -124,6 +126,29 @@ export interface CoachReview {
   createdAt: string;
 }
 
+/** Who may attend during a time slot. */
+export type Audience = 'MIXED' | 'MEN' | 'WOMEN';
+
+/** Recurring weekly opening slot. day uses JS Date.getDay(): 0 = Sunday … 6 = Saturday. */
+export interface ScheduleSlot {
+  id: string;
+  gymId: string;
+  day: number;
+  open: string; // 'HH:mm'
+  close: string; // 'HH:mm', must be after open (use 23:59 for midnight)
+  audience: Audience;
+  sport?: string; // undefined = whole gym / all sports
+  note?: string;
+}
+
+/** One-off closure (holiday, maintenance…). */
+export interface ScheduleClosure {
+  id: string;
+  gymId: string;
+  date: string; // 'YYYY-MM-DD'
+  reason: string;
+}
+
 export interface DbState {
   users: User[];
   coachProfiles: CoachProfile[];
@@ -134,4 +159,6 @@ export interface DbState {
   promoCodes: PromoCode[];
   memberships: ClientMembership[];
   reviews: CoachReview[];
+  schedule: ScheduleSlot[];
+  closures: ScheduleClosure[];
 }

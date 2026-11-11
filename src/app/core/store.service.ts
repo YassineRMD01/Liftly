@@ -1,10 +1,11 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  ClientMembership, CoachProfile, CoachReview, DbState, Gym, MembershipPlan, PromoCode, SaasPlan, User,
+  ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
 } from './models';
+import { openStatus } from './schedule';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v1';
+const STORAGE_KEY = 'liftly-db-v2';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -32,6 +33,8 @@ export class StoreService {
   readonly memberships = computed(() => this.state().memberships);
   readonly reviews = computed(() => this.state().reviews);
   readonly coachProfiles = computed(() => this.state().coachProfiles);
+  readonly schedule = computed(() => this.state().schedule);
+  readonly closures = computed(() => this.state().closures);
 
   readonly coaches = computed(() => this.users().filter((u) => u.role === 'COACH'));
   readonly clients = computed(() => this.users().filter((u) => u.role === 'CLIENT'));
@@ -47,7 +50,14 @@ export class StoreService {
   private load(): DbState {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as DbState;
+      if (raw) {
+        const db = JSON.parse(raw) as DbState;
+        // light migration for older saved data
+        db.schedule ??= [];
+        db.closures ??= [];
+        db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'] }));
+        return db;
+      }
     } catch { /* ignore */ }
     return structuredClone(SEED);
   }
@@ -230,4 +240,36 @@ export class StoreService {
     }));
   }
   deleteReview(id: string) { this.patch((s) => ({ reviews: s.reviews.filter((r) => r.id !== id) })); }
+
+  // ---------- schedule ----------
+  scheduleOfGym(gymId: string) {
+    return this.schedule().filter((s) => s.gymId === gymId).sort((a, b) => a.open.localeCompare(b.open));
+  }
+  closuresOfGym(gymId: string) {
+    return this.closures().filter((c) => c.gymId === gymId).sort((a, b) => a.date.localeCompare(b.date));
+  }
+  /** Insert or update several slots at once (e.g. one slot applied to many days). */
+  saveSlots(slots: ScheduleSlot[]) {
+    this.patch((s) => {
+      const list = [...s.schedule];
+      for (const slot of slots) {
+        const withId = { ...slot, id: slot.id || uid('s') };
+        const i = list.findIndex((x) => x.id === withId.id);
+        if (i >= 0) list[i] = withId; else list.push(withId);
+      }
+      return { schedule: list };
+    });
+  }
+  deleteSlot(id: string) { this.patch((s) => ({ schedule: s.schedule.filter((x) => x.id !== id) })); }
+  /** Replace the whole week of a gym (used by templates / copy actions). */
+  replaceSchedule(gymId: string, slots: Omit<ScheduleSlot, 'id' | 'gymId'>[]) {
+    this.patch((s) => ({
+      schedule: [...s.schedule.filter((x) => x.gymId !== gymId), ...slots.map((x) => ({ ...x, gymId, id: uid('s') }))],
+    }));
+  }
+  addClosure(c: Omit<ScheduleClosure, 'id'>) { this.patch((s) => ({ closures: [...s.closures, { ...c, id: uid('cl') }] })); }
+  deleteClosure(id: string) { this.patch((s) => ({ closures: s.closures.filter((c) => c.id !== id) })); }
+  gymOpenStatus(gymId: string, gender?: Gender) {
+    return openStatus(this.scheduleOfGym(gymId), this.closuresOfGym(gymId), gender);
+  }
 }

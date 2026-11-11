@@ -31,7 +31,7 @@ import { statusSeverity } from './sa-gyms';
               <td>
                 <div class="flex items-center gap-2">
                   <span class="w-3 h-3 rounded-full" [style.background]="g.theme.primary"></span>
-                  <span class="font-medium">{{ g.name }}</span><span class="text-xs muted">· {{ g.sport }}</span>
+                  <span class="font-medium">{{ g.name }}</span><span class="text-xs muted">· {{ g.sports.join(', ') }}</span>
                 </div>
               </td>
               <td>{{ store.saasPlan(g.saasPlanId)?.name }}</td>

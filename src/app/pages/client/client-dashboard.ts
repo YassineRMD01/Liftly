@@ -9,11 +9,12 @@ import { AuthService } from '../../core/auth.service';
 import { ClientMembership } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { PageHeader } from '../../shared/ui';
+import { OpenStatusBadge, WeekSchedule } from '../../shared/schedule-ui';
 import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader],
+  imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekSchedule],
   template: `
     <app-page-header [title]="'Hey ' + auth.user()?.firstName + ' 👋'" subtitle="Your memberships across all your gyms.">
       <p-button label="Find a gym" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
@@ -26,11 +27,12 @@ import { statusSeverity } from '../super-admin/sa-gyms';
           <div class="p-5 text-white" [style.background]="g?.theme?.primary">
             <div class="flex items-center gap-3">
               <span class="w-10 h-10 rounded-lg bg-white/20 grid place-items-center font-bold text-sm">{{ g?.theme?.logoText }}</span>
-              <div><div class="font-bold">{{ g?.name }}</div><div class="text-sm opacity-80">{{ g?.sport }} · {{ g?.city }}</div></div>
+              <div><div class="font-bold">{{ g?.name }}</div><div class="text-sm opacity-80">{{ g?.sports?.join(', ') }} · {{ g?.city }}</div></div>
             </div>
           </div>
           <div class="p-5 space-y-3 flex-1">
             <div class="flex justify-between"><span class="font-semibold">{{ store.plan(m.planId)?.name }}</span><p-tag [value]="m.status" [severity]="sev(m.status)" /></div>
+            <app-open-status [gymId]="m.gymId" [gender]="auth.user()?.gender" />
             <div class="text-sm muted">{{ m.startDate | date }} → {{ m.endDate | date }}</div>
             <p-progressbar [value]="progress(m)" [showValue]="false" styleClass="!h-2" />
             <div class="text-xs muted">{{ daysLeft(m) }} days left · paid {{ m.pricePaid | currency }}
@@ -38,6 +40,10 @@ import { statusSeverity } from '../super-admin/sa-gyms';
             @if (m.coachId) {
               <div class="text-sm flex items-center gap-2"><fa-icon icon="user-tie" class="text-primary" /> Coach: <b>{{ store.fullName(m.coachId) }}</b></div>
             }
+            <details class="text-sm">
+              <summary class="cursor-pointer text-primary font-medium">Opening hours</summary>
+              <div class="mt-2"><app-week-schedule [gymId]="m.gymId" [gender]="auth.user()?.gender" /></div>
+            </details>
           </div>
         </div>
       } @empty {

@@ -5,6 +5,7 @@ import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
+import { SelectButton } from 'primeng/selectbutton';
 import { AuthService } from '../../core/auth.service';
 import { CoachProfile, User } from '../../core/models';
 import { StoreService } from '../../core/store.service';
@@ -12,7 +13,7 @@ import { CoachCard, PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'app-coach-profile',
-  imports: [FormsModule, Button, InputNumber, InputText, Textarea, CoachCard, PageHeader],
+  imports: [FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, CoachCard, PageHeader],
   template: `
     <app-page-header title="My profile" subtitle="This is what gym admins and members see.">
       <p-button label="Save" (onClick)="save()" />
@@ -24,6 +25,7 @@ import { CoachCard, PageHeader } from '../../shared/ui';
           <div class="field"><label>Last name</label><input pInputText [(ngModel)]="user.lastName" /></div>
           <div class="field"><label>Email</label><input pInputText [(ngModel)]="user.email" /></div>
           <div class="field"><label>Phone</label><input pInputText [(ngModel)]="user.phone" /></div>
+          <div class="field sm:col-span-2"><label>Gender</label><p-selectbutton [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="user.gender" /></div>
           <div class="field sm:col-span-2"><label>Bio</label><textarea pTextarea rows="4" [(ngModel)]="profile.bio"></textarea></div>
           <div class="field sm:col-span-2"><label>Specialties (comma separated)</label><input pInputText [(ngModel)]="specialties" placeholder="Boxing, HIIT, Nutrition" /></div>
           <div class="field"><label>Years of experience</label><p-inputnumber [(ngModel)]="profile.yearsExperience" [min]="0" [showButtons]="true" /></div>
@@ -41,6 +43,7 @@ export class CoachProfilePage {
   private readonly auth = inject(AuthService);
   private readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
+  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
   protected user: User = structuredClone(this.auth.user()!);
   protected profile: CoachProfile = structuredClone(
     this.store.coachProfile(this.user.id) ?? { userId: this.user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0 },
