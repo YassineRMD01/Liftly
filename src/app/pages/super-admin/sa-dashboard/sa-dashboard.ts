@@ -1,3 +1,4 @@
+import { TranslatePipe, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ProgressBar } from 'primeng/progressbar';
@@ -10,7 +11,7 @@ import { statusSeverity } from '../sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-sa-dashboard',
-  imports: [CurrencyPipe, DatePipe, ProgressBar, TableModule, Tag, PageHeader, StatCard],
+  imports: [TranslateJoinPipe, TranslatePipe, CurrencyPipe, DatePipe, ProgressBar, TableModule, Tag, PageHeader, StatCard],
   templateUrl: './sa-dashboard.html',
   styleUrl: './sa-dashboard.css',
 })

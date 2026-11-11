@@ -1,15 +1,17 @@
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { Audience, Gender, ScheduleClosure, ScheduleSlot } from './models';
+import { DAY_NAMES, DAY_NAMES_SHORT, t } from './i18n/i18n';
 
 /** Display order Monday → Sunday (values are JS getDay()). */
 export const WEEK = [1, 2, 3, 4, 5, 6, 0];
-export const DAY_LABEL: Record<number, string> = { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' };
-export const DAY_SHORT: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' };
+/** Day names in the current language, indexed by getDay(). */
+export const DAY_LABEL: Record<number, string> = { ...DAY_NAMES };
+export const DAY_SHORT: Record<number, string> = { ...DAY_NAMES_SHORT };
 
 export const AUDIENCE: Record<Audience, { label: string; short: string; color: string; icon: IconProp }> = {
-  MIXED: { label: 'Mixed', short: 'Mixed', color: '#6366f1', icon: 'people-group' },
-  MEN: { label: 'Men only', short: 'Men', color: '#0ea5e9', icon: 'person' },
-  WOMEN: { label: 'Women only', short: 'Women', color: '#ec4899', icon: 'person-dress' },
+  MIXED: { label: t('Mixed'), short: t('Mixed'), color: '#6366f1', icon: 'people-group' },
+  MEN: { label: t('Men only'), short: t('Men'), color: '#0ea5e9', icon: 'person' },
+  WOMEN: { label: t('Women only'), short: t('Women'), color: '#ec4899', icon: 'person-dress' },
 };
 
 export const toMin = (t: string) => {

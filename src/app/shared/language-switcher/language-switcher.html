@@ -1,0 +1,11 @@
+<p-select [options]="languages" optionLabel="label" optionValue="code" [ngModel]="current" (ngModelChange)="change($event)"
+  size="small" appendTo="body" styleClass="language-select" [ariaLabel]="'Language' | t">
+  <ng-template #selectedItem let-l>
+    <span class="flex items-center gap-1.5 text-sm"><fa-icon icon="globe" class="text-primary" /><span class="hidden sm:inline">{{ l.label }}</span><span class="sm:hidden uppercase">{{ l.code }}</span></span>
+  </ng-template>
+  <ng-template #item let-l>
+    <span class="flex items-center justify-between gap-3 w-full" [attr.dir]="l.dir">
+      <span>{{ l.label }}</span><span class="text-xs muted uppercase">{{ l.code }}</span>
+    </span>
+  </ng-template>
+</p-select>

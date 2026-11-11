@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ import { Stars } from '../../../shared/stars/stars';
 
 @Component({
   selector: 'app-client-coaches',
-  imports: [DatePipe, FormsModule, FaIconComponent, Button, Dialog, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, Dialog, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
   templateUrl: './client-coaches.html',
   styleUrl: './client-coaches.css',
 })
@@ -30,13 +31,13 @@ export class ClientCoaches {
   protected rateVisible = false;
   protected reviewsVisible = false;
   protected readonly scope = signal<'mine' | 'all'>('mine');
-  protected readonly scopes = [{ label: 'My gyms', value: 'mine' }, { label: 'All coaches', value: 'all' }];
+  protected readonly scopes = [{ label: t('My gyms'), value: 'mine' }, { label: t('All coaches'), value: 'all' }];
   protected readonly coach = signal<User | null>(null);
   protected readonly existing = signal<CoachReview | undefined>(undefined);
   protected form = { gymId: '', rating: 0, comment: '' };
-  protected readonly labels: Record<number, string> = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Great', 5: 'Excellent!' };
+  protected readonly labels: Record<number, string> = { 1: t('Poor'), 2: t('Fair'), 3: t('Good'), 4: t('Great'), 5: t('Excellent!') };
 
-  private readonly me = computed(() => this.auth.user()!.id);
+  private readonly me = computed(() => (this.auth.user()?.id ?? ''));
   private readonly myGymIds = computed(() => new Set(this.store.gymsOfClient(this.me()).map((g) => g.id)));
   protected readonly coaches = computed(() => {
     if (this.scope() === 'all') return this.store.coaches().filter((c) => c.active);
@@ -70,15 +71,15 @@ export class ClientCoaches {
   submit() {
     this.store.saveReview({ coachId: this.coach()!.id, clientId: this.me(), gymId: this.form.gymId, rating: this.form.rating, comment: this.form.comment.trim() });
     this.rateVisible = false;
-    this.toast.add({ severity: 'success', summary: 'Thanks for your review!' });
+    this.toast.add({ severity: 'success', summary: t('Thanks for your review!') });
   }
 
   remove() {
     const r = this.existing();
     if (!r) return;
     this.confirmSvc.confirm({
-      header: 'Delete review', message: 'Delete your review?', acceptButtonStyleClass: 'p-button-danger',
-      accept: () => { this.store.deleteReview(r.id); this.rateVisible = false; this.toast.add({ severity: 'info', summary: 'Review deleted' }); },
+      header: t('Delete review'), message: t('Delete your review?'), acceptButtonStyleClass: 'p-button-danger',
+      accept: () => { this.store.deleteReview(r.id); this.rateVisible = false; this.toast.add({ severity: 'info', summary: t('Review deleted') }); },
     });
   }
 }

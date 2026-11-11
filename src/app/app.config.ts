@@ -1,4 +1,8 @@
-import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+import localeEs from '@angular/common/locales/es';
+import localeArMa from '@angular/common/locales/ar-MA';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -10,6 +14,12 @@ import { routes } from './app.routes';
 import { PRIMEUI_LICENSE_KEY } from './core/app-settings';
 import { APP_ICONS } from './core/icons';
 import { ThemeService, buildPalette, DEFAULT_PRIMARY } from './core/theme.service';
+import { CURRENT_LANG, CURRENT_LANGUAGE, applyDocumentLanguage } from './core/i18n/i18n';
+import { PRIMENG_TRANSLATIONS } from './core/i18n/primeng-locale';
+
+registerLocaleData(localeFr, 'fr-FR');
+registerLocaleData(localeEs, 'es-ES');
+registerLocaleData(localeArMa, 'ar-MA');
 
 const GymPreset = definePreset(Aura, {
   semantic: { primary: buildPalette(DEFAULT_PRIMARY) },
@@ -20,8 +30,10 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideAnimationsAsync(),
+    { provide: LOCALE_ID, useValue: CURRENT_LANGUAGE.locale },
     providePrimeNG({
       ripple: true,
+      ...(PRIMENG_TRANSLATIONS[CURRENT_LANG] ? { translation: PRIMENG_TRANSLATIONS[CURRENT_LANG] } : {}),
       ...(PRIMEUI_LICENSE_KEY ? { license: PRIMEUI_LICENSE_KEY } : {}),
       theme: {
         preset: GymPreset,
@@ -36,6 +48,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       inject(FaIconLibrary).addIcons(...APP_ICONS);
       inject(ThemeService); // start applying the gym theme
+      applyDocumentLanguage(); // <html lang dir>
     }),
   ],
 };

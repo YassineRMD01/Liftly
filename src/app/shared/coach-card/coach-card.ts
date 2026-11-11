@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/i18n/i18n';
 import { Component, computed, inject, input } from '@angular/core';
 import { Avatar } from 'primeng/avatar';
 import { Chip } from 'primeng/chip';
@@ -7,7 +8,7 @@ import { Stars } from '../stars/stars';
 
 @Component({
   selector: 'app-coach-card',
-  imports: [Avatar, Chip, Stars, MoneyPipe],
+  imports: [TranslatePipe, Avatar, Chip, Stars, MoneyPipe],
   templateUrl: './coach-card.html',
   styleUrl: './coach-card.css',
 })

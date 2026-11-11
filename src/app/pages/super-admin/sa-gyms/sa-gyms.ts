@@ -1,5 +1,5 @@
+import { TranslatePipe, t, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
-import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -20,7 +20,7 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [MoneyPipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [TranslateJoinPipe, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })
@@ -32,6 +32,6 @@ export class SaGyms {
 
   update(g: Gym, patch: Partial<Gym>) {
     this.store.updateGym({ ...g, ...patch });
-    this.toast.add({ severity: 'success', summary: 'Gym updated', detail: g.name });
+    this.toast.add({ severity: 'success', summary: t('Gym updated'), detail: g.name });
   }
 }

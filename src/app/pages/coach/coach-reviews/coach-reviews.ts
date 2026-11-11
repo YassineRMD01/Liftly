@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +11,7 @@ import { Stars } from '../../../shared/stars/stars';
 
 @Component({
   selector: 'app-coach-reviews',
-  imports: [DatePipe, FormsModule, ProgressBar, Select, PageHeader, Stars],
+  imports: [TranslatePipe, DatePipe, FormsModule, ProgressBar, Select, PageHeader, Stars],
   templateUrl: './coach-reviews.html',
   styleUrl: './coach-reviews.css',
 })
@@ -18,7 +19,7 @@ export class CoachReviews {
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly gym = signal<string | null>(null);
-  private readonly id = computed(() => this.auth.user()!.id);
+  private readonly id = computed(() => (this.auth.user()?.id ?? ''));
   protected readonly rating = computed(() => this.store.coachRating(this.id()));
   protected readonly reviews = computed(() => this.store.reviewsOfCoach(this.id()));
   protected readonly gymOptions = computed(() => this.store.gymsOfCoach(this.id()));

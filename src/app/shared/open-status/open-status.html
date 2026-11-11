@@ -2,14 +2,14 @@
 <span class="inline-flex items-center gap-1.5 text-xs font-semibold">
   <span class="w-2 h-2 rounded-full" [class.bg-green-500]="s.open" [class.bg-red-500]="!s.open"></span>
   @if (s.open) {
-    <span class="text-green-600 dark:text-green-400">Open now</span>
-    <span class="muted font-normal">· {{ audienceLabel(s.current[0].audience) }} until {{ s.current[0].close }}</span>
+    <span class="text-green-600 dark:text-green-400">{{ 'Open now' | t }}</span>
+    <span class="muted font-normal">· {{ audienceLabel(s.current[0].audience) }} {{ 'until' | t }} {{ s.current[0].close }}</span>
   } @else if (s.closure) {
-    <span class="text-red-600 dark:text-red-400">Closed today</span><span class="muted font-normal">· {{ s.closure.reason }}</span>
+    <span class="text-red-600 dark:text-red-400">{{ 'Closed today' | t }}</span><span class="muted font-normal">· {{ s.closure.reason }}</span>
   } @else {
-    <span class="text-red-600 dark:text-red-400">Closed</span>
+    <span class="text-red-600 dark:text-red-400">{{ 'Closed' | t }}</span>
     @if (s.next; as n) {
-      <span class="muted font-normal">· opens {{ n.today ? 'today' : dayShort[n.day] }} {{ n.slot.open }} ({{ audienceLabel(n.slot.audience) }})</span>
+      <span class="muted font-normal">{{ '· opens' | t }} {{ n.today ? ('today' | t) : dayShort[n.day] }} {{ n.slot.open }} ({{ audienceLabel(n.slot.audience) }})</span>
     }
   }
 </span>

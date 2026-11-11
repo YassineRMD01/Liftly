@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,13 +25,13 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader, PaymentCalendar],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader, PaymentCalendar],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })
 export class AdminClients {
   private readonly auth = inject(AuthService);
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected readonly sev = statusSeverity;
@@ -38,9 +39,9 @@ export class AdminClients {
   protected readonly payments = viewChild(PaymentCalendar);
   protected visible = false;
   protected mode: 'existing' | 'new' = 'existing';
-  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
-  protected readonly modes = [{ label: 'Existing member', value: 'existing' }, { label: 'New member', value: 'new' }];
-  protected readonly filters = [{ label: 'All', value: 'ALL' }, { label: 'Active', value: 'ACTIVE' }, { label: 'Expired', value: 'EXPIRED' }, { label: 'Cancelled', value: 'CANCELLED' }];
+  protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
+  protected readonly modes = [{ label: t('Existing member'), value: 'existing' }, { label: t('New member'), value: 'new' }];
+  protected readonly filters = [{ label: t('All'), value: 'ALL' }, { label: t('Active'), value: 'ACTIVE' }, { label: t('Expired'), value: 'EXPIRED' }, { label: t('Cancelled'), value: 'CANCELLED' }];
   protected readonly status = signal('ALL');
   protected readonly promoResult = signal<PromoCheck | null>(null);
   protected form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined as string | undefined, promo: '', gender: null as Gender | null };
@@ -56,7 +57,7 @@ export class AdminClients {
         m,
         clientName: this.store.fullName(m.clientId),
         email: this.store.user(m.clientId)?.email,
-        planName: this.store.plan(m.planId)?.name ?? 'Deleted plan',
+        planName: this.store.plan(m.planId)?.name ?? t('Deleted plan'),
         promo: this.store.promo(m.promoCodeId)?.code,
         endDate: m.endDate,
       })));
@@ -66,6 +67,7 @@ export class AdminClients {
   });
 
   planPrice() { return this.store.plan(this.form.planId)?.price ?? 0; }
+  planCur() { return this.store.planCurrency(this.store.plan(this.form.planId)); }
 
   open() {
     this.form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined, promo: '', gender: null };
@@ -80,48 +82,48 @@ export class AdminClients {
     let created = false;
     if (this.mode === 'new') {
       const { firstName, lastName, email } = this.form;
-      if (!firstName || !lastName || !email) return this.err('Fill in the new member details.');
-      if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) return this.err('Email already registered — use "Existing member".');
+      if (!firstName || !lastName || !email) return this.err(t('Fill in the new member details.'));
+      if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) return this.err(t('Email already registered — use "Existing member".'));
       clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, password: 'welcome', ...(this.form.gender ? { gender: this.form.gender } : {}) }).id;
       created = true;
     }
-    if (!clientId) return this.err('Choose a client.');
-    if (this.form.promo && !this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo).ok) return this.err('Promo code is not valid.');
+    if (!clientId) return this.err(t('Choose a client.'));
+    if (this.form.promo && !this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo).ok) return this.err(t('Promo code is not valid.'));
     this.store.subscribeClient({ gymId: this.gymId(), clientId, planId: this.form.planId, coachId: this.form.coachId, promoCode: this.form.promo || undefined });
     this.visible = false;
-    this.toast.add({ severity: 'success', summary: 'Subscription created', detail: this.store.fullName(clientId) });
+    this.toast.add({ severity: 'success', summary: t('Subscription created'), detail: this.store.fullName(clientId) });
     if (created) {
       this.toast.add({
-        severity: 'info', sticky: true, summary: 'Member account created',
-        detail: `Give the member their login: ${this.form.email} / temporary password "welcome".`,
+        severity: 'info', sticky: true, summary: t('Member account created'),
+        detail: t('Give the member their login: {0} / temporary password "welcome".', { 0: this.form.email }),
       });
     }
   }
 
-  private err(detail: string) { this.toast.add({ severity: 'error', summary: 'Cannot subscribe', detail }); }
+  private err(detail: string) { this.toast.add({ severity: 'error', summary: t('Cannot subscribe'), detail }); }
 
   setCoach(m: ClientMembership, coachId: string | null) {
     this.store.updateMembership({ ...m, coachId: coachId ?? undefined });
-    this.toast.add({ severity: 'success', summary: 'Coach updated', life: 1500 });
+    this.toast.add({ severity: 'success', summary: t('Coach updated'), life: 1500 });
   }
 
   renew(m: ClientMembership) {
     const plan = this.store.plan(m.planId);
-    if (!plan) return this.err('The plan no longer exists.');
+    if (!plan) return this.err(t('The plan no longer exists.'));
     this.confirm.confirm({
-      header: 'Renew membership', message: `Renew ${plan.name} for ${this.store.fullName(m.clientId)} (${formatMoney(plan.price, this.cur())})?`,
+      header: t('Renew membership'), message: t('Renew {0} for {1} ({2})?', { 0: plan.name, 1: this.store.fullName(m.clientId), 2: formatMoney(plan.price, this.store.planCurrency(plan)) }),
       accept: () => {
         if (m.status === 'ACTIVE') this.store.updateMembership({ ...m, status: 'EXPIRED' });
         this.store.subscribeClient({ gymId: m.gymId, clientId: m.clientId, planId: m.planId, coachId: m.coachId });
-        this.toast.add({ severity: 'success', summary: 'Membership renewed' });
+        this.toast.add({ severity: 'success', summary: t('Membership renewed') });
       },
     });
   }
 
   cancel(m: ClientMembership) {
     this.confirm.confirm({
-      header: 'Cancel membership', message: `Cancel ${this.store.fullName(m.clientId)}'s membership?`, acceptButtonStyleClass: 'p-button-danger',
-      accept: () => { this.store.updateMembership({ ...m, status: 'CANCELLED' }); this.toast.add({ severity: 'warn', summary: 'Membership cancelled' }); },
+      header: t('Cancel membership'), message: t('Cancel {0}\'s membership?', { 0: this.store.fullName(m.clientId) }), acceptButtonStyleClass: 'p-button-danger',
+      accept: () => { this.store.updateMembership({ ...m, status: 'CANCELLED' }); this.toast.add({ severity: 'warn', summary: t('Membership cancelled') }); },
     });
   }
 }

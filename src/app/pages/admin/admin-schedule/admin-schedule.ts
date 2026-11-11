@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +32,7 @@ const WEEKEND = [6, 0];
 
 @Component({
   selector: 'app-admin-schedule',
-  imports: [DatePipe, FormsModule, FaIconComponent, Button, DatePicker, Dialog, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, DatePicker, Dialog, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule, PageHeader],
   templateUrl: './admin-schedule.html',
   styleUrl: './admin-schedule.css',
 })
@@ -49,7 +50,7 @@ export class AdminSchedule {
   protected readonly audiences = (Object.keys(AUDIENCE) as Audience[]).map((value) => ({ value, ...AUDIENCE[value] }));
 
   protected readonly view = signal<'calendar' | 'list'>('calendar');
-  protected readonly views = [{ label: 'Week calendar', value: 'calendar', icon: 'calendar-week' }, { label: 'Day list', value: 'list', icon: 'list' }];
+  protected readonly views = [{ label: t('Week calendar'), value: 'calendar', icon: 'calendar-week' }, { label: t('Day list'), value: 'list', icon: 'list' }];
   protected slotVisible = false;
   protected copyVisible = false;
   protected draft: Draft = this.emptyDraft();
@@ -63,8 +64,8 @@ export class AdminSchedule {
   private readonly slots = computed(() => this.store.scheduleOfGym(this.gymId()));
   protected readonly closures = computed(() => this.store.closuresOfGym(this.gymId()).filter((c) => c.date >= isoDate()));
   protected readonly sportOptions = computed(() => [
-    { label: 'Whole gym (all sports)', value: null },
-    ...(this.gym()?.sports ?? []).map((s) => ({ label: s, value: s })),
+    { label: t('Whole gym (all sports)'), value: null },
+    ...(this.gym()?.sports ?? []).map((s) => ({ label: t(s), value: s })),
   ]);
   protected readonly week = computed(() => {
     const today = new Date().getDay();
@@ -77,24 +78,24 @@ export class AdminSchedule {
   });
 
   protected readonly templates: MenuItem[] = [
-    { label: 'Mixed 06:00–22:00 every day', command: () => this.applyTemplate(every(WEEK, '06:00', '22:00', 'MIXED')) },
+    { label: t('Mixed 06:00–22:00 every day'), command: () => this.applyTemplate(every(WEEK, '06:00', '22:00', 'MIXED')) },
     {
-      label: 'Mixed + women-only mornings',
+      label: t('Mixed + women-only mornings'),
       command: () => this.applyTemplate([
         ...every(WEEKDAYS, '06:00', '09:00', 'MIXED'), ...every(WEEKDAYS, '09:00', '12:00', 'WOMEN'),
         ...every(WEEKDAYS, '12:00', '22:00', 'MIXED'), ...every(WEEKEND, '08:00', '20:00', 'MIXED'),
       ]),
     },
     {
-      label: 'Fully separated (women AM / men PM)',
+      label: t('Fully separated (women AM / men PM)'),
       command: () => this.applyTemplate([...every(WEEK, '07:00', '14:00', 'WOMEN'), ...every(WEEK, '14:00', '22:00', 'MEN')]),
     },
     {
-      label: 'Alternating days (men / women)',
+      label: t('Alternating days (men / women)'),
       command: () => this.applyTemplate([...every([1, 3, 5], '07:00', '22:00', 'MEN'), ...every([2, 4, 6], '07:00', '22:00', 'WOMEN'), ...every([0], '09:00', '18:00', 'MIXED')]),
     },
     { separator: true },
-    { label: 'Clear the whole week', command: () => this.applyTemplate([]) },
+    { label: t('Clear the whole week'), command: () => this.applyTemplate([]) },
   ];
 
   private emptyDraft(day?: number): Draft {
@@ -116,8 +117,8 @@ export class AdminSchedule {
 
   saveSlot() {
     const d = this.draft;
-    if (!d.days.length) return this.error.set('Pick at least one day.');
-    if (!d.open || !d.close || toMin(d.close) <= toMin(d.open)) return this.error.set('Closing time must be after opening time (use 23:59 for midnight).');
+    if (!d.days.length) return this.error.set(t('Pick at least one day.'));
+    if (!d.open || !d.close || toMin(d.close) <= toMin(d.open)) return this.error.set(t('Closing time must be after opening time (use 23:59 for midnight).'));
     const slots: ScheduleSlot[] = d.days.map((day) => ({
       id: d.id, gymId: this.gymId(), day, open: d.open, close: d.close, audience: d.audience,
       ...(d.sport ? { sport: d.sport } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}),
@@ -125,23 +126,23 @@ export class AdminSchedule {
     for (const s of slots) {
       const clash = this.slots().find((o) => o.id !== s.id && conflicts(s, o));
       if (clash) {
-        return this.error.set(`${DAY_LABEL[s.day]}: overlaps ${clash.open}–${clash.close} (${AUDIENCE[clash.audience].label}${clash.sport ? ', ' + clash.sport : ''}).`);
+        return this.error.set(t('{0}: overlaps {1}–{2} ({3}{4}).', { 0: DAY_LABEL[s.day], 1: clash.open, 2: clash.close, 3: AUDIENCE[clash.audience].label, 4: clash.sport ? ', ' + clash.sport : '' }));
       }
     }
     // when editing, the slot keeps its own day; the sport key may be removed
     this.store.saveSlots(slots.map((s) => (s.sport ? s : { ...s, sport: undefined })));
     this.slotVisible = false;
-    this.toast.add({ severity: 'success', summary: 'Schedule updated', detail: `${slots.length} slot${slots.length > 1 ? 's' : ''} saved` });
+    this.toast.add({ severity: 'success', summary: t('Schedule updated'), detail: t('{0} slot{1} saved', { 0: slots.length, 1: slots.length > 1 ? 's' : '' }) });
   }
 
   removeSlot(s: ScheduleSlot) {
     this.store.deleteSlot(s.id);
-    this.toast.add({ severity: 'info', summary: 'Slot removed', detail: `${DAY_LABEL[s.day]} ${s.open}–${s.close}`, life: 1500 });
+    this.toast.add({ severity: 'info', summary: t('Slot removed'), detail: `${DAY_LABEL[s.day]} ${s.open}–${s.close}`, life: 1500 });
   }
 
   clearDay(day: number) {
     this.confirm.confirm({
-      header: 'Clear day', message: `Remove all slots on ${DAY_LABEL[day]}? The gym will show as closed that day.`, acceptButtonStyleClass: 'p-button-danger',
+      header: t('Clear day'), message: t('Remove all slots on {0}? The gym will show as closed that day.', { 0: DAY_LABEL[day] }), acceptButtonStyleClass: 'p-button-danger',
       accept: () => this.slots().filter((s) => s.day === day).forEach((s) => this.store.deleteSlot(s.id)),
     });
   }
@@ -155,15 +156,15 @@ export class AdminSchedule {
     const copies = this.copyTo.flatMap((day) => from.map(({ id, gymId, ...rest }) => ({ ...rest, day })));
     this.store.replaceSchedule(this.gymId(), [...keep, ...copies]);
     this.copyVisible = false;
-    this.toast.add({ severity: 'success', summary: 'Day copied', detail: this.copyTo.map((d) => DAY_SHORT[d]).join(', ') });
+    this.toast.add({ severity: 'success', summary: t('Day copied'), detail: this.copyTo.map((d) => DAY_SHORT[d]).join(', ') });
   }
 
-  applyTemplate(t: Template) {
+  applyTemplate(tpl: Template) {
     this.confirm.confirm({
-      header: 'Replace weekly schedule', message: t.length ? 'Replace the current week with this template?' : 'Remove every slot of the week?',
+      header: t('Replace weekly schedule'), message: tpl.length ? t('Replace the current week with this template?') : t('Remove every slot of the week?'),
       accept: () => {
-        this.store.replaceSchedule(this.gymId(), t);
-        this.toast.add({ severity: 'success', summary: 'Schedule replaced' });
+        this.store.replaceSchedule(this.gymId(), tpl);
+        this.toast.add({ severity: 'success', summary: t('Schedule replaced') });
       },
     });
   }
@@ -172,12 +173,12 @@ export class AdminSchedule {
     if (!this.closureDate) return;
     const date = isoDate(this.closureDate);
     if (this.closures().some((c) => c.date === date)) {
-      this.toast.add({ severity: 'warn', summary: 'Already closed that day' });
+      this.toast.add({ severity: 'warn', summary: t('Already closed that day') });
       return;
     }
     this.store.addClosure({ gymId: this.gymId(), date, reason: this.closureReason.trim() });
     this.closureDate = null;
     this.closureReason = '';
-    this.toast.add({ severity: 'success', summary: 'Closure added' });
+    this.toast.add({ severity: 'success', summary: t('Closure added') });
   }
 }

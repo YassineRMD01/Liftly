@@ -1,16 +1,16 @@
-<app-page-header title="Gyms" subtitle="All tenants subscribed to the platform." />
+<app-page-header [title]="'Gyms' | t" [subtitle]="'All tenants subscribed to the platform.' | t" />
 <div class="card">
   <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sports', 'city']" [tableStyle]="{ 'min-width': '60rem' }">
     <ng-template #caption>
       <p-iconfield>
         <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
-        <input pInputText placeholder="Search gyms" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+        <input pInputText [placeholder]="'Search gyms' | t" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
       </p-iconfield>
     </ng-template>
     <ng-template #header>
       <tr>
-        <th pSortableColumn="name">Gym <p-sorticon field="name" /></th>
-        <th>Owner</th><th>Plan</th><th>Coaches / Clients</th><th>Revenue</th><th>Renews</th><th>Status</th>
+        <th pSortableColumn="name">{{ 'Gym' | t }} <p-sorticon field="name" /></th>
+        <th>{{ 'Owner' | t }}</th><th>{{ 'Plan' | t }}</th><th>{{ 'Coaches / Clients' | t }}</th><th>{{ 'Revenue' | t }}</th><th>{{ 'Renews' | t }}</th><th>{{ 'Status' | t }}</th>
       </tr>
     </ng-template>
     <ng-template #body let-g>
@@ -18,7 +18,7 @@
         <td>
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-lg grid place-items-center text-white text-xs font-bold" [style.background]="g.theme.primary">{{ g.theme.logoText }}</span>
-            <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ g.sports.join(', ') }} · {{ g.city }}</div></div>
+            <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ (g.sports | tjoin) }} · {{ g.city }}</div></div>
           </div>
         </td>
         <td>{{ store.fullName(g.ownerId) }}</td>
@@ -27,12 +27,12 @@
             (ngModelChange)="update(g, { saasPlanId: $event })" size="small" appendTo="body" />
         </td>
         <td>{{ store.coachesOfGym(g.id).length }} / {{ store.clientsOfGym(g.id).length }}</td>
-        <td>{{ store.gymRevenue(g.id) | money: g.currency }}</td>
+        <td>{{ store.gymRevenue(g.id) }}</td>
         <td>{{ g.renewsAt | date }}</td>
         <td>
           <p-select [options]="statuses" [ngModel]="g.status" (ngModelChange)="update(g, { status: $event })" size="small" appendTo="body">
-            <ng-template #selectedItem let-s><p-tag [value]="s" [severity]="sev(s)" /></ng-template>
-            <ng-template #item let-s><p-tag [value]="s" [severity]="sev(s)" /></ng-template>
+            <ng-template #selectedItem let-s><p-tag [value]="s | t" [severity]="sev(s)" /></ng-template>
+            <ng-template #item let-s><p-tag [value]="s | t" [severity]="sev(s)" /></ng-template>
           </p-select>
         </td>
       </tr>

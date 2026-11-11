@@ -1,3 +1,4 @@
+import { TranslatePipe, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
@@ -15,7 +16,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [MoneyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
+  imports: [TranslateJoinPipe, TranslatePipe, MoneyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
@@ -30,7 +31,7 @@ export class AdminDashboard {
   protected readonly coaches = computed(() => (this.gym() ? this.store.coachesOfGym(this.gym()!.id) : []));
   protected readonly activeMembers = computed(() => new Set(this.memberships().filter((m) => m.status === 'ACTIVE').map((m) => m.clientId)).size);
   protected readonly clientCount = computed(() => new Set(this.memberships().map((m) => m.clientId)).size);
-  protected readonly revenue = computed(() => this.memberships().reduce((s, m) => s + m.pricePaid, 0));
+  protected readonly revenue = computed(() => (this.gym() ? this.store.gymRevenue(this.gym()!.id, 0) : ''));
   protected readonly activePromos = computed(() => (this.gym() ? this.store.promosOfGym(this.gym()!.id).filter((p) => p.active && p.validUntil > new Date().toISOString()).length : 0));
   protected readonly recent = computed(() => [...this.memberships()].sort((a, b) => b.startDate.localeCompare(a.startDate)).slice(0, 6));
   protected readonly topCoaches = computed(() =>

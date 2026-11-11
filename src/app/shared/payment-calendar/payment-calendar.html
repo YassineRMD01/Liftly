@@ -1,77 +1,83 @@
 <p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [closable]="false" [dismissableMask]="true" [draggable]="false"
-  [style]="{ width: '82rem' }" [breakpoints]="{ '1400px': '95vw' }"
-  styleClass="!rounded-3xl !border-0 !max-h-[92vh] overflow-hidden">
+  [style]="{ width: '95rem' }" [breakpoints]="{ '1400px': '96vw' }"
+  styleClass="!rounded-3xl !border-0 !max-h-[96vh] overflow-hidden">
   <ng-template #headless>
-    <div class="flex flex-col max-h-[92vh] bg-surface-0 dark:bg-surface-900 rounded-3xl">
-      <!-- header -->
-      <div class="m-2 rounded-2xl px-4 py-3 text-primary-contrast bg-gradient-to-br from-primary-500 to-primary-800">
-        <div class="flex flex-wrap items-center gap-3">
-          <fa-icon icon="calendar" class="text-2xl" />
+    <div class="flex flex-col max-h-[96vh] bg-surface-0 dark:bg-surface-900 rounded-3xl">
+      <!-- header: title, year navigation and yearly summary in a compact bar -->
+      <div class="m-1.5 rounded-2xl px-3 py-2 text-primary-contrast bg-gradient-to-br from-primary-500 to-primary-800">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <fa-icon icon="calendar" class="text-xl" />
           <div class="min-w-0">
-            <div class="font-semibold text-lg leading-tight">Payments calendar</div>
-            <div class="text-sm opacity-80 truncate">{{ clientName() }} · {{ gymName() }}</div>
+            <div class="font-semibold leading-tight">{{ 'Payments calendar' | t }}</div>
+            <div class="text-xs opacity-80 truncate">{{ clientName() }} · {{ gymName() }}</div>
+          </div>
+          <div class="hidden lg:flex flex-wrap gap-x-4 gap-y-0.5 text-xs ms-3">
+            <span><span class="opacity-80">{{ 'Paid in' | t }} {{ year() }}:&nbsp;</span><b>{{ yearTotal() }}</b></span>
+            <span><span class="opacity-80">{{ 'Payments:' | t }}&nbsp;</span><b>{{ yearCount() }}</b></span>
+            <span><span class="opacity-80">{{ 'Months subscribed:' | t }}&nbsp;</span><b>{{ coveredMonths() }}/12</b></span>
+            <span><span class="opacity-80">{{ 'All time:' | t }}&nbsp;</span><b>{{ allTimeTotal() }}</b></span>
           </div>
           <div class="flex-1"></div>
-          <div class="flex items-center gap-2">
-            <button type="button" (click)="prevYear()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" aria-label="Previous year"><fa-icon icon="caret-left" /></button>
-            <span class="text-lg font-bold tabular-nums w-14 text-center">{{ year() }}</span>
-            <button type="button" (click)="nextYear()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" aria-label="Next year"><fa-icon icon="caret-right" /></button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" (click)="prevYear()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" [aria-label]="'Previous year' | t"><fa-icon icon="caret-left" class="rtl:rotate-180" /></button>
+            <span class="text-base font-bold tabular-nums w-12 text-center">{{ year() }}</span>
+            <button type="button" (click)="nextYear()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" [aria-label]="'Next year' | t"><fa-icon icon="caret-right" class="rtl:rotate-180" /></button>
           </div>
-          <div class="hidden sm:block text-right">
-            <div class="text-xs opacity-80">Today</div>
-            <div class="font-semibold text-sm">{{ today() | date: 'EEE d MMM y' }}</div>
+          <div class="hidden sm:block text-end leading-tight">
+            <div class="text-[10px] opacity-80">{{ 'Today' | t }}</div>
+            <div class="font-semibold text-xs">{{ today() | date: 'EEE d MMM y' }}</div>
           </div>
-          <button type="button" (click)="goToToday()" class="px-3 h-9 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer text-sm font-medium">
-            <fa-icon icon="calendar-day" /> Today
+          <button type="button" (click)="goToToday()" class="px-3 h-8 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer text-xs font-medium">
+            <fa-icon icon="calendar-day" /> {{ 'Today' | t }}
           </button>
-          <button type="button" (click)="visible.set(false)" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/25 cursor-pointer" aria-label="Close"><fa-icon icon="xmark" /></button>
+          <button type="button" (click)="visible.set(false)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 cursor-pointer" [aria-label]="'Close' | t"><fa-icon icon="xmark" /></button>
         </div>
-        <!-- summary -->
-        <div class="flex flex-wrap gap-x-6 gap-y-1 mt-3 text-sm">
-          <span><span class="opacity-80">Paid in {{ year() }}:&nbsp;</span><b>{{ yearTotal() | money: cur() }}</b></span>
-          <span><span class="opacity-80">Payments:&nbsp;</span><b>{{ yearCount() }}</b></span>
-          <span><span class="opacity-80">Months subscribed:&nbsp;</span><b>{{ coveredMonths() }}/12</b></span>
-          <span><span class="opacity-80">All time:&nbsp;</span><b>{{ allTimeTotal() | money: cur() }}</b></span>
+        <!-- summary on smaller screens -->
+        <div class="flex lg:hidden flex-wrap gap-x-4 gap-y-0.5 mt-1.5 text-xs">
+          <span><span class="opacity-80">{{ 'Paid in' | t }} {{ year() }}:&nbsp;</span><b>{{ yearTotal() }}</b></span>
+          <span><span class="opacity-80">{{ 'Payments:' | t }}&nbsp;</span><b>{{ yearCount() }}</b></span>
+          <span><span class="opacity-80">{{ 'Months subscribed:' | t }}&nbsp;</span><b>{{ coveredMonths() }}/12</b></span>
+          <span><span class="opacity-80">{{ 'All time:' | t }}&nbsp;</span><b>{{ allTimeTotal() }}</b></span>
         </div>
       </div>
 
       <!-- legend -->
-      <div class="flex flex-wrap items-center gap-4 px-4 pt-1 pb-2 text-xs muted">
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-green-500"></span> Payment</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full ring-2 ring-primary"></span> Today</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-primary-100 dark:bg-primary-900"></span> Subscribed day</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-green-600"></span> Month with subscription</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-surface-400"></span> No subscription</span>
-        @if (readonly()) { <span class="ml-auto">Read-only — tap a green day to see the payment.</span> }
-        @else { <span class="ml-auto">Click a day to add or edit a payment.</span> }
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 pb-1.5 text-[11px] muted">
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> {{ 'Payment' | t }}</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full ring-2 ring-primary"></span> {{ 'Today' | t }}</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-primary-100 dark:bg-primary-900"></span> {{ 'Subscribed day' | t }}</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-green-600"></span> {{ 'Month with subscription' | t }}</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-surface-400"></span> {{ 'No subscription' | t }}</span>
+        @if (readonly()) { <span class="ms-auto">{{ 'Read-only — tap a green day to see the payment.' | t }}</span> }
+        @else { <span class="ms-auto">{{ 'Click a day to add or edit a payment.' | t }}</span> }
       </div>
 
-      <!-- months -->
-      <div class="overflow-y-auto px-3 pb-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+      <!-- months: 6 per row on wide screens so the whole year fits without scrolling -->
+      <div class="overflow-y-auto px-1.5 pb-1.5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1.5">
           @for (month of calendar(); track month.value) {
             <div class="rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800 overflow-hidden">
-              <div class="flex items-center justify-between px-3 py-1.5 text-sm font-semibold text-white"
+              <div class="flex items-center justify-between px-2 py-1 text-xs font-semibold text-white"
                 [ngClass]="month.status === 'present' ? 'bg-green-600 dark:bg-green-700' : 'bg-surface-400 dark:bg-surface-600'">
                 <span>{{ month.label }}</span>
-                @if (month.paid) { <span class="text-xs font-medium opacity-90">{{ month.paid | money: cur() }}</span> }
+                @if (month.paid) { <span class="text-[10px] font-medium opacity-90">{{ month.paid }}</span> }
               </div>
-              <div class="grid grid-cols-7 text-center text-[10px] font-semibold muted px-1 pt-1">
-                @for (w of weekdays; track w) { <div>{{ w }}</div> }
+              <div class="grid grid-cols-7 text-center text-[9px] font-semibold muted px-0.5 pt-0.5">
+                @for (w of weekdays; track $index) { <div>{{ w }}</div> }
               </div>
-              <div class="grid grid-cols-7 gap-0.5 text-center text-sm p-1">
+              <div class="grid grid-cols-7 gap-y-0.5 text-center px-0.5 pb-1">
                 @for (day of month.days; track $index) {
                   @if (day) {
                     <button type="button"
-                      class="aspect-square rounded-full text-xs sm:text-sm select-none transition-colors"
+                      class="mx-auto h-6 w-6 2xl:h-7 2xl:w-7 rounded-full text-[11px] 2xl:text-xs leading-none select-none transition-colors"
                       [class.cursor-pointer]="!readonly() || !!day.payment"
                       [class.cursor-default]="readonly() && !day.payment"
                       [ngClass]="{
-                        '!bg-green-500 !text-white font-semibold': day.payment,
+                        '!bg-green-500 !text-white !font-semibold': day.payment,
                         'ring-2 ring-primary font-bold': day.isToday,
-                        'bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-200': !day.payment && day.covered,
+                        'bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-100': !day.payment && day.covered,
                         'hover:bg-surface-100 dark:hover:bg-surface-700': !day.payment && !readonly(),
-                        'text-surface-600 dark:text-surface-300': !day.payment && !day.covered
+                        'text-surface-600 dark:text-surface-200': !day.payment && !day.covered
                       }"
                       [pTooltip]="day.tooltip" [tooltipDisabled]="!day.payment"
                       (click)="onDayClick(day)">
@@ -98,42 +104,48 @@
       <div class="m-2 rounded-2xl px-4 py-3 text-white bg-gradient-to-br flex items-center gap-2"
         [ngClass]="action() === 'edit' ? 'from-amber-500 to-orange-700' : action() === 'view' ? 'from-green-500 to-green-700' : 'from-primary-500 to-primary-800'">
         <fa-icon [icon]="action() === 'edit' ? 'pen' : action() === 'view' ? 'receipt' : 'circle-plus'" />
-        <span class="font-semibold flex-1">{{ action() === 'edit' ? 'Edit' : action() === 'view' ? 'Payment' : 'Add' }} payment</span>
-        <button type="button" (click)="editVisible.set(false)" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" aria-label="Close"><fa-icon icon="xmark" /></button>
+        <span class="font-semibold flex-1">{{ action() === 'edit' ? ('Edit payment' | t) : action() === 'view' ? ('Payment' | t) : ('Add payment' | t) }}</span>
+        <button type="button" (click)="editVisible.set(false)" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" [aria-label]="'Close' | t"><fa-icon icon="xmark" /></button>
       </div>
       <div class="px-5 pt-2 pb-5 space-y-4">
         <div class="text-center">
-          <div class="text-sm muted">Selected date</div>
+          <div class="text-sm muted">{{ 'Selected date' | t }}</div>
           <div class="font-semibold">{{ selectedDate() | date: 'fullDate' }}</div>
         </div>
         @if (action() === 'view') {
           <div class="text-center space-y-1">
-            <div class="text-3xl font-extrabold text-green-600">{{ amount | money: cur() }}</div>
+            <div class="text-3xl font-extrabold text-green-600">{{ amount | money: payCurrency }}</div>
             <div class="text-sm muted">{{ methodLabel[method] }}@if (note) { · {{ note }} }</div>
           </div>
         } @else {
-          <div class="field">
-            <label>Amount</label>
-            <p-inputnumber [(ngModel)]="amount" mode="currency" [currency]="cur()" [min]="0" inputStyleClass="w-full" styleClass="w-full" [autofocus]="true" />
-            @if (touched && !(amount > 0)) { <small class="text-red-500">Please enter a valid amount.</small> }
+          <div class="grid grid-cols-[1fr_8rem] gap-3">
+            <div class="field">
+              <label>{{ 'Amount' | t }}</label>
+              <p-inputnumber [(ngModel)]="amount" mode="currency" [currency]="payCurrency" [min]="0" inputStyleClass="w-full" styleClass="w-full" [autofocus]="true" />
+            </div>
+            <div class="field">
+              <label>{{ 'Currency' | t }}</label>
+              <p-select [options]="currencies" optionLabel="code" optionValue="code" [(ngModel)]="payCurrency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body" />
+            </div>
           </div>
+          @if (touched && !(amount > 0)) { <small class="text-red-500">{{ 'Please enter a valid amount.' | t }}</small> }
           <div class="field">
-            <label>Method</label>
+            <label>{{ 'Method' | t }}</label>
             <p-selectbutton [options]="methods" optionLabel="label" optionValue="value" [(ngModel)]="method" [allowEmpty]="false" />
           </div>
-          <div class="field"><label>Note (optional)</label><input pInputText [(ngModel)]="note" placeholder="e.g. March membership" /></div>
+          <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="note" [placeholder]="'e.g. March membership' | t" /></div>
           @if (suggested(); as s) {
-            <button type="button" class="text-xs text-primary cursor-pointer" (click)="amount = s.price; note = note || s.name">
-              Use plan price: {{ s.name }} ({{ s.price | money: cur() }})
+            <button type="button" class="text-xs text-primary cursor-pointer text-start" (click)="usePlan(s)">
+              {{ 'Use plan price:' | t }} {{ s.name }} ({{ s.price | money: planCurrency(s) }})
             </button>
           }
         }
       </div>
       @if (action() !== 'view') {
         <div class="flex justify-center gap-2 pb-5">
-          <p-button label="Cancel" severity="secondary" [rounded]="true" (onClick)="editVisible.set(false)" />
-          <p-button [label]="action() === 'edit' ? 'Save' : 'Add'" [rounded]="true" [severity]="action() === 'edit' ? 'warn' : undefined" (onClick)="save()" />
-          @if (action() === 'edit') { <p-button label="Delete" severity="danger" [rounded]="true" [outlined]="true" (onClick)="remove()" /> }
+          <p-button [label]="'Cancel' | t" severity="secondary" [rounded]="true" (onClick)="editVisible.set(false)" />
+          <p-button [label]="action() === 'edit' ? ('Save' | t) : ('Add' | t)" [rounded]="true" [severity]="action() === 'edit' ? 'warn' : undefined" (onClick)="save()" />
+          @if (action() === 'edit') { <p-button [label]="'Delete' | t" severity="danger" [rounded]="true" [outlined]="true" (onClick)="remove()" /> }
         </div>
       }
     </div>

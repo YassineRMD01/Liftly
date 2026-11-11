@@ -1,3 +1,4 @@
+import { TranslatePipe, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -11,14 +12,14 @@ import { OpenStatusBadge } from '../../../shared/open-status/open-status';
 
 @Component({
   selector: 'app-coach-dashboard',
-  imports: [DatePipe, RouterLink, Button, PageHeader, StatCard, Stars, OpenStatusBadge],
+  imports: [TranslateJoinPipe, TranslatePipe, DatePipe, RouterLink, Button, PageHeader, StatCard, Stars, OpenStatusBadge],
   templateUrl: './coach-dashboard.html',
   styleUrl: './coach-dashboard.css',
 })
 export class CoachDashboard {
   protected readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
-  private readonly id = computed(() => this.auth.user()!.id);
+  private readonly id = computed(() => (this.auth.user()?.id ?? ''));
   protected readonly gyms = computed(() => this.store.gymsOfCoach(this.id()));
   protected readonly rating = computed(() => this.store.coachRating(this.id()));
   protected readonly reviews = computed(() => this.store.reviewsOfCoach(this.id()));

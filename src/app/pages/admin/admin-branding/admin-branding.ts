@@ -1,3 +1,4 @@
+import { TranslatePipe, t, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -18,13 +19,13 @@ import { Gym } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
-import { SPORTS } from '../../public/signup/signup';
+import { sportOptions } from '../../public/signup/signup';
 
 const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6', '#0ea5e9', '#3b82f6', '#8b5cf6', '#ec4899', '#111827', '#84cc16'];
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Select, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [TranslateJoinPipe, TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Select, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './admin-branding.html',
   styleUrl: './admin-branding.css',
 })
@@ -34,7 +35,7 @@ export class AdminBranding implements OnDestroy {
   protected readonly theme = inject(ThemeService);
   private readonly toast = inject(MessageService);
   protected readonly presets = PRESETS;
-  protected readonly sports = SPORTS;
+  protected readonly sports = sportOptions();
   protected readonly currencies = CURRENCIES;
   protected readonly color = signal('#6366f1');
   protected readonly logo = signal('');
@@ -64,16 +65,16 @@ export class AdminBranding implements OnDestroy {
     const current = this.auth.activeGym();
     if (!current) return;
     if (!this.draft.sports.length) {
-      this.toast.add({ severity: 'error', summary: 'Pick at least one sport' });
+      this.toast.add({ severity: 'error', summary: t('Pick at least one sport') });
       return;
     }
     const keepColor = this.allowed() ? this.color() : current.theme.primary;
     this.store.updateGym({ ...this.draft, theme: { primary: keepColor, logoText: this.logo() } });
     if (!this.allowed()) {
       this.color.set(current.theme.primary);
-      this.toast.add({ severity: 'warn', summary: 'Saved without color', detail: 'Upgrade to Pro to use a custom color.' });
+      this.toast.add({ severity: 'warn', summary: t('Saved without color'), detail: t('Upgrade to Pro to use a custom color.') });
     } else {
-      this.toast.add({ severity: 'success', summary: 'Branding saved', detail: 'Your gym theme is live.' });
+      this.toast.add({ severity: 'success', summary: t('Branding saved'), detail: t('Your gym theme is live.') });
     }
   }
 }

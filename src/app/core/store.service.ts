@@ -1,12 +1,13 @@
+import { t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
   ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, Payment, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
 } from './models';
 import { openStatus } from './schedule';
-import { DEFAULT_CURRENCY, formatMoney } from './currency';
+import { DEFAULT_CURRENCY, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v6';
+const STORAGE_KEY = 'liftly-db-v7';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -79,6 +80,12 @@ export class StoreService {
   gym(id: string | undefined) { return this.gyms().find((g) => g.id === id); }
   /** Currency code of a gym (USD if unknown). */
   currencyOf(gymId: string | undefined) { return this.gym(gymId)?.currency ?? DEFAULT_CURRENCY; }
+  /** Currency of a membership plan (its own, else the gym's). */
+  planCurrency(plan: MembershipPlan | undefined | null) { return plan?.currency || this.currencyOf(plan?.gymId); }
+  /** Currency a membership was paid in. */
+  membershipCurrency(m: ClientMembership) { return m.currency || this.plan(m.planId)?.currency || this.currencyOf(m.gymId); }
+  /** Currency of a payment. */
+  paymentCurrency(p: Payment) { return p.currency || this.currencyOf(p.gymId); }
   saasPlan(id: string | undefined) { return this.saasPlans().find((p) => p.id === id); }
   plan(id: string | undefined) { return this.membershipPlans().find((p) => p.id === id); }
   promo(id: string | undefined) { return this.promoCodes().find((p) => p.id === id); }
@@ -118,8 +125,9 @@ export class StoreService {
     const avg = list.length ? list.reduce((s, r) => s + r.rating, 0) / list.length : 0;
     return { avg: Math.round(avg * 10) / 10, count: list.length };
   }
-  gymRevenue(gymId: string) {
-    return this.membershipsOfGym(gymId).reduce((s, m) => s + m.pricePaid, 0);
+  /** Revenue of a gym, summed per currency ("$1,200.00 + €50.00"). */
+  gymRevenue(gymId: string, decimals?: 0 | 2) {
+    return formatTotals(this.membershipsOfGym(gymId).map((m) => ({ amount: m.pricePaid, currency: this.membershipCurrency(m) })), this.currencyOf(gymId), decimals);
   }
 
   // ---------- users ----------
@@ -194,17 +202,17 @@ export class StoreService {
     const plan = this.plan(planId);
     const price = plan?.price ?? 0;
     const code = rawCode.trim().toUpperCase();
-    if (!code) return { ok: false, message: 'Enter a code', finalPrice: price };
+    if (!code) return { ok: false, message: t('Enter a code'), finalPrice: price };
     const promo = this.promoCodes().find((p) => p.gymId === gymId && p.code === code);
     const now = new Date().toISOString();
-    if (!promo || !promo.active) return { ok: false, message: 'Invalid promo code', finalPrice: price };
-    if (now < promo.validFrom || now > promo.validUntil) return { ok: false, message: 'This code has expired', finalPrice: price };
-    if (promo.maxUses !== -1 && promo.uses >= promo.maxUses) return { ok: false, message: 'Usage limit reached', finalPrice: price };
-    if (promo.planIds.length && !promo.planIds.includes(planId)) return { ok: false, message: 'Not valid for this plan', finalPrice: price };
+    if (!promo || !promo.active) return { ok: false, message: t('Invalid promo code'), finalPrice: price };
+    if (now < promo.validFrom || now > promo.validUntil) return { ok: false, message: t('This code has expired'), finalPrice: price };
+    if (promo.maxUses !== -1 && promo.uses >= promo.maxUses) return { ok: false, message: t('Usage limit reached'), finalPrice: price };
+    if (promo.planIds.length && !promo.planIds.includes(planId)) return { ok: false, message: t('Not valid for this plan'), finalPrice: price };
     const discount = promo.discountType === 'PERCENT' ? (price * promo.value) / 100 : promo.value;
     const finalPrice = Math.max(0, Math.round((price - discount) * 100) / 100);
-    const label = promo.discountType === 'PERCENT' ? `${promo.value}% off` : `${formatMoney(promo.value, this.currencyOf(gymId))} off`;
-    return { ok: true, message: `Code applied: ${label}`, promo, finalPrice };
+    const label = promo.discountType === 'PERCENT' ? `${promo.value}% off` : `${formatMoney(promo.value, this.planCurrency(plan))} off`;
+    return { ok: true, message: t('Code applied: {0}', { 0: label }), promo, finalPrice };
   }
 
   // ---------- client memberships ----------
@@ -221,11 +229,12 @@ export class StoreService {
       coachId: input.coachId,
       promoCodeId: check?.ok ? check.promo!.id : undefined,
       pricePaid: check?.ok ? check.finalPrice : plan.price,
+      currency: this.planCurrency(plan),
       startDate: start.toISOString(),
       endDate: end.toISOString(),
       status: 'ACTIVE',
     };
-    const payment: Payment = { id: uid('p'), gymId: m.gymId, clientId: m.clientId, date: m.startDate.slice(0, 10), amount: m.pricePaid, method: 'CASH', note: plan.name };
+    const payment: Payment = { id: uid('p'), gymId: m.gymId, clientId: m.clientId, date: m.startDate.slice(0, 10), amount: m.pricePaid, currency: m.currency, method: 'CASH', note: plan.name };
     this.patch((s) => ({
       memberships: [...s.memberships, m],
       payments: m.pricePaid > 0 ? [...s.payments, payment] : s.payments,

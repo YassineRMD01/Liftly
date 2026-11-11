@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/i18n/i18n';
 import { Component, computed, inject, input } from '@angular/core';
 import { Gender, ScheduleSlot } from '../../core/models';
 import { AUDIENCE, DAY_SHORT } from '../../core/schedule';
@@ -6,6 +7,7 @@ import { StoreService } from '../../core/store.service';
 /** "Open now · Women only until 14:00" badge. */
 @Component({
   selector: 'app-open-status',
+  imports: [TranslatePipe],
   templateUrl: './open-status.html',
   styleUrl: './open-status.css',
 })

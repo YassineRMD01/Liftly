@@ -86,6 +86,8 @@ export interface MembershipPlan {
   sessionsPerWeek: number; // -1 = unlimited
   includesCoaching: boolean;
   active: boolean;
+  /** Currency of this plan's price (ISO 4217). Defaults to the gym currency. */
+  currency?: string;
 }
 
 export type DiscountType = 'PERCENT' | 'FIXED';
@@ -115,6 +117,8 @@ export interface ClientMembership {
   coachId?: string;
   promoCodeId?: string;
   pricePaid: number;
+  /** Currency of pricePaid (the plan's currency at subscription time). */
+  currency?: string;
   startDate: string;
   endDate: string;
   status: MembershipStatus;
@@ -164,6 +168,8 @@ export interface Payment {
   amount: number;
   method: PaymentMethod;
   note?: string;
+  /** Currency of the amount. Defaults to the gym currency. */
+  currency?: string;
 }
 
 export interface DbState {

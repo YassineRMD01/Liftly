@@ -1,6 +1,6 @@
 <div class="flex flex-wrap items-center gap-2 mb-3 text-xs">
   <app-audience-tag audience="MIXED" /><app-audience-tag audience="MEN" /><app-audience-tag audience="WOMEN" />
-  @if (gender()) { <span class="muted">Faded sessions are not open to you.</span> }
+  @if (gender()) { <span class="muted">{{ 'Faded sessions are not open to you.' | t }}</span> }
 </div>
 <div class="overflow-x-auto rounded-xl border border-surface-200 dark:border-surface-700">
   <div class="min-w-[44rem]">
@@ -8,11 +8,11 @@
     <div class="grid grid-cols-[3.25rem_repeat(7,1fr)] border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
       <div></div>
       @for (d of days(); track d.day) {
-        <div class="py-2 text-center text-xs font-semibold border-l border-surface-200 dark:border-surface-700"
+        <div class="py-2 text-center text-xs font-semibold border-s border-surface-200 dark:border-surface-700"
           [class.text-primary]="d.today" [class.bg-primary-50]="d.today" [class.dark:bg-primary-950]="d.today">
           {{ d.short }}
           <div class="font-normal muted">{{ d.dateLabel }}</div>
-          @if (d.closure) { <div class="text-[10px] text-red-500 font-semibold truncate px-1" [title]="d.closure">Closed</div> }
+          @if (d.closure) { <div class="text-[10px] text-red-500 font-semibold truncate px-1" [title]="d.closure">{{ 'Closed' | t }}</div> }
         </div>
       }
     </div>
@@ -21,11 +21,11 @@
       <!-- hour labels -->
       <div class="relative">
         @for (h of hours(); track h; let i = $index) {
-          <div class="absolute right-1.5 -translate-y-1/2 text-[10px] muted tabular-nums" [style.top.px]="i * hourPx">{{ pad(h) }}:00</div>
+          <div class="absolute end-1.5 -translate-y-1/2 text-[10px] muted tabular-nums" [style.top.px]="i * hourPx">{{ pad(h) }}:00</div>
         }
       </div>
       @for (d of days(); track d.day) {
-        <div class="relative border-l border-surface-200 dark:border-surface-700" [class.bg-primary-50/40]="d.today"
+        <div class="relative border-s border-surface-200 dark:border-surface-700" [class.bg-primary-50/40]="d.today"
           [class.bg-red-50/60]="!!d.closure" [class.dark:bg-red-950/30]="!!d.closure">
           @for (h of hours(); track h; let i = $index) {
             <div class="absolute inset-x-0 border-t border-surface-100 dark:border-surface-800" [style.top.px]="i * hourPx"></div>
@@ -38,9 +38,9 @@
               [style.background]="color(s)"
               [pTooltip]="tip(s)" tooltipPosition="top"
               (click)="editable() && slotClick.emit(s)">
-              <div class="font-semibold tabular-nums">{{ s.open }}–{{ s.close }}</div>
+              <div class="font-semibold tabular-nums" dir="ltr">{{ s.open }}–{{ s.close }}</div>
               @if (s.height > 34) { <div class="truncate">{{ short(s) }}</div> }
-              @if (s.height > 50 && s.sport) { <div class="truncate opacity-90">{{ s.sport }}</div> }
+              @if (s.height > 50 && s.sport) { <div class="truncate opacity-90">{{ s.sport | t }}</div> }
               @if (s.height > 66 && s.note) { <div class="truncate italic opacity-80">{{ s.note }}</div> }
             </div>
           }

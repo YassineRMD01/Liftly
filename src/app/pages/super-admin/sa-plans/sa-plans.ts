@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, ye
 
 @Component({
   selector: 'app-sa-plans',
-  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './sa-plans.html',
   styleUrl: './sa-plans.css',
 })
@@ -41,17 +42,17 @@ export class SaPlans {
   save() {
     this.store.saveSaasPlan({ ...this.draft(), features: this.featuresText.split('\n').map((f) => f.trim()).filter(Boolean) });
     this.visible = false;
-    this.toast.add({ severity: 'success', summary: 'Plan saved' });
+    this.toast.add({ severity: 'success', summary: t('Plan saved') });
   }
 
   remove(p: SaasPlan) {
     if (this.gymCount(p.id)) {
-      this.toast.add({ severity: 'warn', summary: 'Plan in use', detail: 'Move gyms to another plan or hide it instead.' });
+      this.toast.add({ severity: 'warn', summary: t('Plan in use'), detail: t('Move gyms to another plan or hide it instead.') });
       return;
     }
     this.confirm.confirm({
-      header: 'Delete plan', message: `Delete the "${p.name}" plan?`, acceptButtonStyleClass: 'p-button-danger',
-      accept: () => { this.store.deleteSaasPlan(p.id); this.toast.add({ severity: 'success', summary: 'Plan deleted' }); },
+      header: t('Delete plan'), message: t('Delete the "{0}" plan?', { 0: p.name }), acceptButtonStyleClass: 'p-button-danger',
+      accept: () => { this.store.deleteSaasPlan(p.id); this.toast.add({ severity: 'success', summary: t('Plan deleted') }); },
     });
   }
 }

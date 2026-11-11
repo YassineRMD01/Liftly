@@ -1,6 +1,6 @@
 <div class="flex flex-wrap gap-2 mb-3 text-xs">
   <app-audience-tag audience="MIXED" /><app-audience-tag audience="MEN" /><app-audience-tag audience="WOMEN" />
-  @if (gender()) { <span class="muted self-center">Faded slots are not open to you.</span> }
+  @if (gender()) { <span class="muted self-center">{{ 'Faded slots are not open to you.' | t }}</span> }
 </div>
 <div class="divide-y divide-surface-200 dark:divide-surface-800">
   @for (d of days(); track d.day) {
@@ -19,15 +19,15 @@
           <div class="flex flex-wrap gap-x-4 gap-y-1.5">
             @for (s of d.slots; track s.id) {
               <span class="inline-flex items-center gap-1.5 text-sm font-normal" [class.opacity-40]="!s.ok">
-                <span class="tabular-nums">{{ s.open }}–{{ s.close }}</span>
+                <span class="tabular-nums" dir="ltr">{{ s.open }}–{{ s.close }}</span>
                 <app-audience-tag [audience]="s.audience" [short]="true" />
-                @if (s.sport) { <span class="text-xs muted">{{ s.sport }}</span> }
+                @if (s.sport) { <span class="text-xs muted">{{ s.sport | t }}</span> }
                 @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
               </span>
             }
           </div>
         } @else {
-          <span class="text-sm muted font-normal">Closed</span>
+          <span class="text-sm muted font-normal">{{ 'Closed' | t }}</span>
         }
       </div>
     </div>
@@ -35,7 +35,7 @@
 </div>
 @if (closures().length) {
   <div class="mt-4 text-sm">
-    <div class="font-semibold mb-1"><fa-icon icon="calendar-xmark" class="text-red-500" /> Upcoming closures</div>
+    <div class="font-semibold mb-1"><fa-icon icon="calendar-xmark" class="text-red-500" /> {{ 'Upcoming closures' | t }}</div>
     @for (c of closures(); track c.id) {
       <div class="muted">{{ c.date | date: 'EEE, MMM d' }} — {{ c.reason }}</div>
     }

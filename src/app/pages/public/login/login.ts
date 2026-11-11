@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -13,7 +15,7 @@ import { StoreService } from '../../../core/store.service';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, FaIconComponent, Button, InputText, Message, Password, Tag],
+  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, InputText, Message, Password, Tag],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -23,7 +25,7 @@ export class Login {
   protected email = '';
   protected password = '';
   protected readonly error = signal<string | null>(null);
-  protected readonly label: Record<Role, string> = { SUPER_ADMIN: 'Super admin', ADMIN: 'Gym admin', COACH: 'Coach', CLIENT: 'Member' };
+  protected readonly label: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN: t('Gym admin'), COACH: t('Coach'), CLIENT: t('Member') };
   protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success' };
   protected readonly demo = computed(() =>
     ['u-sa', 'u-a1', 'u-a2', 'u-c1', 'u-k1', 'u-k2'].map((id) => this.store.user(id)).filter((u): u is User => !!u),
@@ -32,7 +34,7 @@ export class Login {
   submit() {
     const u = this.auth.login(this.email, this.password);
     if (!u) {
-      this.error.set('Invalid email or password.');
+      this.error.set(t('Invalid email or password.'));
       return;
     }
     this.auth.loginAs(u);

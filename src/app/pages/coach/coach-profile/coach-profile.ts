@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -16,7 +17,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-coach-profile',
-  imports: [FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, Select, CoachCard, PageHeader],
+  imports: [TranslatePipe, FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, Select, CoachCard, PageHeader],
   templateUrl: './coach-profile.html',
   styleUrl: './coach-profile.css',
 })
@@ -25,7 +26,7 @@ export class CoachProfilePage {
   private readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   protected readonly currencies = CURRENCIES;
-  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
+  protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
   protected user: User = structuredClone(this.auth.user()!);
   protected profile: CoachProfile = structuredClone(
     this.store.coachProfile(this.user.id) ?? { userId: this.user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0, currency: DEFAULT_CURRENCY },
@@ -39,6 +40,6 @@ export class CoachProfilePage {
   save() {
     this.store.updateUser(this.user);
     this.store.upsertCoachProfile({ ...this.profile, specialties: this.specialties.split(',').map((s) => s.trim()).filter(Boolean) });
-    this.toast.add({ severity: 'success', summary: 'Profile saved' });
+    this.toast.add({ severity: 'success', summary: t('Profile saved') });
   }
 }

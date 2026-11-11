@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +20,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-sa-users',
-  imports: [FormsModule, DatePipe, FaIconComponent, Button, IconField, InputIcon, InputText, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, IconField, InputIcon, InputText, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
   templateUrl: './sa-users.html',
   styleUrl: './sa-users.css',
 })
@@ -31,7 +32,7 @@ export class SaUsers {
   protected readonly q = signal('');
   protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success' };
   protected readonly roleFilters = [
-    { label: 'All', value: 'ALL' }, { label: 'Admins', value: 'ADMIN' }, { label: 'Coaches', value: 'COACH' }, { label: 'Clients', value: 'CLIENT' },
+    { label: t('All'), value: 'ALL' }, { label: t('Admins'), value: 'ADMIN' }, { label: t('Coaches'), value: 'COACH' }, { label: t('Clients'), value: 'CLIENT' },
   ];
   protected readonly rows = computed(() => {
     const q = this.q().toLowerCase();
@@ -51,11 +52,11 @@ export class SaUsers {
 
   toggle(u: User, active: boolean) {
     this.store.updateUser({ ...u, active });
-    this.toast.add({ severity: active ? 'success' : 'warn', summary: active ? 'User activated' : 'User deactivated', detail: u.email });
+    this.toast.add({ severity: active ? 'success' : 'warn', summary: active ? t('User activated') : t('User deactivated'), detail: u.email });
   }
 
   reset() {
     this.store.resetDemo();
-    this.toast.add({ severity: 'info', summary: 'Demo data restored' });
+    this.toast.add({ severity: 'info', summary: t('Demo data restored') });
   }
 }

@@ -7,11 +7,13 @@ import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tooltip } from 'primeng/tooltip';
-import { Payment, PaymentMethod } from '../../core/models';
+import { MembershipPlan, Payment, PaymentMethod } from '../../core/models';
 import { isoDate } from '../../core/schedule';
-import { formatMoney, MoneyPipe } from '../../core/currency';
+import { CURRENCIES, formatMoney, formatTotals, MoneyPipe } from '../../core/currency';
+import { DAY_NAMES_NARROW, MONTH_NAMES, t, TranslatePipe } from '../../core/i18n/i18n';
 import { StoreService } from '../../core/store.service';
 
 interface CalendarDay {
@@ -26,13 +28,14 @@ interface CalendarMonth {
   label: string;
   value: number;
   status: 'present' | 'missing';
-  paid: number;
+  /** Amount paid in the month, formatted per currency ('' when nothing). */
+  paid: string;
   days: (CalendarDay | null)[];
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card', TRANSFER: 'Transfer' };
+/** Monday-first weekday initials in the current language. */
+const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0].map((d) => DAY_NAMES_NARROW[d]);
+const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: t('Cash'), CARD: t('Card'), TRANSFER: t('Transfer') };
 
 /**
  * Yearly payments calendar of one client at one gym.
@@ -41,7 +44,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Cash', CARD: 'Card'
  */
 @Component({
   selector: 'app-payment-calendar',
-  imports: [MoneyPipe, DatePipe, NgClass, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, SelectButton, Tooltip],
+  imports: [MoneyPipe, TranslatePipe, DatePipe, NgClass, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, Select, SelectButton, Tooltip],
   templateUrl: './payment-calendar.html',
   styleUrl: './payment-calendar.css',
 })
@@ -53,6 +56,7 @@ export class PaymentCalendar {
   protected readonly weekdays = WEEKDAYS;
   protected readonly methodLabel = METHOD_LABEL;
   protected readonly methods = (Object.keys(METHOD_LABEL) as PaymentMethod[]).map((value) => ({ value, label: METHOD_LABEL[value] }));
+  protected readonly currencies = CURRENCIES;
 
   /** Signals (not plain fields): open() may be called from another component's view, e.g. a table row, in a zoneless app. */
   protected readonly visible = signal(false);
@@ -68,11 +72,12 @@ export class PaymentCalendar {
   protected readonly selectedDate = signal(new Date());
   private editing: Payment | null = null;
   protected amount = 0;
+  protected payCurrency = 'USD';
   protected method: PaymentMethod = 'CASH';
   protected note = '';
   protected touched = false;
 
-  /** Currency of the gym this calendar belongs to. */
+  /** Currency of the gym this calendar belongs to (default for new payments). */
   protected readonly cur = computed(() => this.store.currencyOf(this.gymId()));
   protected readonly clientName = computed(() => this.store.fullName(this.clientId()));
   protected readonly gymName = computed(() => this.store.gym(this.gymId())?.name ?? '');
@@ -87,40 +92,44 @@ export class PaymentCalendar {
 
   private readonly paymentsByDay = computed(() => new Map(this.payments().map((p) => [p.date, p])));
   private readonly yearPayments = computed(() => this.payments().filter((p) => p.date.startsWith(String(this.year()))));
-  protected readonly yearTotal = computed(() => this.yearPayments().reduce((s, p) => s + p.amount, 0));
+  private totals(list: Payment[]) {
+    return formatTotals(list.map((p) => ({ amount: p.amount, currency: this.store.paymentCurrency(p) })), this.cur());
+  }
+  protected readonly yearTotal = computed(() => this.totals(this.yearPayments()));
   protected readonly yearCount = computed(() => this.yearPayments().length);
-  protected readonly allTimeTotal = computed(() => this.payments().reduce((s, p) => s + p.amount, 0));
+  protected readonly allTimeTotal = computed(() => this.totals(this.payments()));
   protected readonly coveredMonths = computed(() => this.calendar().filter((m) => m.status === 'present').length);
 
   protected readonly calendar = computed<CalendarMonth[]>(() => {
     const y = this.year();
     const byDay = this.paymentsByDay();
     const todayKey = isoDate(this.today());
-    const cur = this.cur();
     const periods = this.memberships().map((m) => [m.startDate.slice(0, 10), m.endDate.slice(0, 10)] as const);
     const isCovered = (key: string) => periods.some(([s, e]) => s <= key && key <= e);
 
-    return MONTHS.map((label, value) => {
+    return MONTH_NAMES.map((label, value) => {
       const first = new Date(y, value, 1);
       const total = new Date(y, value + 1, 0).getDate();
       const days: (CalendarDay | null)[] = Array((first.getDay() + 6) % 7).fill(null); // Monday first
-      let paid = 0;
+      const monthPayments: Payment[] = [];
       for (let d = 1; d <= total; d++) {
         const date = new Date(y, value, d);
         const key = isoDate(date);
         const payment = byDay.get(key) ?? null;
-        if (payment) paid += payment.amount;
+        if (payment) monthPayments.push(payment);
         days.push({
           date, key, payment,
           isToday: key === todayKey,
           covered: isCovered(key),
-          tooltip: payment ? `💰 ${formatMoney(payment.amount, cur)} · ${METHOD_LABEL[payment.method]}${payment.note ? ' · ' + payment.note : ''}` : '',
+          tooltip: payment
+            ? `💰 ${formatMoney(payment.amount, this.store.paymentCurrency(payment))} · ${METHOD_LABEL[payment.method]}${payment.note ? ' · ' + payment.note : ''}`
+            : '',
         });
       }
       const mStart = isoDate(first);
       const mEnd = isoDate(new Date(y, value, total));
       const status = periods.some(([s, e]) => s <= mEnd && e >= mStart) ? 'present' : 'missing';
-      return { label, value, status, paid, days };
+      return { label, value, status, paid: monthPayments.length ? this.totals(monthPayments) : '', days };
     });
   });
 
@@ -140,12 +149,22 @@ export class PaymentCalendar {
     this.year.set(now.getFullYear());
   }
 
+  planCurrency(plan: MembershipPlan) { return this.store.planCurrency(plan); }
+
+  usePlan(plan: MembershipPlan) {
+    this.amount = plan.price;
+    this.payCurrency = this.store.planCurrency(plan);
+    this.note = this.note || plan.name;
+  }
+
   onDayClick(day: CalendarDay) {
     if (this.readonly() && !day.payment) return;
+    const plan = this.suggested();
     this.editing = day.payment;
     this.selectedDate.set(day.date);
     this.action.set(this.readonly() ? 'view' : day.payment ? 'edit' : 'add');
-    this.amount = day.payment?.amount ?? this.suggested()?.price ?? 0;
+    this.amount = day.payment?.amount ?? plan?.price ?? 0;
+    this.payCurrency = day.payment ? this.store.paymentCurrency(day.payment) : plan ? this.store.planCurrency(plan) : this.cur();
     this.method = day.payment?.method ?? 'CASH';
     this.note = day.payment?.note ?? '';
     this.touched = false;
@@ -159,22 +178,28 @@ export class PaymentCalendar {
       id: this.editing?.id ?? '',
       gymId: this.gymId(), clientId: this.clientId(),
       date: isoDate(this.selectedDate()),
-      amount: Number(this.amount), method: this.method,
+      amount: Number(this.amount), currency: this.payCurrency, method: this.method,
       ...(this.note.trim() ? { note: this.note.trim() } : {}),
     });
     this.editVisible.set(false);
-    this.toast.add({ severity: 'success', summary: this.editing ? 'Payment updated' : 'Payment added', detail: `${formatMoney(this.amount, this.cur())} on ${isoDate(this.selectedDate())}` });
+    this.toast.add({
+      severity: 'success',
+      summary: this.editing ? t('Payment updated') : t('Payment added'),
+      detail: t('{amount} on {date}', { amount: formatMoney(this.amount, this.payCurrency), date: isoDate(this.selectedDate()) }),
+    });
   }
 
   remove() {
     const p = this.editing;
     if (!p) return;
     this.confirm.confirm({
-      header: 'Delete payment', message: `Delete the ${formatMoney(p.amount, this.cur())} payment of ${p.date}?`, acceptButtonStyleClass: 'p-button-danger',
+      header: t('Delete payment'),
+      message: t('Delete the {amount} payment of {date}?', { amount: formatMoney(p.amount, this.store.paymentCurrency(p)), date: p.date }),
+      acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.store.deletePayment(p.id);
         this.editVisible.set(false);
-        this.toast.add({ severity: 'info', summary: 'Payment deleted' });
+        this.toast.add({ severity: 'info', summary: t('Payment deleted') });
       },
     });
   }

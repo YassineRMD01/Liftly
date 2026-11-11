@@ -11,9 +11,18 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 | **Coach** | Works at **many gyms**, dashboard of gyms & assigned athletes, **star ratings & comments** with rating breakdown, editable public profile |
 | **Client** | Account and memberships are **created only by the gym admin** (no self sign-up, no self checkout). Can be a member of **many gyms**, browses gyms (sports, plans, coaches, hours), sees live *open now* status, the gym schedule as a **weekly calendar** (hours open to them by gender), their **own payments** on the yearly calendar (read-only), **rates & reviews coaches** (1 review per coach per gym) |
 
+### Languages
+- English, Français, Español and العربية (right-to-left), picked from the language menu in the header, landing, login and sign-up pages.
+- Templates use the `t` pipe with the English text as key (`{{ 'Save' | t }}`, `[label]="'Save' | t"`); TypeScript uses `t('…')`, with placeholders for values (`t('Renew {0} for {1}?', { 0: plan, 1: name })`). Missing translations fall back to English.
+- Dictionaries: `src/app/core/i18n/fr.ts`, `es.ts`, `ar.ts`. To add a text, use it with `t` and add the same English key to each dictionary.
+- Switching language saves the choice and reloads, so Angular's `LOCALE_ID` (dates, numbers, currencies), PrimeNG's built-in texts (`core/i18n/primeng-locale.ts`) and `<html dir>` follow it. Month, day and currency names come from `Intl`, so they need no translation.
+- Arabic uses the `ar-MA` locale (Latin digits) and RTL layout; templates use start/end Tailwind classes (`ms-`, `me-`, `text-start`…).
+- User content (gym names, plan names, reviews…) is not translated; sport names are stored in English and translated for display.
+
 ### Currency
 - Each gym has its own currency (`Gym.currency`, ISO 4217 — USD, EUR, GBP, MAD, DZD, TND, AED, SAR…), chosen at sign-up and changeable in Admin → Branding.
 - Membership prices, promo codes, client payments and revenue are shown in the gym's currency with the `money` pipe (`{{ amount | money: gym.currency }}`); changing it does not convert existing amounts.
+- Each membership plan can have its own currency (defaults to the gym's); memberships and payments record the currency they were paid in, and totals mixing currencies are shown per currency ("MAD 1,350 + €25").
 - Coaches set the currency of their hourly rate on their profile (`CoachProfile.currency`).
 - Liftly's own SaaS pricing (what gym owners pay) stays in USD.
 
@@ -56,13 +65,14 @@ src/app/
   app.ts / app.html / app.css      root component
   app.routes.ts, app.config.ts
   core/        models.ts, seed.ts, store.service.ts (mock backend, localStorage), auth.service.ts,
-               guards.ts, theme.service.ts (white-label palette), schedule.ts, currency.ts (+ money pipe), icons.ts
+               guards.ts, theme.service.ts (white-label palette), schedule.ts, currency.ts (+ money pipe), icons.ts,
+               i18n/ (t pipe + translations fr / es / ar, PrimeNG locale)
   layout/
     shell/                         role-based sidebar, gym switcher, dark mode
   shared/
     page-header/  stat-card/  stars/  coach-card/
     audience-tag/  open-status/  week-schedule/  week-calendar/
-    payment-calendar/
+    payment-calendar/  language-switcher/
   pages/
     public/       landing/  login/  signup/
     super-admin/  sa-dashboard/  sa-gyms/  sa-plans/  sa-users/

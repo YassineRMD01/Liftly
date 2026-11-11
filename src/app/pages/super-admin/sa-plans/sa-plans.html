@@ -1,5 +1,5 @@
-<app-page-header title="Pricing plans" subtitle="What gym owners pay to use Liftly.">
-  <p-button label="New plan" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+<app-page-header [title]="'Pricing plans' | t" [subtitle]="'What gym owners pay to use Liftly.' | t">
+  <p-button [label]="'New plan' | t" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -11,41 +11,41 @@
           <p class="text-sm muted">{{ p.description }}</p>
         </div>
         <div class="flex gap-1">
-          @if (p.highlighted) { <p-tag value="Popular" /> }
-          @if (!p.active) { <p-tag value="Hidden" severity="secondary" /> }
+          @if (p.highlighted) { <p-tag [value]="'Popular' | t" /> }
+          @if (!p.active) { <p-tag [value]="'Hidden' | t" severity="secondary" /> }
         </div>
       </div>
-      <div class="mt-4 text-3xl font-extrabold">{{ p.monthlyPrice | currency }}<span class="text-sm font-normal muted">/mo</span></div>
-      <div class="text-sm muted">{{ p.yearlyPrice | currency }}/yr</div>
+      <div class="mt-4 text-3xl font-extrabold">{{ p.monthlyPrice | currency }}<span class="text-sm font-normal muted">{{ '/mo' | t }}</span></div>
+      <div class="text-sm muted">{{ p.yearlyPrice | currency }}{{ '/yr' | t }}</div>
       <ul class="mt-4 space-y-1.5 text-sm flex-1">
-        <li>{{ p.maxCoaches === -1 ? 'Unlimited' : p.maxCoaches }} coaches · {{ p.maxClients === -1 ? 'Unlimited' : p.maxClients }} clients</li>
-        <li>Custom theme: <b>{{ p.customTheme ? 'Yes' : 'No' }}</b></li>
+        <li>{{ p.maxCoaches === -1 ? ('Unlimited' | t) : p.maxCoaches }} {{ 'coaches ·' | t }} {{ p.maxClients === -1 ? ('Unlimited' | t) : p.maxClients }} {{ 'clients' | t }}</li>
+        <li>{{ 'Custom theme:' | t }} <b>{{ p.customTheme ? ('Yes' | t) : 'No' }}</b></li>
         @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
       </ul>
-      <div class="text-xs muted mt-3">{{ gymCount(p.id) }} gyms on this plan</div>
+      <div class="text-xs muted mt-3">{{ gymCount(p.id) }} {{ 'gyms on this plan' | t }}</div>
       <div class="flex gap-2 mt-4">
-        <p-button label="Edit" [outlined]="true" size="small" (onClick)="edit(p)" />
-        <p-button label="Delete" severity="danger" [text]="true" size="small" (onClick)="remove(p)" />
+        <p-button [label]="'Edit' | t" [outlined]="true" size="small" (onClick)="edit(p)" />
+        <p-button [label]="'Delete' | t" severity="danger" [text]="true" size="small" (onClick)="remove(p)" />
       </div>
     </div>
   }
 </div>
 
-<p-dialog [header]="draft().id ? 'Edit plan' : 'New plan'" [(visible)]="visible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<p-dialog [header]="draft().id ? ('Edit plan' | t) : ('New plan' | t)" [(visible)]="visible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
   <div class="grid sm:grid-cols-2 gap-4">
-    <div class="field sm:col-span-2"><label>Name</label><input pInputText [(ngModel)]="draft().name" /></div>
-    <div class="field sm:col-span-2"><label>Description</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
-    <div class="field"><label>Monthly price</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" /></div>
-    <div class="field"><label>Yearly price</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" /></div>
-    <div class="field"><label>Max coaches (-1 = ∞)</label><p-inputnumber [(ngModel)]="draft().maxCoaches" [min]="-1" /></div>
-    <div class="field"><label>Max clients (-1 = ∞)</label><p-inputnumber [(ngModel)]="draft().maxClients" [min]="-1" /></div>
-    <div class="field sm:col-span-2"><label>Features (one per line)</label><textarea pTextarea rows="4" [(ngModel)]="featuresText"></textarea></div>
-    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().customTheme" /> Custom theme allowed</label>
-    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().highlighted" /> Highlight as popular</label>
-    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> Visible on pricing page</label>
+    <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="draft().name" /></div>
+    <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
+    <div class="field"><label>{{ 'Monthly price' | t }}</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" /></div>
+    <div class="field"><label>{{ 'Yearly price' | t }}</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" /></div>
+    <div class="field"><label>{{ 'Max coaches (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxCoaches" [min]="-1" /></div>
+    <div class="field"><label>{{ 'Max clients (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxClients" [min]="-1" /></div>
+    <div class="field sm:col-span-2"><label>{{ 'Features (one per line)' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="featuresText"></textarea></div>
+    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().customTheme" /> {{ 'Custom theme allowed' | t }}</label>
+    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().highlighted" /> {{ 'Highlight as popular' | t }}</label>
+    <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'Visible on pricing page' | t }}</label>
   </div>
   <ng-template #footer>
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="visible = false" />
-    <p-button label="Save" (onClick)="save()" [disabled]="!draft().name" />
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="visible = false" />
+    <p-button [label]="'Save' | t" (onClick)="save()" [disabled]="!draft().name" />
   </ng-template>
 </p-dialog>

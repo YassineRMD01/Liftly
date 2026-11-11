@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,11 +20,14 @@ import { BillingCycle, Gender, Role } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 
+/** Sport options: English value (stored), translated label (shown). */
+export const sportOptions = () => SPORTS.map((s) => ({ label: t(s), value: s }));
+
 export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimming', 'Aqua Fitness', 'Martial Arts', 'Karate', 'BJJ', 'Kickboxing', 'Boxing', 'Yoga', 'Pilates', 'Tennis', 'Padel', 'Squash', 'Climbing', 'Dance', 'Cycling', 'Football', 'Basketball', 'Other'];
 
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
+  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })
@@ -36,7 +41,7 @@ export class Signup implements OnInit {
   readonly plan = input<string>();
   readonly as = input<string>();
 
-  protected readonly sports = SPORTS;
+  protected readonly sports = sportOptions();
   protected readonly currencies = CURRENCIES;
   protected readonly role = signal<Role>('ADMIN');
   protected readonly cycle = signal<BillingCycle>('MONTHLY');
@@ -44,11 +49,11 @@ export class Signup implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly plans = computed(() => this.store.saasPlans().filter((p) => p.active));
   protected readonly selectedPlan = computed(() => this.store.saasPlan(this.planId()));
-  protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
-  protected readonly cycles = [{ label: 'Monthly', value: 'MONTHLY' }, { label: 'Yearly', value: 'YEARLY' }];
+  protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
+  protected readonly cycles = [{ label: t('Monthly'), value: 'MONTHLY' }, { label: t('Yearly'), value: 'YEARLY' }];
   protected readonly roleOptions: { value: Role; label: string; hint: string; icon: IconProp }[] = [
-    { value: 'ADMIN', label: 'Gym owner', hint: 'Subscribe and manage your gym', icon: 'building' },
-    { value: 'COACH', label: 'Coach', hint: 'Free — work with many gyms', icon: 'user-tie' },
+    { value: 'ADMIN', label: t('Gym owner'), hint: t('Subscribe and manage your gym'), icon: 'building' },
+    { value: 'COACH', label: t('Coach'), hint: t('Free — work with many gyms'), icon: 'user-tie' },
   ];
 
   protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, currency: 'USD', city: '', color: '6366f1', card: '', expiry: '' };
@@ -78,10 +83,10 @@ export class Signup implements OnInit {
   submit() {
     const f = this.form;
     this.error.set(null);
-    if (!f.firstName || !f.lastName || !f.email || !f.password) return this.error.set('Please fill in all your details.');
-    if (this.store.users().some((u) => u.email.toLowerCase() === f.email.toLowerCase())) return this.error.set('This email is already registered.');
-    if (this.role() === 'ADMIN' && !f.gymName) return this.error.set('Please give your gym a name.');
-    if (this.role() === 'ADMIN' && !f.sports.length) return this.error.set('Pick at least one sport.');
+    if (!f.firstName || !f.lastName || !f.email || !f.password) return this.error.set(t('Please fill in all your details.'));
+    if (this.store.users().some((u) => u.email.toLowerCase() === f.email.toLowerCase())) return this.error.set(t('This email is already registered.'));
+    if (this.role() === 'ADMIN' && !f.gymName) return this.error.set(t('Please give your gym a name.'));
+    if (this.role() === 'ADMIN' && !f.sports.length) return this.error.set(t('Pick at least one sport.'));
 
     const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password, ...(f.gender ? { gender: f.gender } : {}) });
     if (this.role() === 'ADMIN') {
@@ -94,7 +99,7 @@ export class Signup implements OnInit {
       });
     }
     this.theme.preview.set(null);
-    this.toast.add({ severity: 'success', summary: 'Welcome to Liftly!', detail: 'Your account is ready.' });
+    this.toast.add({ severity: 'success', summary: t('Welcome to Liftly!'), detail: t('Your account is ready.') });
     this.auth.loginAs(user);
   }
 }

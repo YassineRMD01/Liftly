@@ -1,3 +1,4 @@
+import { TranslatePipe, t, CURRENT_LANGUAGE } from '../../core/i18n/i18n';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
 import { Gender, ScheduleSlot } from '../../core/models';
@@ -14,7 +15,7 @@ interface PlacedSlot extends ScheduleSlot { ok: boolean; top: number; height: nu
  */
 @Component({
   selector: 'app-week-calendar',
-  imports: [Tooltip, AudienceTag],
+  imports: [TranslatePipe, Tooltip, AudienceTag],
   templateUrl: './week-calendar.html',
   styleUrl: './week-calendar.css',
 })
@@ -65,7 +66,7 @@ export class WeekCalendar {
       }
       return {
         day, short: DAY_SHORT[day], today: day === now.getDay(),
-        dateLabel: date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+        dateLabel: date.toLocaleDateString(CURRENT_LANGUAGE.locale, { day: 'numeric', month: 'short' }),
         closure: closures.find((c) => c.date === isoDate(date))?.reason,
         slots: placed,
       };
@@ -83,6 +84,6 @@ export class WeekCalendar {
   color(s: ScheduleSlot) { return AUDIENCE[s.audience].color; }
   short(s: ScheduleSlot) { return AUDIENCE[s.audience].short; }
   tip(s: ScheduleSlot) {
-    return `${DAY_LABEL[s.day]} ${s.open}–${s.close} · ${AUDIENCE[s.audience].label}${s.sport ? ' · ' + s.sport : ' · Whole gym'}${s.note ? ' · ' + s.note : ''}`;
+    return `${DAY_LABEL[s.day]} ${s.open}–${s.close} · ${AUDIENCE[s.audience].label}${' · ' + (s.sport ? t(s.sport) : t('Whole gym'))}${s.note ? ' · ' + s.note : ''}`;
   }
 }

@@ -1,3 +1,4 @@
+import { TranslatePipe, TranslateJoinPipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
@@ -18,7 +19,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
+  imports: [TranslateJoinPipe, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })
@@ -34,7 +35,7 @@ export class ClientDashboard {
     this.scheduleGym.set(gymId);
     this.scheduleVisible = true;
   }
-  private readonly mine = computed(() => this.store.membershipsOfClient(this.auth.user()!.id));
+  private readonly mine = computed(() => this.store.membershipsOfClient((this.auth.user()?.id ?? '')));
   protected readonly active = computed(() => this.mine().filter((m) => m.status === 'ACTIVE'));
   protected readonly past = computed(() => this.mine().filter((m) => m.status !== 'ACTIVE'));
 

@@ -2,36 +2,37 @@
   <div class="hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-contrast">
     <a routerLink="/" class="flex items-center gap-2 font-extrabold text-xl"><fa-icon icon="dumbbell" /> Liftly</a>
     <div>
-      <h2 class="text-4xl font-extrabold leading-tight">Every sport.<br />Every role.<br />One app.</h2>
-      <p class="mt-4 opacity-80 max-w-md">Sign in with your account or pick a demo profile to explore the platform as a super-admin, gym admin, coach or member.</p>
+      <h2 class="text-4xl font-extrabold leading-tight">{{ 'Every sport.' | t }}<br />{{ 'Every role.' | t }}<br />{{ 'One app.' | t }}</h2>
+      <p class="mt-4 opacity-80 max-w-md">{{ 'Sign in with your account or pick a demo profile to explore the platform as a super-admin, gym admin, coach or member.' | t }}</p>
     </div>
-    <div class="text-sm opacity-70">Demo password for all accounts: <b>demo</b></div>
+    <div class="text-sm opacity-70">{{ 'Demo password for all accounts:' | t }} <b>demo</b></div>
   </div>
 
-  <div class="flex items-center justify-center p-6">
+  <div class="relative flex items-center justify-center p-6">
+    <div class="absolute top-4 end-4"><app-language-switcher /></div>
     <div class="w-full max-w-md">
-      <h1 class="page-title">Welcome back</h1>
-      <p class="muted mt-1">Sign in to continue.</p>
+      <h1 class="page-title">{{ 'Welcome back' | t }}</h1>
+      <p class="muted mt-1">{{ 'Sign in to continue.' | t }}</p>
 
       <form class="mt-8 space-y-4" (ngSubmit)="submit()">
         <div class="field">
-          <label for="email">Email</label>
+          <label for="email">{{ 'Email' | t }}</label>
           <input pInputText id="email" name="email" type="email" [(ngModel)]="email" required autocomplete="username" />
         </div>
         <div class="field">
-          <label for="pwd">Password</label>
+          <label for="pwd">{{ 'Password' | t }}</label>
           <p-password inputId="pwd" name="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
         </div>
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <p-button type="submit" label="Sign in" styleClass="w-full" />
+        <p-button type="submit" [label]="'Sign in' | t" styleClass="w-full" />
       </form>
 
       <div class="mt-8">
-        <div class="text-sm font-semibold mb-3">Quick demo access</div>
+        <div class="text-sm font-semibold mb-3">{{ 'Quick demo access' | t }}</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           @for (u of demo(); track u.id) {
             <button type="button" (click)="auth.loginAs(u)"
-              class="text-left card !p-3 hover:!border-primary transition-colors cursor-pointer">
+              class="text-start card !p-3 hover:!border-primary transition-colors cursor-pointer">
               <div class="flex items-center justify-between gap-2">
                 <span class="font-medium text-sm truncate">{{ u.firstName }} {{ u.lastName }}</span>
                 <p-tag [value]="label[u.role]" [severity]="sev[u.role]" />
@@ -43,7 +44,7 @@
       </div>
 
       <p class="text-sm muted mt-8 text-center">
-        New here? <a routerLink="/signup" class="text-primary font-semibold">Create an account</a>
+        {{ 'New here?' | t }} <a routerLink="/signup" class="text-primary font-semibold">{{ 'Create an account' | t }}</a>
       </p>
     </div>
   </div>

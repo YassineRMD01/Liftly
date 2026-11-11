@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -12,7 +13,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-billing',
-  imports: [CurrencyPipe, DatePipe, FaIconComponent, Button, Tag, PageHeader],
+  imports: [TranslatePipe, CurrencyPipe, DatePipe, FaIconComponent, Button, Tag, PageHeader],
   templateUrl: './admin-billing.html',
   styleUrl: './admin-billing.css',
 })
@@ -44,14 +45,14 @@ export class AdminBilling {
     const coaches = this.store.coachesOfGym(g.id).length;
     const clients = this.store.clientsOfGym(g.id).length;
     if ((p.maxCoaches !== -1 && coaches > p.maxCoaches) || (p.maxClients !== -1 && clients > p.maxClients)) {
-      this.toast.add({ severity: 'error', summary: 'Plan too small', detail: `You have ${coaches} coaches and ${clients} clients.` });
+      this.toast.add({ severity: 'error', summary: t('Plan too small'), detail: t('You have {0} coaches and {1} clients.', { 0: coaches, 1: clients }) });
       return;
     }
     this.confirm.confirm({
-      header: 'Change plan', message: `Move to ${p.name} for ${this.price(p, g.billingCycle)} USD per ${g.billingCycle === 'MONTHLY' ? 'month' : 'year'}?`,
+      header: t('Change plan'), message: t('Move to {0} for {1} USD per {2}?', { 0: p.name, 1: this.price(p, g.billingCycle), 2: g.billingCycle === 'MONTHLY' ? t('month') : t('year') }),
       accept: () => {
         this.store.updateGym({ ...g, saasPlanId: p.id });
-        this.toast.add({ severity: 'success', summary: 'Plan changed', detail: `You're now on ${p.name}.` });
+        this.toast.add({ severity: 'success', summary: t('Plan changed'), detail: t('You\'re now on {0}.', { 0: p.name }) });
       },
     });
   }
@@ -59,7 +60,7 @@ export class AdminBilling {
   switchCycle() {
     const g = this.gym()!;
     this.store.updateGym({ ...g, billingCycle: g.billingCycle === 'MONTHLY' ? 'YEARLY' : 'MONTHLY' });
-    this.toast.add({ severity: 'success', summary: 'Billing cycle updated' });
+    this.toast.add({ severity: 'success', summary: t('Billing cycle updated') });
   }
 
   activate() {
@@ -67,6 +68,6 @@ export class AdminBilling {
     const now = new Date();
     const days = g.billingCycle === 'MONTHLY' ? 30 : 365;
     this.store.updateGym({ ...g, status: 'ACTIVE', renewsAt: new Date(now.getTime() + days * 86400000).toISOString() });
-    this.toast.add({ severity: 'success', summary: 'Subscription active', detail: 'Thanks for choosing Liftly!' });
+    this.toast.add({ severity: 'success', summary: t('Subscription active'), detail: t('Thanks for choosing Liftly!') });
   }
 }

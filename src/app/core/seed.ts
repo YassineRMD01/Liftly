@@ -78,6 +78,7 @@ export const SEED: DbState = {
     { id: 'mp-3', gymId: 'g-iron', name: 'Annual Pass', description: '12 months unlimited, best value.', price: 450, durationDays: 365, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-4', gymId: 'g-wave', name: 'Lap Swim', description: 'Open lanes, every day.', price: 39, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-5', gymId: 'g-wave', name: 'Swim School', description: '2 lessons a week with a coach.', price: 99, durationDays: 30, sessionsPerWeek: 2, includesCoaching: true, active: true },
+    { id: 'mp-7', gymId: 'g-kumite', name: 'Visitor week pass', description: 'One week of classes for visitors and tourists.', price: 25, currency: 'EUR', durationDays: 7, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-6', gymId: 'g-kumite', name: 'Dojo Monthly', description: 'All classes, all disciplines.', price: 450, durationDays: 30, sessionsPerWeek: -1, includesCoaching: true, active: true },
   ],
   promoCodes: [

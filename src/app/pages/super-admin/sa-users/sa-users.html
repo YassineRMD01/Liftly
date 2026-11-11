@@ -1,5 +1,5 @@
-<app-page-header title="Users" subtitle="Everyone on the platform.">
-  <p-button label="Reset demo data" severity="secondary" [outlined]="true" (onClick)="reset()" />
+<app-page-header [title]="'Users' | t" [subtitle]="'Everyone on the platform.' | t">
+  <p-button [label]="'Reset demo data' | t" severity="secondary" [outlined]="true" (onClick)="reset()" />
 </app-page-header>
 <div class="card">
   <div class="flex flex-col md:flex-row gap-3 mb-4">
@@ -7,24 +7,24 @@
     <div class="flex-1"></div>
     <p-iconfield>
       <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
-      <input pInputText placeholder="Search name or email" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+      <input pInputText [placeholder]="'Search name or email' | t" [ngModel]="q()" (ngModelChange)="q.set($event)" />
     </p-iconfield>
   </div>
   <p-table [value]="rows()" [paginator]="true" [rows]="10" [tableStyle]="{ 'min-width': '48rem' }">
     <ng-template #header>
-      <tr><th>Name</th><th>Email</th><th>Role</th><th>Linked gyms</th><th>Joined</th><th>Active</th><th></th></tr>
+      <tr><th>{{ 'Name' | t }}</th><th>{{ 'Email' | t }}</th><th>{{ 'Role' | t }}</th><th>{{ 'Linked gyms' | t }}</th><th>{{ 'Joined' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
     </ng-template>
     <ng-template #body let-u>
       <tr>
         <td class="font-medium">{{ u.firstName }} {{ u.lastName }}</td>
         <td>{{ u.email }}</td>
-        <td><p-tag [value]="u.role" [severity]="sevOf(u.role)" /></td>
+        <td><p-tag [value]="u.role | t" [severity]="sevOf(u.role)" /></td>
         <td class="text-sm muted">{{ linked(u) }}</td>
         <td>{{ u.createdAt | date }}</td>
         <td><p-toggleswitch [ngModel]="u.active" (ngModelChange)="toggle(u, $event)" [disabled]="u.role === 'SUPER_ADMIN'" /></td>
         <td>
           @if (u.role !== 'SUPER_ADMIN') {
-            <p-button [text]="true" [rounded]="true" pTooltip="Impersonate" (onClick)="auth.loginAs(u)"><fa-icon icon="user-secret" /></p-button>
+            <p-button [text]="true" [rounded]="true" [pTooltip]="'Impersonate' | t" (onClick)="auth.loginAs(u)"><fa-icon icon="user-secret" /></p-button>
           }
         </td>
       </tr>

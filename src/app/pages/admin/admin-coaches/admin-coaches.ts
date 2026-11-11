@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +18,7 @@ import { Stars } from '../../../shared/stars/stars';
 
 @Component({
   selector: 'app-admin-coaches',
-  imports: [FormsModule, DatePipe, FaIconComponent, Button, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars],
   templateUrl: './admin-coaches.html',
   styleUrl: './admin-coaches.css',
 })
@@ -29,7 +30,7 @@ export class AdminCoaches {
   protected addVisible = false;
   protected reviewsVisible = false;
   protected mode: 'network' | 'invite' = 'network';
-  protected readonly modes = [{ label: 'From Liftly network', value: 'network' }, { label: 'Invite new coach', value: 'invite' }];
+  protected readonly modes = [{ label: t('From Liftly network'), value: 'network' }, { label: t('Invite new coach'), value: 'invite' }];
   protected invite = { firstName: '', lastName: '', email: '' };
   protected readonly q = signal('');
   protected readonly reviewCoach = signal<User | null>(null);
@@ -52,14 +53,14 @@ export class AdminCoaches {
 
   link(c: User) {
     this.store.linkCoach(this.gymId(), c.id);
-    this.toast.add({ severity: 'success', summary: 'Coach linked', detail: `${c.firstName} ${c.lastName}` });
+    this.toast.add({ severity: 'success', summary: t('Coach linked'), detail: `${c.firstName} ${c.lastName}` });
   }
 
   createAndLink() {
     const { firstName, lastName, email } = this.invite;
     if (!firstName || !lastName || !email) return;
     if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      this.toast.add({ severity: 'error', summary: 'Email already registered', detail: 'Find this coach in the network tab.' });
+      this.toast.add({ severity: 'error', summary: t('Email already registered'), detail: t('Find this coach in the network tab.') });
       return;
     }
     const c = this.store.addUser({ role: 'COACH', firstName, lastName, email, password: 'welcome' });
@@ -71,9 +72,9 @@ export class AdminCoaches {
 
   unlink(c: User) {
     this.confirm.confirm({
-      header: 'Remove coach', message: `Remove ${c.firstName} ${c.lastName} from your gym? Their account and other gyms are not affected.`,
+      header: t('Remove coach'), message: t('Remove {0} {1} from your gym? Their account and other gyms are not affected.', { 0: c.firstName, 1: c.lastName }),
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => { this.store.unlinkCoach(this.gymId(), c.id); this.toast.add({ severity: 'success', summary: 'Coach removed' }); },
+      accept: () => { this.store.unlinkCoach(this.gymId(), c.id); this.toast.add({ severity: 'success', summary: t('Coach removed') }); },
     });
   }
 }

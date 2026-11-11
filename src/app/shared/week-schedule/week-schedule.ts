@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/i18n/i18n';
 import { Component, computed, inject, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -10,7 +11,7 @@ import { AudienceTag } from '../audience-tag/audience-tag';
 /** Read-only weekly timetable with a 24h timeline per day. */
 @Component({
   selector: 'app-week-schedule',
-  imports: [DatePipe, FaIconComponent, Tooltip, AudienceTag],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, Tooltip, AudienceTag],
   templateUrl: './week-schedule.html',
   styleUrl: './week-schedule.css',
 })

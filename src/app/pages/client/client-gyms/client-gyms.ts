@@ -1,3 +1,4 @@
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +13,7 @@ import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../../core/auth.service';
 import { Gym } from '../../../core/models';
+import { formatMoney } from '../../../core/currency';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 import { OpenStatusBadge } from '../../../shared/open-status/open-status';
@@ -26,7 +28,7 @@ import { Stars } from '../../../shared/stars/stars';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   templateUrl: './client-gyms.html',
   styleUrl: './client-gyms.css',
 })
@@ -40,7 +42,8 @@ export class ClientGyms {
   protected readonly gym = signal<Gym | null>(null);
   protected readonly gender = computed(() => this.auth.user()?.gender);
 
-  protected readonly sports = computed(() => [...new Set(this.store.gyms().flatMap((g) => g.sports))].sort());
+  protected readonly sports = computed(() =>
+    [...new Set(this.store.gyms().flatMap((g) => g.sports))].map((s) => ({ label: t(s), value: s })).sort((a, b) => a.label.localeCompare(b.label)));
   protected readonly gyms = computed(() => {
     const q = this.q().toLowerCase();
     return this.store.gyms().filter((g) => g.status !== 'SUSPENDED' &&
@@ -50,12 +53,15 @@ export class ClientGyms {
   protected readonly plans = computed(() => (this.gym() ? this.store.plansOfGym(this.gym()!.id).filter((p) => p.active) : []));
   protected readonly coaches = computed(() => (this.gym() ? this.store.coachesOfGym(this.gym()!.id) : []));
 
-  minPrice(gymId: string) {
-    const prices = this.store.plansOfGym(gymId).filter((p) => p.active).map((p) => p.price);
-    return prices.length ? Math.min(...prices) : 0;
+  /** Cheapest active plan, preferring plans in the gym's own currency, formatted. */
+  fromPrice(gym: Gym) {
+    const plans = this.store.plansOfGym(gym.id).filter((p) => p.active);
+    const local = plans.filter((p) => this.store.planCurrency(p) === gym.currency);
+    const cheapest = [...(local.length ? local : plans)].sort((a, b) => a.price - b.price)[0];
+    return cheapest ? formatMoney(cheapest.price, this.store.planCurrency(cheapest)) : '—';
   }
   isMember(gymId: string) {
-    return this.store.membershipsOfClient(this.auth.user()!.id).some((m) => m.gymId === gymId && m.status === 'ACTIVE');
+    return this.store.membershipsOfClient((this.auth.user()?.id ?? '')).some((m) => m.gymId === gymId && m.status === 'ACTIVE');
   }
 
   open(g: Gym) {

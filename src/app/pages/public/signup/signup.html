@@ -4,18 +4,19 @@
       <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center"><fa-icon icon="dumbbell" /></span> Liftly
     </a>
     <div class="flex-1"></div>
-    <a routerLink="/login" class="text-sm text-primary font-semibold">Already have an account?</a>
+    <app-language-switcher />
+    <a routerLink="/login" class="text-sm text-primary font-semibold ms-3">{{ 'Already have an account?' | t }}</a>
   </header>
 
   <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
-    <h1 class="page-title">Create your account</h1>
-    <p class="muted mt-1">Who are you joining as?</p>
-    <p class="text-sm muted mt-1"><fa-icon icon="circle-info" class="text-primary" /> Members don't sign up here — your gym creates your account and sends you your login.</p>
+    <h1 class="page-title">{{ 'Create your account' | t }}</h1>
+    <p class="muted mt-1">{{ 'Who are you joining as?' | t }}</p>
+    <p class="text-sm muted mt-1"><fa-icon icon="circle-info" class="text-primary" /> {{ 'Members don\'t sign up here — your gym creates your account and sends you your login.' | t }}</p>
 
     <div class="grid sm:grid-cols-2 gap-3 mt-6">
       @for (r of roleOptions; track r.value) {
         <button type="button" (click)="setRole(r.value)"
-          class="card !p-4 text-left cursor-pointer transition-all"
+          class="card !p-4 text-start cursor-pointer transition-all"
           [class.!border-primary]="role() === r.value" [class.ring-2]="role() === r.value" [class.ring-primary]="role() === r.value">
           <fa-icon [icon]="r.icon" class="text-xl text-primary" />
           <div class="font-semibold mt-2">{{ r.label }}</div>
@@ -26,33 +27,33 @@
 
     <div class="grid lg:grid-cols-3 gap-6 mt-8">
       <form class="lg:col-span-2 card space-y-5" (ngSubmit)="submit()">
-        <h2 class="font-semibold text-lg">Your details</h2>
+        <h2 class="font-semibold text-lg">{{ 'Your details' | t }}</h2>
         <div class="grid sm:grid-cols-2 gap-4">
-          <div class="field"><label>First name</label><input pInputText name="fn" [(ngModel)]="form.firstName" required /></div>
-          <div class="field"><label>Last name</label><input pInputText name="ln" [(ngModel)]="form.lastName" required /></div>
-          <div class="field"><label>Email</label><input pInputText type="email" name="em" [(ngModel)]="form.email" required /></div>
-          <div class="field"><label>Password</label><input pInputText type="password" name="pw" [(ngModel)]="form.password" required /></div>
+          <div class="field"><label>{{ 'First name' | t }}</label><input pInputText name="fn" [(ngModel)]="form.firstName" required /></div>
+          <div class="field"><label>{{ 'Last name' | t }}</label><input pInputText name="ln" [(ngModel)]="form.lastName" required /></div>
+          <div class="field"><label>{{ 'Email' | t }}</label><input pInputText type="email" name="em" [(ngModel)]="form.email" required /></div>
+          <div class="field"><label>{{ 'Password' | t }}</label><input pInputText type="password" name="pw" [(ngModel)]="form.password" required /></div>
           <div class="field sm:col-span-2">
-            <label>Gender <span class="muted font-normal">(used to show men-only / women-only hours that apply to you)</span></label>
+            <label>{{ 'Gender' | t }} <span class="muted font-normal">{{ '(used to show men-only / women-only hours that apply to you)' | t }}</span></label>
             <p-selectbutton name="gd" [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="form.gender" />
           </div>
         </div>
 
         @if (role() === 'ADMIN') {
-          <h2 class="font-semibold text-lg pt-2">Your gym</h2>
+          <h2 class="font-semibold text-lg pt-2">{{ 'Your gym' | t }}</h2>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div class="field"><label>Gym name</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
-            <div class="field"><label>Sports / activities</label><p-multiselect name="sp" [options]="sports" [(ngModel)]="form.sports" display="chip" placeholder="Pick one or more" styleClass="w-full" /></div>
-            <div class="field"><label>City</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
+            <div class="field"><label>{{ 'Gym name' | t }}</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
+            <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-multiselect name="sp" [options]="sports" optionLabel="label" optionValue="value" [(ngModel)]="form.sports" display="chip" [placeholder]="'Pick one or more' | t" styleClass="w-full" /></div>
+            <div class="field"><label>{{ 'City' | t }}</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
             <div class="field">
-              <label>Currency <span class="muted font-normal">(for your members)</span></label>
+              <label>{{ 'Currency' | t }} <span class="muted font-normal">{{ '(for your members)' | t }}</span></label>
               <p-select name="cur" [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" styleClass="w-full">
                 <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
-                <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+                <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
               </p-select>
             </div>
             <div class="field">
-              <label>Brand color</label>
+              <label>{{ 'Brand color' | t }}</label>
               <div class="flex items-center gap-3">
                 <p-colorpicker name="col" [(ngModel)]="form.color" (ngModelChange)="previewColor($event)" />
                 <span class="text-sm muted">#{{ form.color }}</span>
@@ -60,39 +61,39 @@
             </div>
           </div>
 
-          <h2 class="font-semibold text-lg pt-2">Plan</h2>
+          <h2 class="font-semibold text-lg pt-2">{{ 'Plan' | t }}</h2>
           <p-selectbutton name="cy" [options]="cycles" optionLabel="label" optionValue="value" [ngModel]="cycle()" (ngModelChange)="cycle.set($event)" [allowEmpty]="false" />
           <div class="grid sm:grid-cols-3 gap-3">
             @for (p of plans(); track p.id) {
-              <button type="button" (click)="planId.set(p.id)" class="card !p-4 text-left cursor-pointer"
+              <button type="button" (click)="planId.set(p.id)" class="card !p-4 text-start cursor-pointer"
                 [class.!border-primary]="planId() === p.id" [class.ring-2]="planId() === p.id" [class.ring-primary]="planId() === p.id">
                 <div class="font-semibold">{{ p.name }}</div>
                 <div class="text-xl font-bold mt-1">{{ price(p.id) | currency: 'USD' : 'symbol' : '1.0-0' }}</div>
-                <div class="text-xs muted">{{ cycle() === 'MONTHLY' ? 'per month' : 'per year' }}</div>
+                <div class="text-xs muted">{{ cycle() === 'MONTHLY' ? ('per month' | t) : ('per year' | t) }}</div>
               </button>
             }
           </div>
 
-          <h2 class="font-semibold text-lg pt-2">Payment</h2>
-          <p-message severity="info">Demo mode — no card is charged. Plug Stripe / your PSP here.</p-message>
+          <h2 class="font-semibold text-lg pt-2">{{ 'Payment' | t }}</h2>
+          <p-message severity="info">{{ 'Demo mode — no card is charged. Plug Stripe / your PSP here.' | t }}</p-message>
           <div class="grid sm:grid-cols-3 gap-4">
-            <div class="field sm:col-span-2"><label>Card number</label><input pInputText name="cc" placeholder="4242 4242 4242 4242" [(ngModel)]="form.card" /></div>
-            <div class="field"><label>Expiry</label><input pInputText name="ex" placeholder="12/29" [(ngModel)]="form.expiry" /></div>
+            <div class="field sm:col-span-2"><label>{{ 'Card number' | t }}</label><input pInputText name="cc" placeholder="4242 4242 4242 4242" [(ngModel)]="form.card" /></div>
+            <div class="field"><label>{{ 'Expiry' | t }}</label><input pInputText name="ex" placeholder="12/29" [(ngModel)]="form.expiry" /></div>
           </div>
         }
 
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <p-button type="submit" [label]="role() === 'ADMIN' ? 'Start 14-day free trial' : 'Create account'" styleClass="w-full" />
+        <p-button type="submit" [label]="role() === 'ADMIN' ? ('Start 14-day free trial' | t) : ('Create account' | t)" styleClass="w-full" />
       </form>
 
       @if (role() === 'ADMIN' && selectedPlan(); as p) {
         <aside class="card h-fit sticky top-6">
-          <div class="text-sm muted">Summary</div>
-          <div class="text-xl font-bold mt-1">{{ p.name }} plan</div>
-          <div class="flex justify-between mt-4 text-sm"><span>Billing</span><span>{{ cycle() === 'MONTHLY' ? 'Monthly' : 'Yearly' }}</span></div>
-          <div class="flex justify-between mt-2 text-sm"><span>Free trial</span><span>14 days</span></div>
+          <div class="text-sm muted">{{ 'Summary' | t }}</div>
+          <div class="text-xl font-bold mt-1">{{ p.name }} {{ 'plan' | t }}</div>
+          <div class="flex justify-between mt-4 text-sm"><span>{{ 'Billing' | t }}</span><span>{{ cycle() === 'MONTHLY' ? ('Monthly' | t) : ('Yearly' | t) }}</span></div>
+          <div class="flex justify-between mt-2 text-sm"><span>{{ 'Free trial' | t }}</span><span>{{ '14 days' | t }}</span></div>
           <div class="flex justify-between mt-4 pt-4 border-t border-surface-200 dark:border-surface-800 font-semibold">
-            <span>Then</span><span>{{ price(p.id) | currency }}</span>
+            <span>{{ 'Then' | t }}</span><span>{{ price(p.id) | currency }}</span>
           </div>
           <ul class="mt-4 space-y-2 text-sm muted">
             @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
