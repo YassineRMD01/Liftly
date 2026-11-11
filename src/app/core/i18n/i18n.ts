@@ -48,6 +48,7 @@ const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: FR, es:
 const ENUM_EN: Record<string, string> = {
   ACTIVE: 'Active', TRIAL: 'Trial', SUSPENDED: 'Suspended', EXPIRED: 'Expired', CANCELLED: 'Cancelled',
   SUPER_ADMIN: 'Super admin', ADMIN: 'Gym admin', COACH: 'Coach', CLIENT: 'Member',
+  BANNED: 'Banned', OPEN: 'Open', RESOLVED: 'Resolved', DISMISSED: 'Dismissed',
 };
 
 /**

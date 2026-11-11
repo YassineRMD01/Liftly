@@ -1,4 +1,4 @@
-import { TranslatePipe, t, TranslateJoinPipe } from '../../../core/i18n/i18n';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,9 +8,8 @@ import { Button } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
-import { CURRENCIES, MoneyPipe } from '../../../core/currency';
+import { MoneyPipe } from '../../../core/currency';
 import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -19,24 +18,23 @@ import { Gym } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
-import { sportOptions } from '../../public/signup/signup';
 
 const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6', '#0ea5e9', '#3b82f6', '#8b5cf6', '#ec4899', '#111827', '#84cc16'];
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [TranslateJoinPipe, TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, MultiSelect, Select, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, Select, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './admin-branding.html',
   styleUrl: './admin-branding.css',
 })
 export class AdminBranding implements OnDestroy {
   private readonly auth = inject(AuthService);
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   protected readonly theme = inject(ThemeService);
   private readonly toast = inject(MessageService);
   protected readonly presets = PRESETS;
-  protected readonly sports = sportOptions();
-  protected readonly currencies = CURRENCIES;
+  /** Active currencies (managed by the super-admin). */
+  protected readonly currencies = inject(StoreService).currencyOptions;
   protected readonly color = signal('#6366f1');
   protected readonly logo = signal('');
   protected draft: Gym = this.auth.activeGym()!;
@@ -64,10 +62,6 @@ export class AdminBranding implements OnDestroy {
   save() {
     const current = this.auth.activeGym();
     if (!current) return;
-    if (!this.draft.sports.length) {
-      this.toast.add({ severity: 'error', summary: t('Pick at least one sport') });
-      return;
-    }
     const keepColor = this.allowed() ? this.color() : current.theme.primary;
     this.store.updateGym({ ...this.draft, theme: { primary: keepColor, logoText: this.logo() } });
     if (!this.allowed()) {

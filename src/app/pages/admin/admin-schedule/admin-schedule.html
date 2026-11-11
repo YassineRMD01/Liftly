@@ -47,7 +47,7 @@
             <div class="flex flex-wrap items-center gap-2 py-2 border-t border-surface-100 dark:border-surface-800">
               <span class="font-mono text-sm tabular-nums w-28 text-start" dir="ltr">{{ s.open }} – {{ s.close }}</span>
               <app-audience-tag [audience]="s.audience" />
-              <span class="text-sm">{{ s.sport ? (s.sport | t) : ('Whole gym' | t) }}</span>
+              <span class="text-sm">{{ s.sportId ? store.sportName(s.sportId) : ('Whole gym' | t) }}</span>
               @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
               <span class="flex-1"></span>
               <p-button [text]="true" [rounded]="true" size="small" (onClick)="openSlot(d.day, s)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></p-button>
@@ -123,7 +123,7 @@
       </div>
       <div class="field">
         <label>{{ 'Area / sport' | t }}</label>
-        <p-select [options]="sportOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.sport" styleClass="w-full" appendTo="body" />
+        <p-select [options]="sportOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.sportId" styleClass="w-full" appendTo="body" />
       </div>
       <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="draft.note" [placeholder]="'e.g. Ladies hours, Kids class' | t" /></div>
       @if (error()) { <p-message severity="error">{{ error() }}</p-message> }

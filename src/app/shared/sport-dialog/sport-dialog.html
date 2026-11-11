@@ -1,0 +1,25 @@
+<p-dialog [header]="(draft().id ? 'Edit sport' : 'New sport') | t" [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true"
+  [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="space-y-4">
+    <div class="field">
+      <label for="sport-name">{{ 'Name' | t }}</label>
+      <input pInputText id="sport-name" [ngModel]="draft().name" (ngModelChange)="setName($event)" [placeholder]="'e.g. Zumba' | t" />
+    </div>
+    <div class="field">
+      <label>{{ 'Icon' | t }}</label>
+      <div class="grid grid-cols-8 gap-1.5">
+        @for (icon of icons; track icon) {
+          <button type="button" (click)="setIcon(icon)" [attr.aria-label]="icon" [attr.aria-pressed]="draft().icon === icon"
+            class="aspect-square rounded-lg grid place-items-center border cursor-pointer transition-colors border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800"
+            [class.!bg-primary]="draft().icon === icon" [class.!text-primary-contrast]="draft().icon === icon" [class.!border-primary]="draft().icon === icon">
+            <fa-icon [icon]="iconOf(icon)" />
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="visible.set(false)" />
+    <p-button [label]="'Save' | t" (onClick)="save()" [disabled]="!valid()" />
+  </ng-template>
+</p-dialog>

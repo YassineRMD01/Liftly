@@ -1,6 +1,6 @@
 <app-page-header [title]="'Gyms' | t" [subtitle]="'All tenants subscribed to the platform.' | t" />
 <div class="card">
-  <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sports', 'city']" [tableStyle]="{ 'min-width': '60rem' }">
+  <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sports', 'city']" [tableStyle]="{ 'min-width': '76rem' }">
     <ng-template #caption>
       <p-iconfield>
         <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
@@ -10,7 +10,7 @@
     <ng-template #header>
       <tr>
         <th pSortableColumn="name">{{ 'Gym' | t }} <p-sorticon field="name" /></th>
-        <th>{{ 'Owner' | t }}</th><th>{{ 'Plan' | t }}</th><th>{{ 'Coaches / Clients' | t }}</th><th>{{ 'Revenue' | t }}</th><th>{{ 'Renews' | t }}</th><th>{{ 'Status' | t }}</th>
+        <th>{{ 'Owner' | t }}</th><th>{{ 'Country' | t }}</th><th>{{ 'Rating' | t }}</th><th>{{ 'Plan' | t }}</th><th>{{ 'Coaches / Clients' | t }}</th><th>{{ 'Revenue' | t }}</th><th>{{ 'Renews' | t }}</th><th>{{ 'Status' | t }}</th>
       </tr>
     </ng-template>
     <ng-template #body let-g>
@@ -18,10 +18,12 @@
         <td>
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-lg grid place-items-center text-white text-xs font-bold" [style.background]="g.theme.primary">{{ g.theme.logoText }}</span>
-            <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ (g.sports | tjoin) }} · {{ g.city }}</div></div>
+            <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ store.sportNames(g) }} · {{ g.city }}</div></div>
           </div>
         </td>
         <td>{{ store.fullName(g.ownerId) }}</td>
+        <td class="whitespace-nowrap">{{ countryName(g.country) }}</td>
+        <td><app-stars [value]="store.gymRating(g.id).avg" [count]="store.gymRating(g.id).count" /></td>
         <td>
           <p-select [options]="store.saasPlans()" optionLabel="name" optionValue="id" [ngModel]="g.saasPlanId"
             (ngModelChange)="update(g, { saasPlanId: $event })" size="small" appendTo="body" />

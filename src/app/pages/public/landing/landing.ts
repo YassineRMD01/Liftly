@@ -1,7 +1,9 @@
+import { formatMoney } from '../../../core/currency';
+import { Select } from 'primeng/select';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -10,22 +12,25 @@ import { Button } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { AuthService, HOME_BY_ROLE } from '../../../core/auth.service';
-import { BillingCycle } from '../../../core/models';
+import { BillingCycle, SaasPlan } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-landing',
-  imports: [LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, CurrencyPipe, FaIconComponent, Button, SelectButton, Tag],
+  imports: [Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, Button, SelectButton, Tag],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })
 export class Landing {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   protected readonly year = new Date().getFullYear();
   protected readonly cycle = signal<BillingCycle>('MONTHLY');
+  /** Pricing is shown for this country (local prices set by the super-admin, else USD). */
+  protected readonly country = signal(this.store.platform().defaultCountry);
+  protected readonly countries = this.store.countryOptions;
   protected readonly cycles = [
     { label: t('Monthly'), value: 'MONTHLY' },
     { label: t('Yearly (2 months free)'), value: 'YEARLY' },
@@ -39,6 +44,11 @@ export class Landing {
     { icon: 'star', label: t('Coach ratings'), text: t('Members rate and review their coaches.') },
     { icon: 'palette', label: t('Your brand'), text: t('Pick your colors — the app follows.') },
   ];
+  priceLabel(p: SaasPlan) {
+    const x = this.store.saasPrice(p, this.country(), this.cycle());
+    return formatMoney(x.amount, x.currency, 0);
+  }
+
   protected readonly roles: { icon: IconProp; title: string; items: string[] }[] = [
     { icon: 'crown', title: t('Platform owner'), items: [t('Manage pricing plans'), t('Monitor all gyms & MRR'), t('Suspend or activate gyms')] },
     { icon: 'building', title: t('Gym admin'), items: [t('Register clients & memberships'), t('Membership plans & promo codes'), t('Opening hours: mixed, men-only & women-only'), t('Multi-sport gyms'), t('Custom theme color')] },

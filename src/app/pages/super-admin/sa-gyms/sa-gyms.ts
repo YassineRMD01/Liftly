@@ -1,4 +1,6 @@
-import { TranslatePipe, t, TranslateJoinPipe } from '../../../core/i18n/i18n';
+import { Stars } from '../../../shared/stars/stars';
+import { countryName } from '../../../core/currency';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,11 +22,12 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [TranslateJoinPipe, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })
 export class SaGyms {
+  protected readonly countryName = countryName;
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   protected readonly statuses: GymStatus[] = ['ACTIVE', 'TRIAL', 'SUSPENDED'];

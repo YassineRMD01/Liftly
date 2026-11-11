@@ -76,7 +76,12 @@
   <div class="text-center">
     <h2 class="text-3xl font-bold">{{ 'Simple pricing for gym owners' | t }}</h2>
     <p class="muted mt-2">{{ 'Coaches join for free. Members are registered by their gym.' | t }}</p>
-    <p-selectbutton class="mt-6 inline-flex" [options]="cycles" optionLabel="label" optionValue="value" [(ngModel)]="cycle" [allowEmpty]="false" />
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+    <p-selectbutton class="inline-flex" [options]="cycles" optionLabel="label" optionValue="value" [(ngModel)]="cycle" [allowEmpty]="false" />
+      <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="country()" (ngModelChange)="country.set($event)" [filter]="true" filterBy="label,code" [ariaLabel]="'Country' | t">
+        <ng-template #selectedItem let-c><span class="flex items-center gap-2"><fa-icon icon="location-dot" class="text-primary" />{{ c.label }}</span></ng-template>
+      </p-select>
+    </div>
   </div>
   <div class="grid md:grid-cols-3 gap-6 mt-10">
     @for (p of plans(); track p.id) {
@@ -87,7 +92,7 @@
         <h3 class="text-xl font-bold">{{ p.name }}</h3>
         <p class="text-sm muted mt-1">{{ p.description }}</p>
         <div class="mt-5 flex items-end gap-1">
-          <span class="text-4xl font-extrabold">{{ (cycle() === 'MONTHLY' ? p.monthlyPrice : p.yearlyPrice) | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+          <span class="text-4xl font-extrabold">{{ priceLabel(p) }}</span>
           <span class="muted mb-1">/{{ cycle() === 'MONTHLY' ? ('month' | t) : ('year' | t) }}</span>
         </div>
         <ul class="mt-6 space-y-2.5 text-sm flex-1">

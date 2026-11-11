@@ -23,6 +23,9 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Gyms'), icon: 'building', link: '/super-admin/gyms' },
     { label: t('Pricing plans'), icon: 'tags', link: '/super-admin/plans' },
     { label: t('Users'), icon: 'users', link: '/super-admin/users' },
+    { label: t('Currencies & countries'), icon: 'coins', link: '/super-admin/currencies' },
+    { label: t('Reports'), icon: 'flag', link: '/super-admin/reports' },
+    { label: t('Settings'), icon: 'gear', link: '/super-admin/settings' },
   ],
   ADMIN: [
     { label: t('Dashboard'), icon: 'gauge-high', link: '/admin', exact: true },
@@ -31,6 +34,8 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Clients'), icon: 'users', link: '/admin/clients' },
     { label: t('Coaches'), icon: 'user-tie', link: '/admin/coaches' },
     { label: t('Schedule'), icon: 'clock', link: '/admin/schedule' },
+    { label: t('Sports'), icon: 'medal', link: '/admin/sports' },
+    { label: t('Reports'), icon: 'flag', link: '/admin/reports' },
     { label: t('Branding'), icon: 'palette', link: '/admin/branding' },
     { label: t('Billing'), icon: 'credit-card', link: '/admin/billing' },
   ],

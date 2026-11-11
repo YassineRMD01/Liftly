@@ -39,7 +39,7 @@
       <label>{{ 'Price' | t }}</label>
       <div class="flex gap-2">
         <p-inputnumber [(ngModel)]="draft().price" mode="currency" [currency]="draft().currency || cur()" [min]="0" class="flex-1" styleClass="w-full" inputStyleClass="w-full" />
-        <div class="w-28"><p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="draft().currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+        <div class="w-28"><p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft().currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
   <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
   <ng-template #selectedItem let-c><span class="font-mono font-semibold">{{ c.code }}</span></ng-template>
 </p-select></div>

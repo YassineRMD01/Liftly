@@ -16,7 +16,7 @@ import { AudienceTag } from '../audience-tag/audience-tag';
   styleUrl: './week-schedule.css',
 })
 export class WeekSchedule {
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   readonly gymId = input.required<string>();
   readonly gender = input<Gender>();
 
@@ -37,5 +37,5 @@ export class WeekSchedule {
 
   pos(t: string) { return (toMin(t) / 1440) * 100; }
   color(s: ScheduleSlot) { return AUDIENCE[s.audience].color; }
-  label(s: ScheduleSlot) { return AUDIENCE[s.audience].label + (s.sport ? ' · ' + s.sport : ''); }
+  label(s: ScheduleSlot) { return AUDIENCE[s.audience].label + (s.sportId ? ' · ' + this.store.sportName(s.sportId) : ''); }
 }

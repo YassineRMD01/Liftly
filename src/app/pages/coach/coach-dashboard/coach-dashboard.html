@@ -18,7 +18,7 @@
           <span class="w-10 h-10 rounded-lg grid place-items-center text-white text-xs font-bold" [style.background]="g.theme.primary">{{ g.theme.logoText }}</span>
           <div class="flex-1 min-w-0">
             <div class="font-medium">{{ g.name }}</div>
-            <div class="text-xs muted">{{ (g.sports | tjoin) }} · {{ g.city }}</div>
+            <div class="text-xs muted">{{ store.sportNames(g) }} · {{ g.city }}</div>
             <app-open-status [gymId]="g.id" />
           </div>
           <span class="text-sm muted">{{ athletesAt(g.id) }} {{ 'clients' | t }}</span>

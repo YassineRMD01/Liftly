@@ -23,7 +23,7 @@ import { WeekCalendar } from '../../../shared/week-calendar/week-calendar';
 import { WeekSchedule } from '../../../shared/week-schedule/week-schedule';
 import { PageHeader } from '../../../shared/page-header/page-header';
 
-type Draft = { id: string; days: number[]; open: string; close: string; audience: Audience; sport: string | null; note: string };
+type Draft = { id: string; days: number[]; open: string; close: string; audience: Audience; sportId: string | null; note: string };
 type Template = Omit<ScheduleSlot, 'id' | 'gymId'>[];
 
 const every = (days: number[], open: string, close: string, audience: Audience) => days.map((day) => ({ day, open, close, audience }));
@@ -65,7 +65,7 @@ export class AdminSchedule {
   protected readonly closures = computed(() => this.store.closuresOfGym(this.gymId()).filter((c) => c.date >= isoDate()));
   protected readonly sportOptions = computed(() => [
     { label: t('Whole gym (all sports)'), value: null },
-    ...(this.gym()?.sports ?? []).map((s) => ({ label: t(s), value: s })),
+    ...this.store.sportsOfGym(this.gym()).map((s) => ({ label: this.store.sportName(s.id), value: s.id })),
   ]);
   protected readonly week = computed(() => {
     const today = new Date().getDay();
@@ -99,13 +99,13 @@ export class AdminSchedule {
   ];
 
   private emptyDraft(day?: number): Draft {
-    return { id: '', days: day !== undefined ? [day] : [1, 2, 3, 4, 5], open: '08:00', close: '20:00', audience: 'MIXED', sport: null, note: '' };
+    return { id: '', days: day !== undefined ? [day] : [1, 2, 3, 4, 5], open: '08:00', close: '20:00', audience: 'MIXED', sportId: null, note: '' };
   }
 
   openSlot(day?: number, s?: ScheduleSlot) {
     this.error.set(null);
     this.draft = s
-      ? { id: s.id, days: [s.day], open: s.open, close: s.close, audience: s.audience, sport: s.sport ?? null, note: s.note ?? '' }
+      ? { id: s.id, days: [s.day], open: s.open, close: s.close, audience: s.audience, sportId: s.sportId ?? null, note: s.note ?? '' }
       : this.emptyDraft(day);
     this.slotVisible = true;
   }
@@ -121,16 +121,16 @@ export class AdminSchedule {
     if (!d.open || !d.close || toMin(d.close) <= toMin(d.open)) return this.error.set(t('Closing time must be after opening time (use 23:59 for midnight).'));
     const slots: ScheduleSlot[] = d.days.map((day) => ({
       id: d.id, gymId: this.gymId(), day, open: d.open, close: d.close, audience: d.audience,
-      ...(d.sport ? { sport: d.sport } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}),
+      ...(d.sportId ? { sportId: d.sportId } : {}), ...(d.note.trim() ? { note: d.note.trim() } : {}),
     }));
     for (const s of slots) {
       const clash = this.slots().find((o) => o.id !== s.id && conflicts(s, o));
       if (clash) {
-        return this.error.set(t('{0}: overlaps {1}–{2} ({3}{4}).', { 0: DAY_LABEL[s.day], 1: clash.open, 2: clash.close, 3: AUDIENCE[clash.audience].label, 4: clash.sport ? ', ' + clash.sport : '' }));
+        return this.error.set(t('{0}: overlaps {1}–{2} ({3}{4}).', { 0: DAY_LABEL[s.day], 1: clash.open, 2: clash.close, 3: AUDIENCE[clash.audience].label, 4: clash.sportId ? ', ' + this.store.sportName(clash.sportId) : '' }));
       }
     }
-    // when editing, the slot keeps its own day; the sport key may be removed
-    this.store.saveSlots(slots.map((s) => (s.sport ? s : { ...s, sport: undefined })));
+    // when editing, the slot keeps its own day; the sport may be removed
+    this.store.saveSlots(slots.map((s) => (s.sportId ? s : { ...s, sportId: undefined })));
     this.slotVisible = false;
     this.toast.add({ severity: 'success', summary: t('Schedule updated'), detail: t('{0} slot{1} saved', { 0: slots.length, 1: slots.length > 1 ? 's' : '' }) });
   }

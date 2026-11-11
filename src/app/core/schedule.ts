@@ -30,9 +30,9 @@ export const canAttend = (slot: ScheduleSlot, gender?: Gender) =>
  * Two slots conflict when they overlap in time on the same day for the same area (sport)
  * and they are not a men/women pair (separate areas/sessions may run in parallel).
  */
-export function conflicts(a: Pick<ScheduleSlot, 'day' | 'open' | 'close' | 'audience' | 'sport'>, b: ScheduleSlot) {
+export function conflicts(a: Pick<ScheduleSlot, 'day' | 'open' | 'close' | 'audience' | 'sportId'>, b: ScheduleSlot) {
   if (a.day !== b.day) return false;
-  if ((a.sport ?? '') !== (b.sport ?? '')) return false;
+  if ((a.sportId ?? '') !== (b.sportId ?? '')) return false;
   const overlap = toMin(a.open) < toMin(b.close) && toMin(b.open) < toMin(a.close);
   if (!overlap) return false;
   const pair = new Set([a.audience, b.audience]);

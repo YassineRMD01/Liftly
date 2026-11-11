@@ -17,7 +17,7 @@
     <ng-template #header>
       <tr>
         <th pSortableColumn="clientName">{{ 'Client' | t }} <p-sorticon field="clientName" /></th>
-        <th>{{ 'Plan' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Paid' | t }}</th><th pSortableColumn="endDate">{{ 'Period' | t }} <p-sorticon field="endDate" /></th><th>{{ 'Status' | t }}</th><th></th>
+        <th>{{ 'Plan' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Paid' | t }}</th><th pSortableColumn="endDate">{{ 'Period' | t }} <p-sorticon field="endDate" /></th><th>{{ 'Membership' | t }}</th><th>{{ 'Client status' | t }}</th><th></th>
       </tr>
     </ng-template>
     <ng-template #body let-r>
@@ -37,16 +37,25 @@
         </td>
         <td class="text-sm">{{ r.m.startDate | date: 'mediumDate' }} → {{ r.m.endDate | date: 'mediumDate' }}</td>
         <td><p-tag [value]="r.m.status | t" [severity]="sev(r.m.status)" /></td>
+        <td>
+          <p-tag [value]="r.clientStatus | t" [severity]="clientSev(r.clientStatus)" />
+          @if (banInfo(r.m.clientId); as b) { <div class="text-[11px] muted mt-1 max-w-40 truncate" [pTooltip]="b.reason">{{ b.reason }}</div> }
+        </td>
         <td class="whitespace-nowrap">
           <p-button [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
-          <p-button [text]="true" [rounded]="true" [pTooltip]="'Renew' | t" (onClick)="renew(r.m)"><fa-icon icon="rotate" /></p-button>
+          <p-button [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (onClick)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></p-button>
           @if (r.m.status === 'ACTIVE') {
             <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (onClick)="cancel(r.m)"><fa-icon icon="ban" /></p-button>
+          }
+          @if (r.clientStatus === 'BANNED') {
+            <p-button [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (onClick)="unban(r.m.clientId)"><fa-icon icon="user-check" /></p-button>
+          } @else {
+            <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (onClick)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></p-button>
           }
         </td>
       </tr>
     </ng-template>
-    <ng-template #emptymessage><tr><td colspan="7" class="text-center muted py-8">{{ 'No clients found.' | t }}</td></tr></ng-template>
+    <ng-template #emptymessage><tr><td colspan="8" class="text-center muted py-8">{{ 'No clients found.' | t }}</td></tr></ng-template>
   </p-table>
 </div>
 
@@ -96,10 +105,84 @@
         </span>
       </div>
     }
+    @if (pickedBanned()) { <p-message severity="error">{{ 'This client is banned from your gym. Unban them first.' | t }}</p-message> }
     @if (limitReached()) { <p-message severity="warn">{{ 'Client limit of your plan reached — upgrade in Billing.' | t }}</p-message> }
   </div>
   <ng-template #footer>
     <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="visible = false" />
-    <p-button [label]="'Subscribe' | t" (onClick)="submit()" [disabled]="!form.planId || limitReached()" />
+    <p-button [label]="'Subscribe' | t" (onClick)="submit()" [disabled]="!form.planId || limitReached() || pickedBanned()" />
+  </ng-template>
+</p-dialog>
+
+<!-- renew, optionally on another plan -->
+<p-dialog [header]="'Renew membership' | t" [visible]="!!renewing()" (visibleChange)="closeRenew($event)" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (renewing(); as m) {
+    <div class="space-y-4">
+      <div class="p-3 rounded-xl bg-surface-50 dark:bg-surface-800 text-sm">
+        <div class="font-semibold">{{ store.fullName(m.clientId) }}</div>
+        <div class="muted">{{ 'Current plan' | t }}: {{ store.plan(m.planId)?.name ?? ('Deleted plan' | t) }} · {{ m.endDate | date: 'mediumDate' }}</div>
+      </div>
+      <div class="field">
+        <label>{{ 'New plan' | t }}</label>
+        <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="renewForm.planId" (ngModelChange)="renewPromo.set(null)" styleClass="w-full" appendTo="body">
+          <ng-template #item let-p>
+            <div class="flex justify-between w-full gap-4">
+              <span>{{ p.name }} @if (p.id === m.planId) { <span class="text-xs muted">({{ 'current' | t }})</span> }</span>
+              <span class="muted">{{ p.price | money: store.planCurrency(p) }} · {{ p.durationDays }} {{ 'days' | t }}</span>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+      <div class="field">
+        <label>{{ 'Coach (optional)' | t }}</label>
+        <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="renewForm.coachId" [showClear]="true" [placeholder]="'No coach' | t" styleClass="w-full" appendTo="body" />
+      </div>
+      @if (stillRunning(m)) {
+        <div class="field">
+          <label>{{ 'Start' | t }}</label>
+          <p-selectbutton [options]="startOptions" optionLabel="label" optionValue="value" [(ngModel)]="renewForm.start" [allowEmpty]="false" />
+        </div>
+      }
+      <div class="field">
+        <label>{{ 'Promo code' | t }}</label>
+        <div class="flex gap-2">
+          <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="renewForm.promo" />
+          <p-button [label]="'Apply' | t" [outlined]="true" (onClick)="applyRenewPromo()" [disabled]="!renewForm.promo" />
+        </div>
+        @if (renewPromo(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
+      </div>
+      @if (renewPlan(); as p) {
+        <div class="p-3 rounded-xl bg-surface-100 dark:bg-surface-800 text-sm space-y-1">
+          <div class="flex justify-between"><span class="muted">{{ 'Period' | t }}</span><span>{{ renewStartDate() | date: 'mediumDate' }} → {{ renewEndDate() | date: 'mediumDate' }}</span></div>
+          <div class="flex justify-between items-center"><span class="muted">{{ 'Total' | t }}</span>
+            <span class="text-lg font-bold">
+              @if (renewPromo()?.ok) { <s class="text-sm muted me-2">{{ p.price | money: store.planCurrency(p) }}</s> }
+              {{ renewPrice() | money: store.planCurrency(p) }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="renewing.set(null)" />
+    <p-button [label]="'Renew' | t" (onClick)="confirmRenew()" [disabled]="!renewForm.planId" />
+  </ng-template>
+</p-dialog>
+
+<!-- ban -->
+<p-dialog [header]="'Ban client' | t" [visible]="!!banning()" (visibleChange)="closeBan($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (banning(); as id) {
+    <div class="space-y-3">
+      <p class="text-sm">{{ 'Banning {name} cancels their active memberships at your gym and blocks new ones until you unban them.' | t: { name: store.fullName(id) } }}</p>
+      <div class="field">
+        <label for="ban-reason">{{ 'Reason' | t }}</label>
+        <textarea pTextarea id="ban-reason" rows="3" [(ngModel)]="banReason" [placeholder]="'e.g. Repeated aggressive behavior' | t"></textarea>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="banning.set(null)" />
+    <p-button [label]="'Ban client' | t" severity="danger" (onClick)="confirmBan()" [disabled]="!banReason.trim()" />
   </ng-template>
 </p-dialog>

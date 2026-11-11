@@ -9,8 +9,9 @@
         <p-tag [value]="g.status | t" [severity]="sev(g.status)" />
       </div>
       <div class="text-sm muted mt-1">
-        {{ price(current(), g.billingCycle) | currency }} / {{ g.billingCycle === 'MONTHLY' ? ('month' | t) : ('year' | t) }} ·
+        {{ priceLabel(current(), g.billingCycle) }} / {{ g.billingCycle === 'MONTHLY' ? ('month' | t) : ('year' | t) }} ·
         {{ g.status === 'TRIAL' ? ('Trial ends' | t) : ('Renews' | t) }} {{ g.renewsAt | date: 'longDate' }}
+        · <fa-icon icon="location-dot" /> {{ countryLabel(g.country) }}
       </div>
     </div>
     <div class="flex flex-wrap gap-2">
@@ -25,13 +26,13 @@
       <div class="card flex flex-col" [class.!border-primary]="p.id === g.saasPlanId" [class.ring-2]="p.id === g.saasPlanId" [class.ring-primary]="p.id === g.saasPlanId">
         <div class="flex justify-between"><h3 class="text-lg font-bold">{{ p.name }}</h3>
           @if (p.id === g.saasPlanId) { <p-tag [value]="'Current' | t" /> }</div>
-        <div class="text-3xl font-extrabold mt-3">{{ price(p, g.billingCycle) | currency: 'USD' : 'symbol' : '1.0-0' }}
+        <div class="text-3xl font-extrabold mt-3">{{ priceLabel(p, g.billingCycle, 0) }}
           <span class="text-sm font-normal muted">/{{ g.billingCycle === 'MONTHLY' ? ('mo' | t) : ('yr' | t) }}</span></div>
         <ul class="mt-4 space-y-1.5 text-sm flex-1">
           @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
         </ul>
         <p-button class="mt-5" styleClass="w-full" [disabled]="p.id === g.saasPlanId"
-          [label]="p.id === g.saasPlanId ? ('Current plan' | t) : (price(p, 'MONTHLY') > price(current(), 'MONTHLY') ? ('Upgrade' | t) : ('Downgrade' | t))"
+          [label]="p.id === g.saasPlanId ? ('Current plan' | t) : (usd(p) > usd(current()) ? ('Upgrade' | t) : ('Downgrade' | t))"
           (onClick)="change(p)" />
       </div>
     }
@@ -44,7 +45,7 @@
       <tbody>
         @for (i of invoices(); track i.date) {
           <tr class="border-t border-surface-200 dark:border-surface-800">
-            <td class="py-3">{{ i.date | date }}</td><td>{{ i.label }}</td><td>{{ i.amount | currency }}</td>
+            <td class="py-3">{{ i.date | date }}</td><td>{{ i.label }}</td><td>{{ i.amount }}</td>
             <td class="text-end"><p-tag [value]="'Paid' | t" severity="success" /></td>
           </tr>
         } @empty { <tr><td colspan="4" class="py-6 text-center muted">{{ 'No invoices during trial.' | t }}</td></tr> }

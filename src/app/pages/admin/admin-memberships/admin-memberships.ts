@@ -14,7 +14,7 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { AuthService } from '../../../core/auth.service';
 import { MembershipPlan } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
-import { CURRENCIES } from '../../../core/currency';
+
 import { Select } from 'primeng/select';
 import { PageHeader } from '../../../shared/page-header/page-header';
 
@@ -30,7 +30,8 @@ export class AdminMemberships {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected visible = false;
-  protected readonly currencies = CURRENCIES;
+  /** Active currencies (managed by the super-admin). */
+  protected readonly currencies = inject(StoreService).currencyOptions;
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly draft = signal<MembershipPlan>(this.empty());
   protected readonly plans = computed(() => (this.auth.activeGym() ? this.store.plansOfGym(this.auth.activeGym()!.id) : []));

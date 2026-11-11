@@ -1,6 +1,9 @@
-import { TranslatePipe, TranslateJoinPipe } from '../../../core/i18n/i18n';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
+import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
+import { lastMonths } from '../../../core/stats';
+import { countryName, formatMoney } from '../../../core/currency';
 import { Component, computed, inject } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ProgressBar } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -11,19 +14,55 @@ import { statusSeverity } from '../sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-sa-dashboard',
-  imports: [TranslateJoinPipe, TranslatePipe, CurrencyPipe, DatePipe, ProgressBar, TableModule, Tag, PageHeader, StatCard],
+  imports: [ChartCard, TranslatePipe, DatePipe, ProgressBar, TableModule, Tag, PageHeader, StatCard],
   templateUrl: './sa-dashboard.html',
   styleUrl: './sa-dashboard.css',
 })
 export class SaDashboard {
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
-  protected readonly mrr = computed(() =>
-    this.store.gyms().filter((g) => g.status === 'ACTIVE').reduce((sum, g) => {
-      const p = this.store.saasPlan(g.saasPlanId);
-      return sum + (p ? (g.billingCycle === 'MONTHLY' ? p.monthlyPrice : p.yearlyPrice / 12) : 0);
-    }, 0),
-  );
+  /** Monthly recurring revenue in USD: each active gym's plan price for its country, converted with the super-admin's rates. */
+  protected readonly mrr = computed(() => this.store.gyms().reduce((sum, g) => sum + this.store.gymMrrUsd(g), 0));
+  protected readonly mrrLabel = computed(() => formatMoney(this.mrr(), 'USD', 0));
+  protected readonly openReports = computed(() => this.store.reports().filter((r) => r.status === 'OPEN').length);
+  protected readonly usd = (v: number) => formatMoney(v, 'USD', 0);
+
+  // ---------- charts ----------
+  private readonly months = lastMonths(12);
+  protected readonly monthLabels = this.months.map((m) => m.label);
+
+  /** MRR at the end of each month (gyms subscribed by then, at today's prices and rates). */
+  protected readonly mrrTrend = computed<ChartSeries[]>(() => [{
+    label: t('MRR'),
+    data: this.months.map((m) => Math.round(this.store.gyms().filter((g) => g.subscribedAt <= m.end).reduce((s, g) => s + this.store.gymMrrUsd(g), 0))),
+  }]);
+
+  /** New accounts per month by role. */
+  protected readonly newUsers = computed<ChartSeries[]>(() => {
+    const count = (role: string) => this.months.map((m) => this.store.users().filter((u) => u.role === role && u.createdAt >= m.start && u.createdAt <= m.end).length);
+    return [
+      { label: t('Members'), data: count('CLIENT') },
+      { label: t('Coaches'), data: count('COACH') },
+      { label: t('Gym admins'), data: count('ADMIN') },
+    ];
+  });
+
+  protected readonly byCountry = computed(() => {
+    const counts = new Map<string, number>();
+    for (const g of this.store.gyms()) counts.set(g.country, (counts.get(g.country) ?? 0) + 1);
+    const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    return { labels: rows.map(([c]) => countryName(c)), series: [{ label: t('Gyms'), data: rows.map(([, n]) => n) }] as ChartSeries[] };
+  });
+
+  protected readonly reportsByStatus = computed(() => {
+    const r = this.store.reports();
+    const n = (s: string) => r.filter((x) => x.status === s).length;
+    return {
+      labels: [t('Open'), t('Resolved'), t('Dismissed')],
+      series: [{ label: t('Reports'), data: [n('OPEN'), n('RESOLVED'), n('DISMISSED')], statusColors: ['critical', 'good', 'neutral'] }] as ChartSeries[],
+    };
+  });
+
   protected readonly trials = computed(() => this.store.gyms().filter((g) => g.status === 'TRIAL').length);
   protected readonly latest = computed(() => [...this.store.gyms()].sort((a, b) => b.subscribedAt.localeCompare(a.subscribedAt)).slice(0, 6));
   protected readonly distribution = computed(() => {

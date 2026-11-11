@@ -11,6 +11,9 @@
         </p-button>
       }
       <p-button [label]="'Reviews' | t" size="small" [outlined]="true" (onClick)="openReviews(c)" />
+      @if (canRate(c)) {
+        <p-button [label]="'Report' | t" size="small" severity="danger" [text]="true" (onClick)="openReport(c)"><ng-template #icon><fa-icon icon="flag" /></ng-template></p-button>
+      }
     </app-coach-card>
   } @empty {
     <div class="card md:col-span-2 xl:col-span-3 text-center py-12 muted">{{ 'Once a gym registers you, its coaches appear here.' | t }}</div>
@@ -46,4 +49,32 @@
       </div>
     } @empty { <p class="muted text-center py-6">{{ 'No reviews yet — be the first!' | t }}</p> }
   </div>
+</p-dialog>
+
+<!-- report a coach -->
+<p-dialog [header]="'Report a coach' | t" [visible]="!!reporting()" (visibleChange)="closeReport($event)" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (reporting(); as c) {
+    <div class="space-y-4">
+      <p class="text-sm muted">{{ 'Your report about {name} is sent to the gym and to the Liftly team. The coach does not see who reported them.' | t: { name: c.firstName + ' ' + c.lastName } }}</p>
+      @if (reportGyms().length > 1) {
+        <div class="field">
+          <label>{{ 'At gym' | t }}</label>
+          <p-select [options]="reportGyms()" optionLabel="name" optionValue="id" [(ngModel)]="report.gymId" styleClass="w-full" appendTo="body" />
+        </div>
+      }
+      <div class="field">
+        <label>{{ 'What happened?' | t }}</label>
+        <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="report.category" styleClass="w-full" appendTo="body" />
+      </div>
+      <div class="field">
+        <label for="report-desc">{{ 'Details' | t }}</label>
+        <textarea pTextarea id="report-desc" rows="5" [(ngModel)]="report.description" [placeholder]="'Describe what happened, when and where.' | t"></textarea>
+        <small class="muted">{{ 'At least 10 characters.' | t }}</small>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="reporting.set(null)" />
+    <p-button [label]="'Send report' | t" severity="danger" (onClick)="sendReport()" [disabled]="!reportValid()" />
+  </ng-template>
 </p-dialog>

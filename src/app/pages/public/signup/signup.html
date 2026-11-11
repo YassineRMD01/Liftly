@@ -43,11 +43,16 @@
           <h2 class="font-semibold text-lg pt-2">{{ 'Your gym' | t }}</h2>
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="field"><label>{{ 'Gym name' | t }}</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
-            <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-multiselect name="sp" [options]="sports" optionLabel="label" optionValue="value" [(ngModel)]="form.sports" display="chip" [placeholder]="'Pick one or more' | t" styleClass="w-full" /></div>
+            <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-multiselect name="sp" [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="form.sportIds" [filter]="true" display="chip" [placeholder]="'Pick one or more' | t" styleClass="w-full" /></div>
+            <div class="field">
+              <label>{{ 'Country' | t }}</label>
+              <p-select name="country" [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="form.country" (ngModelChange)="onCountry($event)" [filter]="true" filterBy="label,code" styleClass="w-full" />
+              <small class="muted">{{ 'Liftly prices are shown for this country.' | t }}</small>
+            </div>
             <div class="field"><label>{{ 'City' | t }}</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
             <div class="field">
               <label>{{ 'Currency' | t }} <span class="muted font-normal">{{ '(for your members)' | t }}</span></label>
-              <p-select name="cur" [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" styleClass="w-full">
+              <p-select name="cur" [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" styleClass="w-full">
                 <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
                 <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
               </p-select>
@@ -68,7 +73,7 @@
               <button type="button" (click)="planId.set(p.id)" class="card !p-4 text-start cursor-pointer"
                 [class.!border-primary]="planId() === p.id" [class.ring-2]="planId() === p.id" [class.ring-primary]="planId() === p.id">
                 <div class="font-semibold">{{ p.name }}</div>
-                <div class="text-xl font-bold mt-1">{{ price(p.id) | currency: 'USD' : 'symbol' : '1.0-0' }}</div>
+                <div class="text-xl font-bold mt-1">{{ priceLabel(p.id, 0) }}</div>
                 <div class="text-xs muted">{{ cycle() === 'MONTHLY' ? ('per month' | t) : ('per year' | t) }}</div>
               </button>
             }
@@ -93,7 +98,7 @@
           <div class="flex justify-between mt-4 text-sm"><span>{{ 'Billing' | t }}</span><span>{{ cycle() === 'MONTHLY' ? ('Monthly' | t) : ('Yearly' | t) }}</span></div>
           <div class="flex justify-between mt-2 text-sm"><span>{{ 'Free trial' | t }}</span><span>{{ '14 days' | t }}</span></div>
           <div class="flex justify-between mt-4 pt-4 border-t border-surface-200 dark:border-surface-800 font-semibold">
-            <span>{{ 'Then' | t }}</span><span>{{ price(p.id) | currency }}</span>
+            <span>{{ 'Then' | t }}</span><span>{{ priceLabel(p.id) }}</span>
           </div>
           <ul class="mt-4 space-y-2 text-sm muted">
             @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }

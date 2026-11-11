@@ -1,6 +1,7 @@
+import { countryName, formatMoney } from '../../../core/currency';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
@@ -13,7 +14,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-billing',
-  imports: [TranslatePipe, CurrencyPipe, DatePipe, FaIconComponent, Button, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, Button, Tag, PageHeader],
   templateUrl: './admin-billing.html',
   styleUrl: './admin-billing.css',
 })
@@ -34,11 +35,19 @@ export class AdminBilling {
     return Array.from({ length: 4 }, (_, i) => ({
       date: new Date(new Date(g.renewsAt).getTime() - (i + 1) * step * 86400000).toISOString(),
       label: `${p.name} · ${g.billingCycle.toLowerCase()}`,
-      amount: this.price(p, g.billingCycle),
+      amount: this.priceLabel(p, g.billingCycle),
     })).filter((i) => i.date >= g.subscribedAt);
   });
 
-  price(p: SaasPlan | undefined, cycle: BillingCycle) { return p ? (cycle === 'MONTHLY' ? p.monthlyPrice : p.yearlyPrice) : 0; }
+  /** Plan price for this gym's country (local price if set by the super-admin, otherwise USD). */
+  price(p: SaasPlan | undefined, cycle: BillingCycle) { return this.store.saasPrice(p, this.gym()?.country, cycle); }
+  priceLabel(p: SaasPlan | undefined, cycle: BillingCycle, decimals?: 0 | 2) {
+    const x = this.price(p, cycle);
+    return formatMoney(x.amount, x.currency, decimals);
+  }
+  /** Monthly price in USD, to tell an upgrade from a downgrade. */
+  usd(p: SaasPlan | undefined) { const x = this.price(p, 'MONTHLY'); return this.store.toUsd(x.amount, x.currency); }
+  countryLabel(code: string) { return countryName(code); }
 
   change(p: SaasPlan) {
     const g = this.gym()!;
@@ -49,7 +58,7 @@ export class AdminBilling {
       return;
     }
     this.confirm.confirm({
-      header: t('Change plan'), message: t('Move to {0} for {1} USD per {2}?', { 0: p.name, 1: this.price(p, g.billingCycle), 2: g.billingCycle === 'MONTHLY' ? t('month') : t('year') }),
+      header: t('Change plan'), message: t('Move to {0} for {1} per {2}?', { 0: p.name, 1: this.priceLabel(p, g.billingCycle), 2: g.billingCycle === 'MONTHLY' ? t('month') : t('year') }),
       accept: () => {
         this.store.updateGym({ ...g, saasPlanId: p.id });
         this.toast.add({ severity: 'success', summary: t('Plan changed'), detail: t('You\'re now on {0}.', { 0: p.name }) });

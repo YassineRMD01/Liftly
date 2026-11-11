@@ -11,7 +11,8 @@ import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
 import { Textarea } from 'primeng/textarea';
 import { AuthService } from '../../../core/auth.service';
-import { CoachReview, User } from '../../../core/models';
+import { CoachReview, ReportCategory, User } from '../../../core/models';
+import { REPORT_CATEGORY } from '../../reports/reports';
 import { StoreService } from '../../../core/store.service';
 import { CoachCard } from '../../../shared/coach-card/coach-card';
 import { PageHeader } from '../../../shared/page-header/page-header';
@@ -47,6 +48,32 @@ export class ClientCoaches {
   /** Gyms where both the client is a member and the coach works. */
   protected readonly rateGyms = computed(() => (this.coach() ? this.store.gymsOfCoach(this.coach()!.id).filter((g) => this.myGymIds().has(g.id)) : []));
   protected readonly coachReviews = computed(() => (this.coach() ? this.store.reviewsOfCoach(this.coach()!.id) : []));
+
+  // ---------- report a coach ----------
+  protected readonly reporting = signal<User | null>(null);
+  protected report = { gymId: '', category: 'UNPROFESSIONAL' as ReportCategory, description: '' };
+  protected readonly categories = (Object.keys(REPORT_CATEGORY) as ReportCategory[]).map((value) => ({ value, label: REPORT_CATEGORY[value] }));
+  /** Gyms where the client is a member and the reported coach works. */
+  reportGyms() {
+    const c = this.reporting();
+    return c ? this.store.gymsOfCoach(c.id).filter((g) => this.myGymIds().has(g.id)) : [];
+  }
+  openReport(c: User) {
+    this.reporting.set(c);
+    // default to a gym where the client currently has an active membership
+    const gyms = this.reportGyms();
+    const active = gyms.find((g) => this.store.clientStatus(g.id, this.me()) === 'ACTIVE');
+    this.report = { gymId: (active ?? gyms[0])?.id ?? '', category: 'UNPROFESSIONAL', description: '' };
+  }
+  closeReport(visible: boolean) { if (!visible) this.reporting.set(null); }
+  reportValid() { return !!this.report.gymId && this.report.description.trim().length >= 10; }
+  sendReport() {
+    const c = this.reporting();
+    if (!c || !this.reportValid()) return;
+    this.store.addReport({ gymId: this.report.gymId, coachId: c.id, clientId: this.me(), category: this.report.category, description: this.report.description.trim() });
+    this.reporting.set(null);
+    this.toast.add({ severity: 'success', summary: t('Report sent'), detail: t('The gym will review it. Thank you for helping keep everyone safe.') });
+  }
 
   canRate(c: User) { return this.store.gymsOfCoach(c.id).some((g) => this.myGymIds().has(g.id)); }
   myReview(c: User) { return this.store.reviews().find((r) => r.coachId === c.id && r.clientId === this.me()); }

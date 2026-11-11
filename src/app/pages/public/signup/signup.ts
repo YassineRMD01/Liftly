@@ -1,7 +1,6 @@
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -14,20 +13,15 @@ import { Message } from 'primeng/message';
 import { SelectButton } from 'primeng/selectbutton';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
-import { CURRENCIES } from '../../../core/currency';
+import { formatMoney } from '../../../core/currency';
 import { AuthService } from '../../../core/auth.service';
 import { BillingCycle, Gender, Role } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 
-/** Sport options: English value (stored), translated label (shown). */
-export const sportOptions = () => SPORTS.map((s) => ({ label: t(s), value: s }));
-
-export const SPORTS = ['Fitness', 'Bodybuilding', 'CrossFit', 'Cardio', 'Swimming', 'Aqua Fitness', 'Martial Arts', 'Karate', 'BJJ', 'Kickboxing', 'Boxing', 'Yoga', 'Pilates', 'Tennis', 'Padel', 'Squash', 'Climbing', 'Dance', 'Cycling', 'Football', 'Basketball', 'Other'];
-
 @Component({
   selector: 'app-signup',
-  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, CurrencyPipe, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
+  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })
@@ -41,8 +35,10 @@ export class Signup implements OnInit {
   readonly plan = input<string>();
   readonly as = input<string>();
 
-  protected readonly sports = sportOptions();
-  protected readonly currencies = CURRENCIES;
+  /** Catalog sports: id as value, translated name as label. */
+  protected readonly sports = computed(() => this.store.catalogSports().map((s) => ({ label: this.store.sportName(s.id), value: s.id })));
+  protected readonly currencies = this.store.currencyOptions;
+  protected readonly countries = this.store.countryOptions;
   protected readonly role = signal<Role>('ADMIN');
   protected readonly cycle = signal<BillingCycle>('MONTHLY');
   protected readonly planId = signal('sp-pro');
@@ -56,7 +52,8 @@ export class Signup implements OnInit {
     { value: 'COACH', label: t('Coach'), hint: t('Free — work with many gyms'), icon: 'user-tie' },
   ];
 
-  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sports: ['Fitness'] as string[], gender: null as Gender | null, currency: 'USD', city: '', color: '6366f1', card: '', expiry: '' };
+  protected form = { firstName: '', lastName: '', email: '', password: '', gymName: '', sportIds: ['sport-fitness'] as string[], gender: null as Gender | null, country: this.store.platform().defaultCountry,
+    currency: this.store.country(this.store.platform().defaultCountry)?.currency ?? 'USD', city: '', color: '6366f1', card: '', expiry: '' };
 
   ngOnInit() {
     if (this.plan()) this.planId.set(this.plan()!);
@@ -71,9 +68,16 @@ export class Signup implements OnInit {
     if (r !== 'ADMIN') this.theme.preview.set(null);
   }
 
-  price(id: string) {
-    const p = this.store.saasPlan(id);
-    return p ? (this.cycle() === 'MONTHLY' ? p.monthlyPrice : p.yearlyPrice) : 0;
+  /** Liftly price of a plan for the selected country (local price when the super-admin set one). */
+  priceLabel(id: string, decimals?: 0 | 2) {
+    const p = this.store.saasPrice(this.store.saasPlan(id), this.form.country, this.cycle());
+    return formatMoney(p.amount, p.currency, decimals);
+  }
+
+  /** Picking a country also suggests its currency for the gym's members. */
+  onCountry(code: string) {
+    this.form.country = code;
+    this.form.currency = this.store.country(code)?.currency ?? this.form.currency;
   }
 
   previewColor(hex: string) {
@@ -86,13 +90,13 @@ export class Signup implements OnInit {
     if (!f.firstName || !f.lastName || !f.email || !f.password) return this.error.set(t('Please fill in all your details.'));
     if (this.store.users().some((u) => u.email.toLowerCase() === f.email.toLowerCase())) return this.error.set(t('This email is already registered.'));
     if (this.role() === 'ADMIN' && !f.gymName) return this.error.set(t('Please give your gym a name.'));
-    if (this.role() === 'ADMIN' && !f.sports.length) return this.error.set(t('Pick at least one sport.'));
+    if (this.role() === 'ADMIN' && !f.sportIds.length) return this.error.set(t('Pick at least one sport.'));
 
     const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password, ...(f.gender ? { gender: f.gender } : {}) });
     if (this.role() === 'ADMIN') {
       const now = new Date();
       this.store.addGym({
-        ownerId: user.id, name: f.gymName, sports: f.sports, currency: f.currency, city: f.city, address: '', description: '',
+        ownerId: user.id, name: f.gymName, sportIds: f.sportIds, country: f.country, currency: f.currency, city: f.city, address: '', description: '',
         theme: { primary: '#' + f.color, logoText: f.gymName.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() },
         saasPlanId: this.planId(), billingCycle: this.cycle(), status: 'TRIAL',
         subscribedAt: now.toISOString(), renewsAt: new Date(now.getTime() + 14 * 86400000).toISOString(),

@@ -1,5 +1,5 @@
 @if (gym(); as g) {
-  <app-page-header [title]="('Welcome back, ' | t) + auth.user()?.firstName" [subtitle]="g.name + ' · ' + (g.sports | tjoin) + ' · ' + g.city">
+  <app-page-header [title]="('Welcome back, ' | t) + auth.user()?.firstName" [subtitle]="g.name + ' · ' + store.sportNames(g) + ' · ' + g.city">
     <p-button [label]="'New promo code' | t" [outlined]="true" routerLink="/admin/promos" />
     <p-button [label]="'Add client' | t" routerLink="/admin/clients" />
   </app-page-header>
@@ -17,7 +17,14 @@
     <app-stat-card icon="users" [label]="'Active members' | t" [value]="activeMembers()" />
     <app-stat-card icon="sack-dollar" [label]="'Total revenue' | t" [value]="revenue()" />
     <app-stat-card icon="user-tie" [label]="'Coaches' | t" [value]="coaches().length" />
-    <app-stat-card icon="ticket" [label]="'Active promo codes' | t" [value]="activePromos()" />
+    <app-stat-card icon="star" [label]="'Gym rating' | t" [value]="rating().avg ? rating().avg.toFixed(1) + ' / 5' : '—'" [hint]="rating().count + ' ' + ('reviews' | t)" />
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6 mt-6">
+    <app-chart-card [title]="'Revenue per month' | t" [subtitle]="'Payments received, last 12 months' | t" [labels]="monthLabels" [series]="revenueByMonth()" [format]="money" [timeAxis]="true" />
+    <app-chart-card type="line" [title]="'Active members' | t" [subtitle]="'Members with a membership in each month' | t" [labels]="monthLabels" [series]="membersByMonth()" [timeAxis]="true" />
+    <app-chart-card [title]="'Clients by status' | t" [labels]="clientsByStatus().labels" [series]="clientsByStatus().series" [horizontal]="true" height="12rem" />
+    <app-chart-card [title]="'Active members by plan' | t" [labels]="membersByPlan().labels" [series]="membersByPlan().series" [horizontal]="true" height="12rem" />
   </div>
 
   <div class="grid lg:grid-cols-3 gap-6 mt-6">

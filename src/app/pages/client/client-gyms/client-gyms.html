@@ -13,8 +13,8 @@
     <div class="card !p-0 overflow-hidden flex flex-col">
       <div class="h-28 p-5 flex items-end text-white relative" [style.background]="'linear-gradient(135deg,' + g.theme.primary + ', #0f172a)'">
         <span class="absolute top-4 end-4 flex flex-wrap justify-end gap-1 max-w-[60%]">
-          @for (s of g.sports.slice(0, 3); track s) { <p-tag [value]="s | t" severity="contrast" [rounded]="true" /> }
-          @if (g.sports.length > 3) { <p-tag [value]="'+' + (g.sports.length - 3)" severity="contrast" [rounded]="true" /> }
+          @for (s of store.sportsOfGym(g).slice(0, 3); track s.id) { <p-tag [value]="store.sportName(s.id)" severity="contrast" [rounded]="true" /> }
+          @if (g.sportIds.length > 3) { <p-tag [value]="'+' + (g.sportIds.length - 3)" severity="contrast" [rounded]="true" /> }
         </span>
         <div class="flex items-center gap-3">
           <span class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur grid place-items-center font-extrabold">{{ g.theme.logoText }}</span>
@@ -22,7 +22,11 @@
         </div>
       </div>
       <div class="p-5 flex-1 flex flex-col gap-3">
-        <app-open-status [gymId]="g.id" [gender]="gender()" />
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <app-open-status [gymId]="g.id" [gender]="gender()" />
+          <app-stars [value]="store.gymRating(g.id).avg" [count]="store.gymRating(g.id).count" />
+        </div>
+        @if (isBanned(g.id)) { <p-tag [value]="'Banned' | t" severity="danger" /> }
         <p class="text-sm muted">{{ g.description }}</p>
         <div class="text-sm"><b>{{ store.coachesOfGym(g.id).length }}</b> {{ 'coaches · from' | t }} <b>{{ fromPrice(g) }}</b></div>
         <div class="mt-auto flex items-center gap-2">
@@ -73,6 +77,19 @@
           } @empty { <p class="text-sm muted">{{ 'No coaches listed.' | t }}</p> }
         </div>
       </div>
+
+      <div>
+        <h3 class="font-semibold mb-2 flex items-center gap-2">{{ 'Member reviews' | t }} <app-stars [value]="store.gymRating(g.id).avg" [count]="store.gymRating(g.id).count" /></h3>
+        <div class="space-y-2 max-h-64 overflow-y-auto">
+          @for (r of store.reviewsOfGym(g.id); track r.id) {
+            <div class="p-3 rounded-xl bg-surface-50 dark:bg-surface-800">
+              <div class="flex justify-between gap-2"><span class="font-medium text-sm">{{ store.fullName(r.clientId) }}</span><app-stars [value]="r.rating" /></div>
+              @if (r.comment) { <p class="text-sm mt-1">{{ r.comment }}</p> }
+            </div>
+          } @empty { <p class="text-sm muted">{{ 'No reviews yet.' | t }}</p> }
+        </div>
+      </div>
+
 
       <div>
         <h3 class="font-semibold mb-2">{{ 'Weekly schedule' | t }}</h3>

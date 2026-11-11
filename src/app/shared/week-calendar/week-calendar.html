@@ -40,7 +40,7 @@
               (click)="editable() && slotClick.emit(s)">
               <div class="font-semibold tabular-nums" dir="ltr">{{ s.open }}–{{ s.close }}</div>
               @if (s.height > 34) { <div class="truncate">{{ short(s) }}</div> }
-              @if (s.height > 50 && s.sport) { <div class="truncate opacity-90">{{ s.sport | t }}</div> }
+              @if (s.height > 50 && s.sportId) { <div class="truncate opacity-90">{{ store.sportName(s.sportId) }}</div> }
               @if (s.height > 66 && s.note) { <div class="truncate italic opacity-80">{{ s.note }}</div> }
             </div>
           }

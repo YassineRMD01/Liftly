@@ -22,6 +22,16 @@
         <li>{{ 'Custom theme:' | t }} <b>{{ p.customTheme ? ('Yes' | t) : 'No' }}</b></li>
         @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
       </ul>
+      @if (p.countryPrices.length) {
+        <div class="mt-3 text-xs">
+          <div class="font-semibold mb-1">{{ 'Local prices' | t }}</div>
+          <div class="flex flex-wrap gap-1.5">
+            @for (cp of p.countryPrices; track cp.country; let i = $index) {
+              <span class="px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800">{{ localLabel(p, i) }}</span>
+            }
+          </div>
+        </div>
+      }
       <div class="text-xs muted mt-3">{{ gymCount(p.id) }} {{ 'gyms on this plan' | t }}</div>
       <div class="flex gap-2 mt-4">
         <p-button [label]="'Edit' | t" [outlined]="true" size="small" (onClick)="edit(p)" />
@@ -31,14 +41,42 @@
   }
 </div>
 
-<p-dialog [header]="draft().id ? ('Edit plan' | t) : ('New plan' | t)" [(visible)]="visible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<p-dialog [header]="draft().id ? ('Edit plan' | t) : ('New plan' | t)" [(visible)]="visible" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '640px': '95vw' }">
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="draft().name" /></div>
     <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
-    <div class="field"><label>{{ 'Monthly price' | t }}</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" /></div>
-    <div class="field"><label>{{ 'Yearly price' | t }}</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" /></div>
+    <div class="field"><label>{{ 'Monthly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" /></div>
+    <div class="field"><label>{{ 'Yearly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" /></div>
     <div class="field"><label>{{ 'Max coaches (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxCoaches" [min]="-1" /></div>
     <div class="field"><label>{{ 'Max clients (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxClients" [min]="-1" /></div>
+    <div class="sm:col-span-2 rounded-xl border border-surface-200 dark:border-surface-700 p-3 space-y-2">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <div class="text-sm font-semibold">{{ 'Local prices by country' | t }}</div>
+          <div class="text-xs muted">{{ 'Gyms in these countries pay this price in their currency; others pay the USD price.' | t }}</div>
+        </div>
+        <p-button [label]="'Add country' | t" size="small" [outlined]="true" (onClick)="addCountryPrice()" />
+      </div>
+      @for (cp of draft().countryPrices; track $index; let i = $index) {
+        <div class="grid grid-cols-[1fr_8rem_8rem_auto] gap-2 items-end">
+          <div class="field">
+            @if (i === 0) { <label class="!text-xs">{{ 'Country' | t }}</label> }
+            <p-select [options]="countriesFor(cp.country)" optionLabel="label" optionValue="code" [(ngModel)]="cp.country" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body" />
+          </div>
+          <div class="field">
+            @if (i === 0) { <label class="!text-xs">{{ 'Monthly' | t }}</label> }
+            <p-inputnumber [(ngModel)]="cp.monthly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" styleClass="w-full" inputStyleClass="w-full" />
+          </div>
+          <div class="field">
+            @if (i === 0) { <label class="!text-xs">{{ 'Yearly' | t }}</label> }
+            <p-inputnumber [(ngModel)]="cp.yearly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" styleClass="w-full" inputStyleClass="w-full" />
+          </div>
+          <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="removeCountryPrice(i)" [ariaLabel]="'Remove' | t"><fa-icon icon="trash" /></p-button>
+        </div>
+      } @empty {
+        <div class="text-xs muted">{{ 'No local prices — every country pays the USD price.' | t }}</div>
+      }
+    </div>
     <div class="field sm:col-span-2"><label>{{ 'Features (one per line)' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="featuresText"></textarea></div>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().customTheme" /> {{ 'Custom theme allowed' | t }}</label>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().highlighted" /> {{ 'Highlight as popular' | t }}</label>

@@ -43,12 +43,12 @@ export class ClientGyms {
   protected readonly gender = computed(() => this.auth.user()?.gender);
 
   protected readonly sports = computed(() =>
-    [...new Set(this.store.gyms().flatMap((g) => g.sports))].map((s) => ({ label: t(s), value: s })).sort((a, b) => a.label.localeCompare(b.label)));
+    [...new Set(this.store.gyms().flatMap((g) => g.sportIds))].map((id) => ({ label: this.store.sportName(id), value: id })).sort((a, b) => a.label.localeCompare(b.label)));
   protected readonly gyms = computed(() => {
     const q = this.q().toLowerCase();
     return this.store.gyms().filter((g) => g.status !== 'SUSPENDED' &&
-      (!this.sport() || g.sports.includes(this.sport()!)) &&
-      (!q || `${g.name} ${g.city} ${g.sports.join(' ')}`.toLowerCase().includes(q)));
+      (!this.sport() || g.sportIds.includes(this.sport()!)) &&
+      (!q || `${g.name} ${g.city} ${this.store.sportNames(g)}`.toLowerCase().includes(q)));
   });
   protected readonly plans = computed(() => (this.gym() ? this.store.plansOfGym(this.gym()!.id).filter((p) => p.active) : []));
   protected readonly coaches = computed(() => (this.gym() ? this.store.coachesOfGym(this.gym()!.id) : []));
@@ -60,6 +60,8 @@ export class ClientGyms {
     const cheapest = [...(local.length ? local : plans)].sort((a, b) => a.price - b.price)[0];
     return cheapest ? formatMoney(cheapest.price, this.store.planCurrency(cheapest)) : '—';
   }
+  isBanned(gymId: string) { return this.store.isBanned(gymId, this.auth.user()?.id ?? ''); }
+
   isMember(gymId: string) {
     return this.store.membershipsOfClient((this.auth.user()?.id ?? '')).some((m) => m.gymId === gymId && m.status === 'ACTIVE');
   }

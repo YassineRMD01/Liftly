@@ -1,0 +1,49 @@
+<app-page-header [title]="'Sports' | t" [subtitle]="'The sports and activities your gym offers. They appear on your gym page and in the schedule.' | t">
+  <p-button [label]="'Create custom sport' | t" severity="secondary" [outlined]="true" (onClick)="newCustom()"><ng-template #icon><fa-icon icon="wand-magic-sparkles" /></ng-template></p-button>
+  <p-button [label]="'Add from catalog' | t" (onClick)="openCatalog()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  @for (s of sports(); track s.id) {
+    <div class="card flex items-center gap-4">
+      <span class="w-12 h-12 rounded-xl grid place-items-center bg-primary-50 dark:bg-primary-950 text-primary text-xl"><fa-icon [icon]="iconOf(s)" /></span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold truncate">{{ store.sportName(s.id) }}</span>
+          @if (s.gymId) { <p-tag [value]="'Custom' | t" severity="info" /> }
+        </div>
+        <div class="text-xs muted">{{ slots(s) }} {{ 'schedule sessions' | t }}</div>
+      </div>
+      @if (s.gymId) {
+        <p-button [text]="true" [rounded]="true" (onClick)="editCustom(s)" [ariaLabel]="'Edit' | t"><fa-icon icon="pen" /></p-button>
+      }
+      <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(s)" [ariaLabel]="'Remove' | t"><fa-icon icon="trash" /></p-button>
+    </div>
+  } @empty {
+    <div class="card sm:col-span-2 xl:col-span-3 text-center py-12">
+      <fa-icon icon="dumbbell" class="text-4xl text-primary" />
+      <p class="mt-3 font-semibold">{{ 'No sports yet' | t }}</p>
+      <p class="muted text-sm">{{ 'Add sports from the catalog or create your own.' | t }}</p>
+    </div>
+  }
+</div>
+
+<p-dialog [header]="'Add from catalog' | t" [visible]="catalogVisible()" (visibleChange)="catalogVisible.set($event)" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <input pInputText class="w-full mb-3" [placeholder]="'Search sports' | t" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+    @for (s of addable(); track s.id) {
+      <button type="button" (click)="togglePick(s.id)" [attr.aria-pressed]="picked().includes(s.id)"
+        class="flex items-center gap-2 p-2.5 rounded-xl border text-start cursor-pointer transition-colors border-surface-200 dark:border-surface-700"
+        [class.!border-primary]="picked().includes(s.id)" [class.bg-primary-50]="picked().includes(s.id)" [class.dark:bg-primary-950]="picked().includes(s.id)">
+        <fa-icon [icon]="iconOf(s)" class="text-primary w-5" />
+        <span class="text-sm truncate">{{ store.sportName(s.id) }}</span>
+      </button>
+    } @empty { <p class="muted text-sm col-span-3 text-center py-6">{{ 'Your gym already offers every catalog sport.' | t }}</p> }
+  </div>
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="catalogVisible.set(false)" />
+    <p-button [label]="'Add' | t" (onClick)="addPicked()" [disabled]="!picked().length" />
+  </ng-template>
+</p-dialog>
+
+<app-sport-dialog (saved)="onSaved($event)" />

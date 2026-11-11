@@ -14,12 +14,14 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { SaasPlan } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
+import { Select } from 'primeng/select';
+import { countryName, formatMoney } from '../../../core/currency';
 
-const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, yearlyPrice: 0, maxCoaches: 5, maxClients: 200, features: [], customTheme: false, highlighted: false, active: true };
+const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, yearlyPrice: 0, maxCoaches: 5, maxClients: 200, features: [], customTheme: false, highlighted: false, active: true, countryPrices: [] };
 
 @Component({
   selector: 'app-sa-plans',
-  imports: [TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './sa-plans.html',
   styleUrl: './sa-plans.css',
 })
@@ -31,10 +33,36 @@ export class SaPlans {
   protected readonly draft = signal<SaasPlan>({ ...EMPTY });
   protected featuresText = '';
 
+  protected readonly countryName = countryName;
+
+  /** Currency used for a country's local price. */
+  countryCurrency(code: string) { return this.store.country(code)?.currency ?? 'USD'; }
+
+  /** Countries not priced yet in this plan (plus the row's own one). */
+  countriesFor(current: string) {
+    const used = new Set(this.draft().countryPrices.map((c) => c.country));
+    return this.store.countryOptions().filter((c) => c.code === current || !used.has(c.code));
+  }
+
+  addCountryPrice() {
+    const free = this.countriesFor('')[0];
+    if (!free) return;
+    this.draft.update((d) => ({ ...d, countryPrices: [...d.countryPrices, { country: free.code, monthly: 0, yearly: 0 }] }));
+  }
+
+  removeCountryPrice(i: number) {
+    this.draft.update((d) => ({ ...d, countryPrices: d.countryPrices.filter((_, k) => k !== i) }));
+  }
+
+  localLabel(p: SaasPlan, i: number) {
+    const cp = p.countryPrices[i];
+    return `${countryName(cp.country)} · ${formatMoney(cp.monthly, this.countryCurrency(cp.country), 0)}`;
+  }
+
   gymCount(id: string) { return this.store.gyms().filter((g) => g.saasPlanId === id).length; }
 
   edit(p: SaasPlan = EMPTY) {
-    this.draft.set(structuredClone(p));
+    this.draft.set(structuredClone({ ...p, countryPrices: p.countryPrices ?? [] }));
     this.featuresText = p.features.join('\n');
     this.visible = true;
   }

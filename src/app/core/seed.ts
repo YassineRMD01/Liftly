@@ -4,8 +4,8 @@ const d = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).t
 
 let slotN = 0;
 /** Build slots for several days at once. */
-const slots = (gymId: string, days: number[], open: string, close: string, audience: Audience, sport?: string, note?: string): ScheduleSlot[] =>
-  days.map((day) => ({ id: `s-${++slotN}`, gymId, day, open, close, audience, ...(sport ? { sport } : {}), ...(note ? { note } : {}) }));
+const slots = (gymId: string, days: number[], open: string, close: string, audience: Audience, sportId?: string, note?: string): ScheduleSlot[] =>
+  days.map((day) => ({ id: `s-${++slotN}`, gymId, day, open, close, audience, ...(sportId ? { sportId } : {}), ...(note ? { note } : {}) }));
 const WEEKDAYS = [1, 2, 3, 4, 5];
 const isoDay = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
 
@@ -33,6 +33,83 @@ const history = (gymId: string, clientId: string, planId: string, price: number,
   });
 
 export const SEED: DbState = {
+  platform: { theme: { primary: '#6366f1', logoText: 'LF' }, defaultCountry: 'US' },
+  sports: [
+    { id: 'sport-fitness', name: 'Fitness', icon: 'dumbbell' },
+    { id: 'sport-bodybuilding', name: 'Bodybuilding', icon: 'dumbbell' },
+    { id: 'sport-crossfit', name: 'CrossFit', icon: 'fire' },
+    { id: 'sport-cardio', name: 'Cardio', icon: 'heart-pulse' },
+    { id: 'sport-swimming', name: 'Swimming', icon: 'person-swimming' },
+    { id: 'sport-aqua', name: 'Aqua Fitness', icon: 'water' },
+    { id: 'sport-martial', name: 'Martial Arts', icon: 'hand-fist' },
+    { id: 'sport-karate', name: 'Karate', icon: 'hand-fist' },
+    { id: 'sport-bjj', name: 'BJJ', icon: 'user-ninja' },
+    { id: 'sport-kickboxing', name: 'Kickboxing', icon: 'hand-fist' },
+    { id: 'sport-boxing', name: 'Boxing', icon: 'hand-fist' },
+    { id: 'sport-yoga', name: 'Yoga', icon: 'spa' },
+    { id: 'sport-pilates', name: 'Pilates', icon: 'person-walking' },
+    { id: 'sport-tennis', name: 'Tennis', icon: 'table-tennis-paddle-ball' },
+    { id: 'sport-padel', name: 'Padel', icon: 'table-tennis-paddle-ball' },
+    { id: 'sport-squash', name: 'Squash', icon: 'table-tennis-paddle-ball' },
+    { id: 'sport-climbing', name: 'Climbing', icon: 'mountain' },
+    { id: 'sport-dance', name: 'Dance', icon: 'music' },
+    { id: 'sport-cycling', name: 'Cycling', icon: 'bicycle' },
+    { id: 'sport-football', name: 'Football', icon: 'futbol' },
+    { id: 'sport-basketball', name: 'Basketball', icon: 'basketball' },
+    { id: 'sport-running', name: 'Running', icon: 'person-running' },
+    { id: 'sport-kids-karate', name: 'Kids karate', icon: 'child', gymId: 'g-kumite' },
+  ],
+  countries: [
+    { code: 'US', currency: 'USD', active: true },
+    { code: 'CA', currency: 'CAD', active: true },
+    { code: 'GB', currency: 'GBP', active: true },
+    { code: 'FR', currency: 'EUR', active: true },
+    { code: 'ES', currency: 'EUR', active: true },
+    { code: 'DE', currency: 'EUR', active: true },
+    { code: 'MA', currency: 'MAD', active: true },
+    { code: 'DZ', currency: 'DZD', active: true },
+    { code: 'TN', currency: 'TND', active: true },
+    { code: 'EG', currency: 'EGP', active: true },
+    { code: 'AE', currency: 'AED', active: true },
+    { code: 'SA', currency: 'SAR', active: true },
+    { code: 'QA', currency: 'QAR', active: false },
+    { code: 'TR', currency: 'TRY', active: false },
+    { code: 'CH', currency: 'CHF', active: false },
+    { code: 'SN', currency: 'XOF', active: false },
+  ],
+  // demo exchange rates (value of 1 unit in USD) — replace with a live rates feed in production
+  currencies: [
+    { code: 'USD', rateToUsd: 1, active: true },
+    { code: 'EUR', rateToUsd: 1.08, active: true },
+    { code: 'GBP', rateToUsd: 1.27, active: true },
+    { code: 'MAD', rateToUsd: 0.1, active: true },
+    { code: 'DZD', rateToUsd: 0.0074, active: true },
+    { code: 'TND', rateToUsd: 0.32, active: true },
+    { code: 'EGP', rateToUsd: 0.02, active: true },
+    { code: 'AED', rateToUsd: 0.27, active: true },
+    { code: 'SAR', rateToUsd: 0.27, active: true },
+    { code: 'QAR', rateToUsd: 0.27, active: false },
+    { code: 'KWD', rateToUsd: 3.25, active: false },
+    { code: 'TRY', rateToUsd: 0.029, active: false },
+    { code: 'CAD', rateToUsd: 0.73, active: true },
+    { code: 'CHF', rateToUsd: 1.13, active: false },
+    { code: 'XOF', rateToUsd: 0.00165, active: false },
+  ],
+  bans: [
+    { gymId: 'g-iron', clientId: 'u-k7', reason: 'Repeated aggressive behavior towards other members.', date: d(-12) },
+  ],
+  reports: [
+    { id: 'rep-1', gymId: 'g-kumite', coachId: 'u-c1', clientId: 'u-k2', category: 'UNPROFESSIONAL', description: 'Arrived 30 minutes late twice and spent the class on his phone.', status: 'OPEN', createdAt: d(-1) },
+    { id: 'rep-2', gymId: 'g-iron', coachId: 'u-c4', clientId: 'u-k3', category: 'UNSAFE_TRAINING', description: 'Pushed me to lift far above my level without spotting.', status: 'RESOLVED', createdAt: d(-25), resolutionNote: 'Talked with the coach; spotting is now mandatory on heavy sets.', handledAt: d(-22) },
+  ],
+  gymReviews: [
+    { id: 'gr-1', gymId: 'g-iron', clientId: 'u-k1', rating: 5, comment: 'Best equipment in town and a great atmosphere.', createdAt: d(-8) },
+    { id: 'gr-2', gymId: 'g-iron', clientId: 'u-k3', rating: 4, comment: 'Busy after 6pm, otherwise perfect.', createdAt: d(-30) },
+    { id: 'gr-3', gymId: 'g-wave', clientId: 'u-k4', rating: 5, comment: 'Clean pool and the women-only sessions are a big plus.', createdAt: d(-3) },
+    { id: 'gr-4', gymId: 'g-wave', clientId: 'u-k1', rating: 4, comment: 'Lovely place, lanes can get crowded in the morning.', createdAt: d(-6) },
+    { id: 'gr-5', gymId: 'g-kumite', clientId: 'u-k5', rating: 5, comment: 'Welcoming dojo with very good senseis.', createdAt: d(-5) },
+    { id: 'gr-6', gymId: 'g-kumite', clientId: 'u-k6', rating: 4, comment: 'Great classes, the changing rooms could be bigger.', createdAt: d(-2) },
+  ],
   users: [
     { id: 'u-sa', role: 'SUPER_ADMIN', firstName: 'Sam', lastName: 'Root', email: 'super@liftly.io', password: 'demo', createdAt: d(-400), active: true },
     { id: 'u-a1', gender: 'MALE', role: 'ADMIN', firstName: 'Alex', lastName: 'Stone', email: 'admin@irontemple.io', password: 'demo', phone: '+1 555 0101', createdAt: d(-300), active: true },
@@ -47,6 +124,8 @@ export const SEED: DbState = {
     { id: 'u-k3', gender: 'MALE', role: 'CLIENT', firstName: 'Ethan', lastName: 'Park', email: 'ethan@liftly.io', password: 'demo', createdAt: d(-80), active: true },
     { id: 'u-k4', gender: 'FEMALE', role: 'CLIENT', firstName: 'Zoe', lastName: 'Martin', email: 'zoe@liftly.io', password: 'demo', createdAt: d(-60), active: true },
     { id: 'u-k5', gender: 'MALE', role: 'CLIENT', firstName: 'Liam', lastName: 'Brown', email: 'liam@liftly.io', password: 'demo', createdAt: d(-30), active: true },
+    { id: 'u-k6', gender: 'MALE', role: 'CLIENT', firstName: 'Amine', lastName: 'El Idrissi', email: 'amine@liftly.io', password: 'demo', phone: '+212 600 000 106', createdAt: d(-45), active: true },
+    { id: 'u-k7', gender: 'FEMALE', role: 'CLIENT', firstName: 'Sara', lastName: 'Lopez', email: 'sara@liftly.io', password: 'demo', createdAt: d(-70), active: true },
   ],
   coachProfiles: [
     { userId: 'u-c1', bio: 'Strength & conditioning coach, former powerlifter.', specialties: ['Powerlifting', 'Hypertrophy', 'Mobility'], yearsExperience: 9, hourlyRate: 45, currency: 'USD' },
@@ -55,14 +134,14 @@ export const SEED: DbState = {
     { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35, currency: 'USD' },
   ],
   saasPlans: [
-    { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], customTheme: false, highlighted: false, active: true },
-    { id: 'sp-pro', name: 'Pro', description: 'For growing gyms that want their own brand.', monthlyPrice: 79, yearlyPrice: 790, maxCoaches: 15, maxClients: 1000, features: ['Everything in Starter', 'Custom brand colors & logo', 'Advanced analytics', 'Priority support'], customTheme: true, highlighted: true, active: true },
-    { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true },
+    { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], customTheme: false, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 249, yearly: 2490 }, { country: 'FR', monthly: 27, yearly: 270 }, { country: 'ES', monthly: 25, yearly: 250 }] },
+    { id: 'sp-pro', name: 'Pro', description: 'For growing gyms that want their own brand.', monthlyPrice: 79, yearlyPrice: 790, maxCoaches: 15, maxClients: 1000, features: ['Everything in Starter', 'Custom brand colors & logo', 'Advanced analytics', 'Priority support'], customTheme: true, highlighted: true, active: true, countryPrices: [{ country: 'MA', monthly: 690, yearly: 6900 }, { country: 'FR', monthly: 72, yearly: 720 }, { country: 'ES', monthly: 69, yearly: 690 }] },
+    { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 1790, yearly: 17900 }, { country: 'FR', monthly: 185, yearly: 1850 }, { country: 'ES', monthly: 179, yearly: 1790 }] },
   ],
   gyms: [
-    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sports: ['Bodybuilding', 'Fitness', 'CrossFit'], currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
-    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sports: ['Swimming', 'Aqua Fitness'], currency: 'EUR', city: 'San Diego', address: '4 Ocean Ave', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
-    { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sports: ['Karate', 'BJJ', 'Kickboxing'], currency: 'MAD', city: 'Seattle', address: '88 Zen Rd', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(10) },
+    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sportIds: ['sport-bodybuilding', 'sport-fitness', 'sport-crossfit'], country: 'US', currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
+    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sportIds: ['sport-swimming', 'sport-aqua'], country: 'ES', currency: 'EUR', city: 'Barcelona', address: 'Passeig Marítim 4', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
+    { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sportIds: ['sport-karate', 'sport-bjj', 'sport-kickboxing', 'sport-kids-karate'], country: 'MA', currency: 'MAD', city: 'Casablanca', address: '88 Bd Zerktouni', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(10) },
   ],
   gymCoaches: [
     { gymId: 'g-iron', coachId: 'u-c1', since: d(-280) },
@@ -93,12 +172,15 @@ export const SEED: DbState = {
     { id: 'm-4', gymId: 'g-iron', clientId: 'u-k3', planId: 'mp-3', pricePaid: 450, startDate: d(-80), endDate: d(285), status: 'ACTIVE' },
     { id: 'm-5', gymId: 'g-wave', clientId: 'u-k4', planId: 'mp-5', coachId: 'u-c2', pricePaid: 99, startDate: d(-3), endDate: d(27), status: 'ACTIVE' },
     { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
+    { id: 'm-8', gymId: 'g-kumite', clientId: 'u-k6', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-12), endDate: d(18), status: 'ACTIVE' },
+    { id: 'm-9', gymId: 'g-iron', clientId: 'u-k7', planId: 'mp-1', pricePaid: 49, startDate: d(-60), endDate: d(-12), status: 'CANCELLED' },
     { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 450, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
     ...history('g-iron', 'u-k1', 'mp-2', 149, 5, 2),
     ...history('g-iron', 'u-k2', 'mp-1', 49, 3, 10),
     ...history('g-wave', 'u-k1', 'mp-4', 39, 2, 6),
     ...history('g-wave', 'u-k4', 'mp-5', 99, 4, 8),
     ...history('g-kumite', 'u-k5', 'mp-6', 450, 2, 4),
+    ...history('g-kumite', 'u-k6', 'mp-6', 450, 2, 14),
   ],
   reviews: [
     { id: 'r-1', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', rating: 5, comment: 'Added 40kg to my deadlift in 3 months. Jordan is the real deal.', createdAt: d(-6) },
@@ -114,18 +196,18 @@ export const SEED: DbState = {
     ...slots('g-iron', WEEKDAYS, '09:00', '12:00', 'WOMEN', undefined, 'Ladies hours'),
     ...slots('g-iron', WEEKDAYS, '12:00', '22:00', 'MIXED'),
     ...slots('g-iron', [6], '08:00', '18:00', 'MIXED'),
-    ...slots('g-iron', [3, 5], '18:00', '19:00', 'MIXED', 'CrossFit', 'WOD class'),
+    ...slots('g-iron', [3, 5], '18:00', '19:00', 'MIXED', 'sport-crossfit', 'WOD class'),
     // Blue Wave: separated pool sessions
-    ...slots('g-wave', WEEKDAYS, '06:00', '10:00', 'MIXED', 'Swimming', 'Lap swim'),
-    ...slots('g-wave', WEEKDAYS, '10:00', '14:00', 'WOMEN', 'Swimming'),
-    ...slots('g-wave', WEEKDAYS, '14:00', '18:00', 'MEN', 'Swimming'),
-    ...slots('g-wave', [2, 4], '18:00', '19:00', 'WOMEN', 'Aqua Fitness'),
-    ...slots('g-wave', [6, 0], '08:00', '13:00', 'WOMEN', 'Swimming'),
-    ...slots('g-wave', [6, 0], '13:00', '18:00', 'MEN', 'Swimming'),
+    ...slots('g-wave', WEEKDAYS, '06:00', '10:00', 'MIXED', 'sport-swimming', 'Lap swim'),
+    ...slots('g-wave', WEEKDAYS, '10:00', '14:00', 'WOMEN', 'sport-swimming'),
+    ...slots('g-wave', WEEKDAYS, '14:00', '18:00', 'MEN', 'sport-swimming'),
+    ...slots('g-wave', [2, 4], '18:00', '19:00', 'WOMEN', 'sport-aqua'),
+    ...slots('g-wave', [6, 0], '08:00', '13:00', 'WOMEN', 'sport-swimming'),
+    ...slots('g-wave', [6, 0], '13:00', '18:00', 'MEN', 'sport-swimming'),
     // Kumite Dojo: kids/mixed classes plus separate adult sessions
-    ...slots('g-kumite', WEEKDAYS, '16:00', '18:00', 'MIXED', 'Karate', 'Kids & teens'),
-    ...slots('g-kumite', [1, 3, 5], '18:00', '20:00', 'MEN', 'BJJ'),
-    ...slots('g-kumite', [2, 4], '18:00', '20:00', 'WOMEN', 'Kickboxing', 'Women self-defense'),
+    ...slots('g-kumite', WEEKDAYS, '16:00', '18:00', 'MIXED', 'sport-kids-karate', 'Kids & teens'),
+    ...slots('g-kumite', [1, 3, 5], '18:00', '20:00', 'MEN', 'sport-bjj'),
+    ...slots('g-kumite', [2, 4], '18:00', '20:00', 'WOMEN', 'sport-kickboxing', 'Women self-defense'),
     ...slots('g-kumite', [6], '10:00', '14:00', 'MIXED'),
   ],
   closures: [
@@ -139,6 +221,8 @@ export const SEED: DbState = {
     ...monthly('g-wave', 'u-k1', 39, 2, 6, 'CARD'),
     ...monthly('g-wave', 'u-k4', 99, 4, 8),
     ...monthly('g-kumite', 'u-k5', 450, 2, 4),
+    ...monthly('g-kumite', 'u-k6', 450, 2, 14),
+    { id: 'p-sara', gymId: 'g-iron', clientId: 'u-k7', date: isoDay(-60), amount: 49, method: 'CASH' },
     ...monthly('g-kumite', 'u-k2', 450, 1, 9),
   ],
 };

@@ -14,6 +14,9 @@ export const routes: Routes = [
       { path: 'gyms', loadComponent: () => import('./pages/super-admin/sa-gyms/sa-gyms').then((m) => m.SaGyms) },
       { path: 'plans', loadComponent: () => import('./pages/super-admin/sa-plans/sa-plans').then((m) => m.SaPlans) },
       { path: 'users', loadComponent: () => import('./pages/super-admin/sa-users/sa-users').then((m) => m.SaUsers) },
+      { path: 'currencies', loadComponent: () => import('./pages/super-admin/sa-currencies/sa-currencies').then((m) => m.SaCurrencies) },
+      { path: 'reports', loadComponent: () => import('./pages/reports/reports').then((m) => m.Reports) },
+      { path: 'settings', loadComponent: () => import('./pages/super-admin/sa-settings/sa-settings').then((m) => m.SaSettings) },
     ],
   },
   {
@@ -26,6 +29,8 @@ export const routes: Routes = [
       { path: 'promos', loadComponent: () => import('./pages/admin/admin-promos/admin-promos').then((m) => m.AdminPromos) },
       { path: 'clients', loadComponent: () => import('./pages/admin/admin-clients/admin-clients').then((m) => m.AdminClients) },
       { path: 'coaches', loadComponent: () => import('./pages/admin/admin-coaches/admin-coaches').then((m) => m.AdminCoaches) },
+      { path: 'sports', loadComponent: () => import('./pages/admin/admin-sports/admin-sports').then((m) => m.AdminSports) },
+      { path: 'reports', loadComponent: () => import('./pages/reports/reports').then((m) => m.Reports) },
       { path: 'schedule', loadComponent: () => import('./pages/admin/admin-schedule/admin-schedule').then((m) => m.AdminSchedule) },
       { path: 'branding', loadComponent: () => import('./pages/admin/admin-branding/admin-branding').then((m) => m.AdminBranding) },
       { path: 'billing', loadComponent: () => import('./pages/admin/admin-billing/admin-billing').then((m) => m.AdminBilling) },

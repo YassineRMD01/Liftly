@@ -1,6 +1,7 @@
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { updatePrimaryPalette } from '@primeuix/themes';
 import { AuthService } from './auth.service';
+import { StoreService } from './store.service';
 import { GymTheme } from './models';
 
 export const DEFAULT_PRIMARY = '#6366f1';
@@ -34,13 +35,15 @@ export function buildPalette(hex: string): Record<string, string> {
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly auth = inject(AuthService);
+  private readonly store = inject(StoreService);
   readonly preview = signal<GymTheme | null>(null);
   readonly dark = signal(this.readDark());
   readonly current = signal<GymTheme>({ primary: DEFAULT_PRIMARY, logoText: 'LF' });
 
   constructor() {
     effect(() => {
-      const theme = this.preview() ?? this.auth.activeGym()?.theme ?? { primary: DEFAULT_PRIMARY, logoText: 'LF' };
+      // gym admins see their gym; everyone else sees the platform theme set by the super-admin
+      const theme = this.preview() ?? this.auth.activeGym()?.theme ?? this.store.platform().theme;
       this.current.set(theme);
       updatePrimaryPalette(buildPalette(theme.primary));
     });

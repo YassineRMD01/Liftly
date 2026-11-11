@@ -1,13 +1,14 @@
 import { t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, Payment, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
+  BillingCycle, ClientMembership, ClientStatus, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { openStatus } from './schedule';
-import { DEFAULT_CURRENCY, formatMoney, formatTotals } from './currency';
+import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v7';
+const STORAGE_KEY = 'liftly-db-v8';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -38,6 +39,21 @@ export class StoreService {
   readonly schedule = computed(() => this.state().schedule);
   readonly closures = computed(() => this.state().closures);
   readonly payments = computed(() => this.state().payments);
+  readonly sports = computed(() => this.state().sports);
+  readonly countries = computed(() => this.state().countries);
+  readonly currencies = computed(() => this.state().currencies);
+  readonly platform = computed(() => this.state().platform);
+  readonly bans = computed(() => this.state().bans);
+  readonly reports = computed(() => this.state().reports);
+  readonly gymReviews = computed(() => this.state().gymReviews);
+
+  /** Platform catalog of sports (shared by all gyms). */
+  readonly catalogSports = computed(() => this.sports().filter((s) => !s.gymId));
+  /** Active currencies for pickers: { code, label }. */
+  readonly currencyOptions = computed(() => this.currencies().filter((c) => c.active).map((c) => ({ code: c.code, label: currencyName(c.code) })));
+  /** Active countries for pickers: { code, label, currency }, sorted by name. */
+  readonly countryOptions = computed(() =>
+    this.countries().filter((c) => c.active).map((c) => ({ code: c.code, label: countryName(c.code), currency: c.currency })).sort((a, b) => a.label.localeCompare(b.label)));
 
   readonly coaches = computed(() => this.users().filter((u) => u.role === 'COACH'));
   readonly clients = computed(() => this.users().filter((u) => u.role === 'CLIENT'));
@@ -60,7 +76,7 @@ export class StoreService {
         db.closures ??= [];
         db.payments ??= [];
         db.coachProfiles = db.coachProfiles.map((p) => ({ ...p, currency: p.currency ?? DEFAULT_CURRENCY }));
-        db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'], currency: g.currency ?? DEFAULT_CURRENCY }));
+        db.gyms = db.gyms.map((g) => ({ ...g, currency: g.currency ?? DEFAULT_CURRENCY }));
         return db;
       }
     } catch { /* ignore */ }
@@ -216,10 +232,11 @@ export class StoreService {
   }
 
   // ---------- client memberships ----------
-  subscribeClient(input: { gymId: string; clientId: string; planId: string; coachId?: string; promoCode?: string }): ClientMembership {
+  subscribeClient(input: { gymId: string; clientId: string; planId: string; coachId?: string; promoCode?: string; start?: Date }): ClientMembership {
+    if (this.isBanned(input.gymId, input.clientId)) throw new Error('Client is banned from this gym');
     const plan = this.plan(input.planId)!;
     const check = input.promoCode ? this.checkPromo(input.gymId, input.planId, input.promoCode) : undefined;
-    const start = new Date();
+    const start = input.start ?? new Date();
     const end = new Date(start.getTime() + plan.durationDays * 86400000);
     const m: ClientMembership = {
       id: uid('m'),
@@ -302,4 +319,134 @@ export class StoreService {
     }));
   }
   deletePayment(id: string) { this.patch((s) => ({ payments: s.payments.filter((p) => p.id !== id) })); }
+
+  // ---------- sports ----------
+  sport(id: string | undefined) { return this.sports().find((s) => s.id === id); }
+  /** Display name: catalog sports are translated, custom sports are shown as typed. */
+  sportName(id: string | undefined) {
+    const sp = this.sport(id);
+    return sp ? (sp.gymId ? sp.name : t(sp.name)) : '';
+  }
+  sportsOfGym(gym: Gym | undefined) {
+    return (gym?.sportIds ?? []).map((id) => this.sport(id)).filter((s): s is Sport => !!s);
+  }
+  sportNames(gym: Gym | undefined) { return this.sportsOfGym(gym).map((s) => this.sportName(s.id)).join(', '); }
+  /** Sports a gym can pick: the catalog plus its own custom sports. */
+  availableSports(gymId: string) { return this.sports().filter((s) => !s.gymId || s.gymId === gymId); }
+  saveSport(sp: Sport): Sport {
+    const saved = { ...sp, id: sp.id || uid('sport') };
+    this.patch((s) => ({ sports: s.sports.some((x) => x.id === saved.id) ? s.sports.map((x) => (x.id === saved.id ? saved : x)) : [...s.sports, saved] }));
+    return saved;
+  }
+  /** Number of gyms and schedule slots using a sport. */
+  sportUsage(id: string) {
+    return { gyms: this.gyms().filter((g) => g.sportIds.includes(id)).length, slots: this.schedule().filter((x) => x.sportId === id).length };
+  }
+  deleteSport(id: string) {
+    this.patch((s) => ({
+      sports: s.sports.filter((x) => x.id !== id),
+      gyms: s.gyms.map((g) => ({ ...g, sportIds: g.sportIds.filter((x) => x !== id) })),
+      schedule: s.schedule.map((x) => (x.sportId === id ? { ...x, sportId: undefined } : x)),
+    }));
+  }
+  /** Remove a sport from one gym; its schedule slots for that sport become "whole gym". Custom sports are deleted. */
+  removeSportFromGym(gymId: string, sportId: string) {
+    const custom = this.sport(sportId)?.gymId === gymId;
+    this.patch((s) => ({
+      gyms: s.gyms.map((g) => (g.id === gymId ? { ...g, sportIds: g.sportIds.filter((x) => x !== sportId) } : g)),
+      schedule: s.schedule.map((x) => (x.gymId === gymId && x.sportId === sportId ? { ...x, sportId: undefined } : x)),
+      sports: custom ? s.sports.filter((x) => x.id !== sportId) : s.sports,
+    }));
+  }
+  slotsUsingSport(gymId: string, sportId: string) { return this.schedule().filter((x) => x.gymId === gymId && x.sportId === sportId).length; }
+  setGymSports(gymId: string, sportIds: string[]) {
+    this.patch((s) => ({ gyms: s.gyms.map((g) => (g.id === gymId ? { ...g, sportIds } : g)) }));
+  }
+
+  // ---------- platform, countries & currencies ----------
+  updatePlatform(p: PlatformSettings) { this.patch(() => ({ platform: p })); }
+  country(code: string | undefined) { return this.countries().find((c) => c.code === code); }
+  saveCountry(c: Country) {
+    this.patch((s) => ({ countries: s.countries.some((x) => x.code === c.code) ? s.countries.map((x) => (x.code === c.code ? c : x)) : [...s.countries, c] }));
+  }
+  deleteCountry(code: string) { this.patch((s) => ({ countries: s.countries.filter((c) => c.code !== code) })); }
+  currencySetting(code: string | undefined) { return this.currencies().find((c) => c.code === code); }
+  saveCurrency(c: CurrencySetting) {
+    this.patch((s) => ({ currencies: s.currencies.some((x) => x.code === c.code) ? s.currencies.map((x) => (x.code === c.code ? c : x)) : [...s.currencies, c] }));
+  }
+  deleteCurrency(code: string) { this.patch((s) => ({ currencies: s.currencies.filter((c) => c.code !== code) })); }
+  /** Where a currency is used (gyms, plans, countries) — currencies in use cannot be deleted. */
+  currencyUsage(code: string) {
+    return {
+      gyms: this.gyms().filter((g) => g.currency === code).length,
+      plans: this.membershipPlans().filter((p) => p.currency === code).length,
+      countries: this.countries().filter((c) => c.currency === code).length,
+    };
+  }
+  /** Convert an amount to USD with the super-admin's rates (1 if unknown). */
+  toUsd(amount: number, currency: string) { return amount * (this.currencySetting(currency)?.rateToUsd ?? 1); }
+  /** Convert between two currencies through USD. */
+  convert(amount: number, from: string, to: string) {
+    if (from === to) return amount;
+    return this.toUsd(amount, from) / (this.currencySetting(to)?.rateToUsd ?? 1);
+  }
+
+  /** Price of a SaaS plan for a country: the local price if the super-admin set one, else the USD price. */
+  saasPrice(plan: SaasPlan | undefined, countryCode: string | undefined, cycle: BillingCycle) {
+    if (!plan) return { amount: 0, currency: DEFAULT_CURRENCY, local: false };
+    const local = plan.countryPrices?.find((cp) => cp.country === countryCode);
+    const country = this.country(countryCode);
+    if (local && country) return { amount: cycle === 'MONTHLY' ? local.monthly : local.yearly, currency: country.currency, local: true };
+    return { amount: cycle === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice, currency: DEFAULT_CURRENCY, local: false };
+  }
+  /** What a gym pays per month for its Liftly plan, in USD (for MRR). */
+  gymMrrUsd(gym: Gym) {
+    if (gym.status !== 'ACTIVE') return 0;
+    const p = this.saasPrice(this.saasPlan(gym.saasPlanId), gym.country, gym.billingCycle);
+    const monthly = gym.billingCycle === 'MONTHLY' ? p.amount : p.amount / 12;
+    return this.toUsd(monthly, p.currency);
+  }
+
+  // ---------- client status & bans ----------
+  ban(gymId: string, clientId: string) { return this.bans().find((b) => b.gymId === gymId && b.clientId === clientId); }
+  isBanned(gymId: string, clientId: string) { return !!this.ban(gymId, clientId); }
+  /** BANNED if banned, ACTIVE with an active membership, otherwise EXPIRED. */
+  clientStatus(gymId: string, clientId: string): ClientStatus {
+    if (this.isBanned(gymId, clientId)) return 'BANNED';
+    const today = new Date().toISOString();
+    return this.memberships().some((m) => m.gymId === gymId && m.clientId === clientId && m.status === 'ACTIVE' && m.endDate >= today) ? 'ACTIVE' : 'EXPIRED';
+  }
+  /** Ban a client from a gym: their active memberships are cancelled. */
+  banClient(gymId: string, clientId: string, reason: string) {
+    if (this.isBanned(gymId, clientId)) return;
+    this.patch((s) => ({
+      bans: [...s.bans, { gymId, clientId, reason, date: new Date().toISOString() }],
+      memberships: s.memberships.map((m) => (m.gymId === gymId && m.clientId === clientId && m.status === 'ACTIVE' ? { ...m, status: 'CANCELLED' as const } : m)),
+    }));
+  }
+  unbanClient(gymId: string, clientId: string) {
+    this.patch((s) => ({ bans: s.bans.filter((b) => !(b.gymId === gymId && b.clientId === clientId)) }));
+  }
+
+  // ---------- coach reports ----------
+  reportsOfGym(gymId: string) { return this.reports().filter((r) => r.gymId === gymId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  addReport(r: Omit<CoachReport, 'id' | 'status' | 'createdAt'>) {
+    this.patch((s) => ({ reports: [...s.reports, { ...r, id: uid('rep'), status: 'OPEN' as const, createdAt: new Date().toISOString() }] }));
+  }
+  updateReport(r: CoachReport) { this.patch((s) => ({ reports: s.reports.map((x) => (x.id === r.id ? r : x)) })); }
+
+  // ---------- gym reviews ----------
+  reviewsOfGym(gymId: string) { return this.gymReviews().filter((r) => r.gymId === gymId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  gymRating(gymId: string) {
+    const list = this.gymReviews().filter((r) => r.gymId === gymId);
+    const avg = list.length ? list.reduce((s, r) => s + r.rating, 0) / list.length : 0;
+    return { avg: Math.round(avg * 10) / 10, count: list.length };
+  }
+  gymReviewBy(gymId: string, clientId: string) { return this.gymReviews().find((r) => r.gymId === gymId && r.clientId === clientId); }
+  saveGymReview(r: Omit<GymReview, 'id' | 'createdAt'>) {
+    const existing = this.gymReviewBy(r.gymId, r.clientId);
+    const review: GymReview = { ...r, id: existing?.id ?? uid('gr'), createdAt: new Date().toISOString() };
+    this.patch((s) => ({ gymReviews: existing ? s.gymReviews.map((x) => (x.id === existing.id ? review : x)) : [...s.gymReviews, review] }));
+  }
+  deleteGymReview(id: string) { this.patch((s) => ({ gymReviews: s.gymReviews.filter((r) => r.id !== id) })); }
 }

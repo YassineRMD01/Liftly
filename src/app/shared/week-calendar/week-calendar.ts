@@ -20,7 +20,7 @@ interface PlacedSlot extends ScheduleSlot { ok: boolean; top: number; height: nu
   styleUrl: './week-calendar.css',
 })
 export class WeekCalendar {
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   readonly gymId = input.required<string>();
   readonly gender = input<Gender>();
   readonly editable = input(false);
@@ -84,6 +84,6 @@ export class WeekCalendar {
   color(s: ScheduleSlot) { return AUDIENCE[s.audience].color; }
   short(s: ScheduleSlot) { return AUDIENCE[s.audience].short; }
   tip(s: ScheduleSlot) {
-    return `${DAY_LABEL[s.day]} ${s.open}–${s.close} · ${AUDIENCE[s.audience].label}${' · ' + (s.sport ? t(s.sport) : t('Whole gym'))}${s.note ? ' · ' + s.note : ''}`;
+    return `${DAY_LABEL[s.day]} ${s.open}–${s.close} · ${AUDIENCE[s.audience].label}${' · ' + (s.sportId ? this.store.sportName(s.sportId) : t('Whole gym'))}${s.note ? ' · ' + s.note : ''}`;
   }
 }

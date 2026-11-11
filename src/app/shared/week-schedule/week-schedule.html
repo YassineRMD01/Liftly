@@ -21,7 +21,7 @@
               <span class="inline-flex items-center gap-1.5 text-sm font-normal" [class.opacity-40]="!s.ok">
                 <span class="tabular-nums" dir="ltr">{{ s.open }}–{{ s.close }}</span>
                 <app-audience-tag [audience]="s.audience" [short]="true" />
-                @if (s.sport) { <span class="text-xs muted">{{ s.sport | t }}</span> }
+                @if (s.sportId) { <span class="text-xs muted">{{ store.sportName(s.sportId) }}</span> }
                 @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
               </span>
             }

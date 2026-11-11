@@ -12,7 +12,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { Tooltip } from 'primeng/tooltip';
 import { MembershipPlan, Payment, PaymentMethod } from '../../core/models';
 import { isoDate } from '../../core/schedule';
-import { CURRENCIES, formatMoney, formatTotals, MoneyPipe } from '../../core/currency';
+import { formatMoney, formatTotals, MoneyPipe } from '../../core/currency';
 import { DAY_NAMES_NARROW, MONTH_NAMES, t, TranslatePipe } from '../../core/i18n/i18n';
 import { StoreService } from '../../core/store.service';
 
@@ -56,7 +56,8 @@ export class PaymentCalendar {
   protected readonly weekdays = WEEKDAYS;
   protected readonly methodLabel = METHOD_LABEL;
   protected readonly methods = (Object.keys(METHOD_LABEL) as PaymentMethod[]).map((value) => ({ value, label: METHOD_LABEL[value] }));
-  protected readonly currencies = CURRENCIES;
+  /** Active currencies (managed by the super-admin). */
+  protected readonly currencies = inject(StoreService).currencyOptions;
 
   /** Signals (not plain fields): open() may be called from another component's view, e.g. a table row, in a zoneless app. */
   protected readonly visible = signal(false);

@@ -1,0 +1,72 @@
+<app-page-header [title]="'Currencies & countries' | t" [subtitle]="'Currencies gyms can use, their exchange rate for platform statistics, and the countries gyms can sign up from.' | t" />
+
+<div class="grid xl:grid-cols-2 gap-6">
+  <!-- currencies -->
+  <section class="card">
+    <h2 class="font-semibold">{{ 'Currencies' | t }}</h2>
+    <p class="text-sm muted mb-4">{{ 'Rate = value of 1 unit in US dollars. Used to compare and add up amounts in different currencies.' | t }}</p>
+    <p-table [value]="currencies()" [tableStyle]="{ 'min-width': '34rem' }" [scrollable]="true" scrollHeight="28rem">
+      <ng-template #header>
+        <tr><th>{{ 'Currency' | t }}</th><th>{{ '1 unit =' | t }}</th><th>{{ 'Used by' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
+      </ng-template>
+      <ng-template #body let-c>
+        <tr>
+          <td><span class="font-mono font-semibold me-2">{{ c.code }}</span><span class="text-sm muted">{{ currencyName(c.code) }}</span></td>
+          <td>
+            @if (c.code === 'USD') { <span class="text-sm">1 USD</span> }
+            @else {
+              <p-inputnumber [ngModel]="c.rateToUsd" (ngModelChange)="setRate(c, $event)" [minFractionDigits]="2" [maxFractionDigits]="6" [min]="0" suffix=" USD" inputStyleClass="w-32 !py-1" />
+            }
+          </td>
+          <td class="text-xs muted whitespace-nowrap">{{ usageLabel(c.code) }}</td>
+          <td><p-toggleswitch [ngModel]="c.active" (ngModelChange)="toggleCurrency(c, $event)" [disabled]="c.code === 'USD'" /></td>
+          <td><p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteCurrency(c)" [pTooltip]="'Delete' | t" [disabled]="c.code === 'USD'"><fa-icon icon="trash" /></p-button></td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <div class="flex flex-wrap items-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-800">
+      <div class="field flex-1 min-w-48">
+        <label class="!text-xs">{{ 'Add a currency' | t }}</label>
+        <p-select [options]="addableCurrencies()" optionLabel="label" optionValue="code" [ngModel]="newCurrency()" (ngModelChange)="newCurrency.set($event)" [filter]="true" filterBy="label" [placeholder]="'Choose a currency' | t" styleClass="w-full" appendTo="body" [virtualScroll]="true" [virtualScrollItemSize]="38" />
+      </div>
+      <div class="field">
+        <label class="!text-xs">{{ '1 unit =' | t }}</label>
+        <p-inputnumber [(ngModel)]="newRate" [minFractionDigits]="2" [maxFractionDigits]="6" [min]="0" suffix=" USD" inputStyleClass="w-32" />
+      </div>
+      <p-button [label]="'Add' | t" (onClick)="addCurrency()" [disabled]="!newCurrency() || !(newRate > 0)" />
+    </div>
+  </section>
+
+  <!-- countries -->
+  <section class="card">
+    <h2 class="font-semibold">{{ 'Countries' | t }}</h2>
+    <p class="text-sm muted mb-4">{{ 'Gyms choose their country at sign-up. Its currency is suggested for the gym, and local Liftly prices can be set per country in Pricing plans.' | t }}</p>
+    <p-table [value]="countries()" [tableStyle]="{ 'min-width': '30rem' }" [scrollable]="true" scrollHeight="28rem">
+      <ng-template #header>
+        <tr><th>{{ 'Country' | t }}</th><th>{{ 'Currency' | t }}</th><th>{{ 'Gyms' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
+      </ng-template>
+      <ng-template #body let-c>
+        <tr>
+          <td><span class="font-medium">{{ countryName(c.code) }}</span><span class="text-xs muted font-mono ms-1.5">{{ c.code }}</span></td>
+          <td>
+            <p-select [options]="allCurrencyOptions()" optionLabel="code" optionValue="code" [ngModel]="c.currency" (ngModelChange)="setCountryCurrency(c, $event)" [filter]="true" filterBy="label,code" size="small" appendTo="body" styleClass="w-28" />
+          </td>
+          <td>{{ gymsIn(c.code) }}</td>
+          <td><p-toggleswitch [ngModel]="c.active" (ngModelChange)="toggleCountry(c, $event)" /></td>
+          <td><p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteCountry(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></p-button></td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <div class="flex flex-wrap items-end gap-2 mt-4 pt-4 border-t border-surface-200 dark:border-surface-800">
+      <div class="field flex-1 min-w-48">
+        <label class="!text-xs">{{ 'Add a country' | t }}</label>
+        <p-select [options]="addableCountries()" optionLabel="label" optionValue="code" [ngModel]="newCountry()" (ngModelChange)="newCountry.set($event)" [filter]="true" filterBy="label,code" [placeholder]="'Choose a country' | t" styleClass="w-full" appendTo="body" />
+      </div>
+      <div class="field">
+        <label class="!text-xs">{{ 'Currency' | t }}</label>
+        <p-select [options]="currencyOptions()" optionLabel="code" optionValue="code" [(ngModel)]="newCountryCurrency" [filter]="true" filterBy="label,code" styleClass="w-28" appendTo="body" />
+      </div>
+      <p-button [label]="'Add' | t" (onClick)="addCountry()" [disabled]="!newCountry() || !newCountryCurrency" />
+    </div>
+  </section>
+</div>

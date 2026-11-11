@@ -33,11 +33,11 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div class="field"><label>{{ 'Gym name' | t }}</label><input pInputText [(ngModel)]="draft.name" /></div>
         <div class="field"><label>{{ 'Logo initials' | t }}</label><input pInputText maxlength="3" class="uppercase" [ngModel]="logo()" (ngModelChange)="setLogo($event)" /></div>
-        <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-multiselect [options]="sports" optionLabel="label" optionValue="value" [(ngModel)]="draft.sports" display="chip" [placeholder]="'Pick one or more' | t" styleClass="w-full" appendTo="body" /></div>
+        <div class="field"><label>{{ 'Sports / activities' | t }}</label><div class="flex items-center gap-2 min-h-10"><span class="text-sm truncate">{{ store.sportNames(draft) || '—' }}</span><a routerLink="/admin/sports" class="text-sm text-primary font-semibold whitespace-nowrap">{{ 'Manage sports' | t }}</a></div></div>
         <div class="field"><label>{{ 'City' | t }}</label><input pInputText [(ngModel)]="draft.city" /></div>
         <div class="field sm:col-span-2">
           <label>{{ 'Currency' | t }}</label>
-          <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" appendTo="body">
+          <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" appendTo="body">
             <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
             <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
           </p-select>
@@ -59,7 +59,7 @@
             <span class="w-11 h-11 rounded-xl bg-white/20 grid place-items-center font-extrabold">{{ logo() }}</span>
             <div>
               <div class="font-bold text-lg">{{ draft.name || ('Your gym' | t) }}</div>
-              <div class="text-sm opacity-80">{{ (draft.sports | tjoin) }} · {{ draft.city }}</div>
+              <div class="text-sm opacity-80">{{ store.sportNames(draft) }} · {{ draft.city }}</div>
             </div>
           </div>
         </div>

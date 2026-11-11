@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { SelectButton } from 'primeng/selectbutton';
 import { Select } from 'primeng/select';
-import { CURRENCIES, DEFAULT_CURRENCY } from '../../../core/currency';
+import { DEFAULT_CURRENCY } from '../../../core/currency';
 import { AuthService } from '../../../core/auth.service';
 import { CoachProfile, User } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
@@ -25,7 +25,8 @@ export class CoachProfilePage {
   private readonly auth = inject(AuthService);
   private readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
-  protected readonly currencies = CURRENCIES;
+  /** Active currencies (managed by the super-admin). */
+  protected readonly currencies = inject(StoreService).currencyOptions;
   protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
   protected user: User = structuredClone(this.auth.user()!);
   protected profile: CoachProfile = structuredClone(

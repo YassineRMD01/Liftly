@@ -1,9 +1,16 @@
 <app-page-header [title]="'Platform overview' | t" [subtitle]="'Health of the Liftly SaaS across all tenants.' | t" />
 <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-  <app-stat-card icon="sack-dollar" [label]="'MRR' | t" [value]="(mrr() | currency: 'USD' : 'symbol' : '1.0-0')!" [hint]="'Monthly recurring revenue' | t" />
+  <app-stat-card icon="sack-dollar" [label]="'MRR' | t" [value]="mrrLabel()" [hint]="'Monthly recurring revenue' | t" />
   <app-stat-card icon="building" [label]="'Gyms' | t" [value]="store.gyms().length" [hint]="trials() + (' on trial' | t)" />
   <app-stat-card icon="user-tie" [label]="'Coaches' | t" [value]="store.coaches().length" />
-  <app-stat-card icon="users" [label]="'Members' | t" [value]="store.clients().length" />
+  <app-stat-card icon="users" [label]="'Members' | t" [value]="store.clients().length" [hint]="openReports() + ' ' + ('open reports' | t)" />
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6 mt-6">
+  <app-chart-card type="line" [title]="'MRR trend' | t" [subtitle]="'Monthly recurring revenue in USD, last 12 months' | t" [labels]="monthLabels" [series]="mrrTrend()" [format]="usd" [timeAxis]="true" />
+  <app-chart-card [title]="'New users per month' | t" [subtitle]="'Accounts created, by role' | t" [labels]="monthLabels" [series]="newUsers()" [stacked]="true" [timeAxis]="true" />
+  <app-chart-card [title]="'Gyms by country' | t" [labels]="byCountry().labels" [series]="byCountry().series" [horizontal]="true" height="12rem" />
+  <app-chart-card [title]="'Coach reports' | t" [subtitle]="'By status, all gyms' | t" [labels]="reportsByStatus().labels" [series]="reportsByStatus().series" [horizontal]="true" height="12rem" />
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6 mt-6">
@@ -18,7 +25,7 @@
           <td>
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full" [style.background]="g.theme.primary"></span>
-              <span class="font-medium">{{ g.name }}</span><span class="text-xs muted">· {{ (g.sports | tjoin) }}</span>
+              <span class="font-medium">{{ g.name }}</span><span class="text-xs muted">· {{ store.sportNames(g) }}</span>
             </div>
           </td>
           <td>{{ store.saasPlan(g.saasPlanId)?.name }}</td>

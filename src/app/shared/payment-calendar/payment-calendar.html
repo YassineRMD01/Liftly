@@ -125,7 +125,7 @@
             </div>
             <div class="field">
               <label>{{ 'Currency' | t }}</label>
-              <p-select [options]="currencies" optionLabel="code" optionValue="code" [(ngModel)]="payCurrency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body" />
+              <p-select [options]="currencies()" optionLabel="code" optionValue="code" [(ngModel)]="payCurrency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body" />
             </div>
           </div>
           @if (touched && !(amount > 0)) { <small class="text-red-500">{{ 'Please enter a valid amount.' | t }}</small> }

@@ -1,0 +1,83 @@
+<app-page-header [title]="'Platform settings' | t" [subtitle]="'Theme of the public site, default country and the shared sport catalog.' | t">
+  <p-button [label]="'Reset' | t" severity="secondary" [outlined]="true" (onClick)="reset()" [disabled]="!dirty()" />
+  <p-button [label]="'Save changes' | t" (onClick)="save()" [disabled]="!dirty()" />
+</app-page-header>
+
+<div class="grid lg:grid-cols-5 gap-6">
+  <div class="lg:col-span-3 space-y-6">
+    <section class="card space-y-5">
+      <div>
+        <h2 class="font-semibold">{{ 'Home theme' | t }}</h2>
+        <p class="text-sm muted">{{ 'Used on the home page, pricing, login and for users who are not inside a gym. Each gym keeps its own theme.' | t }}</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        @for (c of presets; track c) {
+          <button type="button" (click)="setColor(c)" [style.background]="c" [attr.aria-label]="c"
+            class="w-10 h-10 rounded-xl cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 transition"
+            [class.ring-2]="color() === c" [class.ring-surface-900]="color() === c"></button>
+        }
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <p-colorpicker [ngModel]="color().slice(1)" (ngModelChange)="setColor('#' + $event)" />
+        <input pInputText class="w-32 font-mono" [ngModel]="color()" (ngModelChange)="onHex($event)" [attr.aria-label]="'Brand color' | t" />
+        <div class="field">
+          <label for="logo-initials" class="!text-xs">{{ 'Logo initials' | t }}</label>
+          <input pInputText id="logo-initials" class="w-24 uppercase" maxlength="3" [ngModel]="logo()" (ngModelChange)="setLogo($event)" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card space-y-3">
+      <h2 class="font-semibold">{{ 'Default country' | t }}</h2>
+      <p class="text-sm muted">{{ 'Pre-selected on the pricing page and in gym sign-up.' | t }}</p>
+      <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="defaultCountry()" (ngModelChange)="defaultCountry.set($event)" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" />
+    </section>
+
+    <section class="card">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="font-semibold">{{ 'Sport catalog' | t }}</h2>
+          <p class="text-sm muted">{{ 'Sports every gym can pick. Gyms can also create their own.' | t }}</p>
+        </div>
+        <p-button [label]="'New sport' | t" size="small" (onClick)="newSport()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+      </div>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+        @for (s of catalog(); track s.id) {
+          <div class="flex items-center gap-3 p-2.5 rounded-xl border border-surface-200 dark:border-surface-700">
+            <span class="w-9 h-9 rounded-lg grid place-items-center bg-primary-50 dark:bg-primary-950 text-primary"><fa-icon [icon]="iconOf(s)" /></span>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium truncate">{{ store.sportName(s.id) }}</div>
+              <div class="text-xs muted">{{ usage(s) }} {{ 'gyms' | t }}</div>
+            </div>
+            <p-button [text]="true" [rounded]="true" size="small" (onClick)="editSport(s)" [ariaLabel]="'Edit' | t"><fa-icon icon="pen" /></p-button>
+            <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteSport(s)" [ariaLabel]="'Delete' | t"><fa-icon icon="trash" /></p-button>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- live preview of the public site -->
+  <div class="lg:col-span-2">
+    <div class="sticky top-24">
+      <div class="text-sm font-semibold mb-2">{{ 'Live preview — home page' | t }}</div>
+      <div class="card !p-0 overflow-hidden">
+        <div class="flex items-center gap-2 px-4 h-12 border-b border-surface-200 dark:border-surface-800">
+          <span class="w-7 h-7 rounded-lg bg-primary text-primary-contrast grid place-items-center text-xs font-extrabold">{{ logo() }}</span>
+          <span class="font-bold">Liftly</span>
+          <span class="flex-1"></span>
+          <span class="px-3 py-1 rounded-lg bg-primary text-primary-contrast text-xs font-medium">{{ 'Start free trial' | t }}</span>
+        </div>
+        <div class="p-6 bg-gradient-to-br from-primary-100 via-transparent to-transparent dark:from-primary-950">
+          <div class="text-2xl font-extrabold leading-tight">{{ 'Run your gym.' | t }}<br /><span class="text-primary">{{ 'Grow your community.' | t }}</span></div>
+          <div class="flex gap-2 mt-4">
+            <span class="px-3 py-1.5 rounded-lg bg-primary text-primary-contrast text-sm">{{ 'Start 14-day free trial' | t }}</span>
+            <span class="px-3 py-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm">{{ 'Try the demo' | t }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-sport-dialog (saved)="onSportSaved($event)" />

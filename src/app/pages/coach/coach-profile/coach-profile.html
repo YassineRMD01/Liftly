@@ -15,7 +15,7 @@
       <div class="field"><label>{{ 'Hourly rate' | t }}</label><p-inputnumber [(ngModel)]="profile.hourlyRate" mode="currency" [currency]="profile.currency" [min]="0" /></div>
       <div class="field">
         <label>{{ 'Currency' | t }}</label>
-        <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+        <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
           <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
           <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
         </p-select>
