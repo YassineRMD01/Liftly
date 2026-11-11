@@ -49,10 +49,10 @@ export const SEED: DbState = {
     { id: 'u-k5', gender: 'MALE', role: 'CLIENT', firstName: 'Liam', lastName: 'Brown', email: 'liam@liftly.io', password: 'demo', createdAt: d(-30), active: true },
   ],
   coachProfiles: [
-    { userId: 'u-c1', bio: 'Strength & conditioning coach, former powerlifter.', specialties: ['Powerlifting', 'Hypertrophy', 'Mobility'], yearsExperience: 9, hourlyRate: 45 },
-    { userId: 'u-c2', bio: 'Competitive swimmer turned coach. Technique obsessed.', specialties: ['Swimming', 'Triathlon', 'Endurance'], yearsExperience: 7, hourlyRate: 50 },
-    { userId: 'u-c3', bio: 'Black belt in karate and BJJ purple belt.', specialties: ['Karate', 'BJJ', 'Self-defense'], yearsExperience: 12, hourlyRate: 40 },
-    { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35 },
+    { userId: 'u-c1', bio: 'Strength & conditioning coach, former powerlifter.', specialties: ['Powerlifting', 'Hypertrophy', 'Mobility'], yearsExperience: 9, hourlyRate: 45, currency: 'USD' },
+    { userId: 'u-c2', bio: 'Competitive swimmer turned coach. Technique obsessed.', specialties: ['Swimming', 'Triathlon', 'Endurance'], yearsExperience: 7, hourlyRate: 50, currency: 'EUR' },
+    { userId: 'u-c3', bio: 'Black belt in karate and BJJ purple belt.', specialties: ['Karate', 'BJJ', 'Self-defense'], yearsExperience: 12, hourlyRate: 400, currency: 'MAD' },
+    { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35, currency: 'USD' },
   ],
   saasPlans: [
     { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], customTheme: false, highlighted: false, active: true },

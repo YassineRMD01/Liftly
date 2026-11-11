@@ -6,6 +6,8 @@ import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { SelectButton } from 'primeng/selectbutton';
+import { Select } from 'primeng/select';
+import { CURRENCIES, DEFAULT_CURRENCY } from '../../core/currency';
 import { AuthService } from '../../core/auth.service';
 import { CoachProfile, User } from '../../core/models';
 import { StoreService } from '../../core/store.service';
@@ -13,7 +15,7 @@ import { CoachCard, PageHeader } from '../../shared/ui';
 
 @Component({
   selector: 'app-coach-profile',
-  imports: [FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, CoachCard, PageHeader],
+  imports: [FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, Select, CoachCard, PageHeader],
   template: `
     <app-page-header title="My profile" subtitle="This is what gym admins and members see.">
       <p-button label="Save" (onClick)="save()" />
@@ -29,7 +31,14 @@ import { CoachCard, PageHeader } from '../../shared/ui';
           <div class="field sm:col-span-2"><label>Bio</label><textarea pTextarea rows="4" [(ngModel)]="profile.bio"></textarea></div>
           <div class="field sm:col-span-2"><label>Specialties (comma separated)</label><input pInputText [(ngModel)]="specialties" placeholder="Boxing, HIIT, Nutrition" /></div>
           <div class="field"><label>Years of experience</label><p-inputnumber [(ngModel)]="profile.yearsExperience" [min]="0" [showButtons]="true" /></div>
-          <div class="field"><label>Hourly rate</label><p-inputnumber [(ngModel)]="profile.hourlyRate" mode="currency" currency="USD" [min]="0" /></div>
+          <div class="field"><label>Hourly rate</label><p-inputnumber [(ngModel)]="profile.hourlyRate" mode="currency" [currency]="profile.currency" [min]="0" /></div>
+          <div class="field">
+            <label>Currency</label>
+            <p-select [options]="currencies" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+              <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
+              <ng-template #selectedItem let-c><span class="font-mono font-semibold mr-2">{{ c.code }}</span>{{ c.label }}</ng-template>
+            </p-select>
+          </div>
         </div>
       </div>
       <div>
@@ -43,12 +52,17 @@ export class CoachProfilePage {
   private readonly auth = inject(AuthService);
   private readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
+  protected readonly currencies = CURRENCIES;
   protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];
   protected user: User = structuredClone(this.auth.user()!);
   protected profile: CoachProfile = structuredClone(
-    this.store.coachProfile(this.user.id) ?? { userId: this.user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0 },
+    this.store.coachProfile(this.user.id) ?? { userId: this.user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0, currency: DEFAULT_CURRENCY },
   );
   protected specialties = this.profile.specialties.join(', ');
+
+  constructor() {
+    this.profile.currency ??= DEFAULT_CURRENCY;
+  }
 
   save() {
     this.store.updateUser(this.user);

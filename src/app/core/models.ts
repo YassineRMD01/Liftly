@@ -21,6 +21,8 @@ export interface CoachProfile {
   specialties: string[];
   yearsExperience: number;
   hourlyRate: number;
+  /** Currency of the hourly rate (ISO 4217) — a coach may work at gyms using different currencies. */
+  currency: string;
 }
 
 /** Pricing plans of the SaaS itself (what gym admins pay). Managed by super-admin. */

@@ -6,7 +6,7 @@ import { openStatus } from './schedule';
 import { DEFAULT_CURRENCY, formatMoney } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v5';
+const STORAGE_KEY = 'liftly-db-v6';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -58,6 +58,7 @@ export class StoreService {
         db.schedule ??= [];
         db.closures ??= [];
         db.payments ??= [];
+        db.coachProfiles = db.coachProfiles.map((p) => ({ ...p, currency: p.currency ?? DEFAULT_CURRENCY }));
         db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'], currency: g.currency ?? DEFAULT_CURRENCY }));
         return db;
       }
@@ -126,7 +127,7 @@ export class StoreService {
     const user: User = { ...u, id: uid('u'), createdAt: new Date().toISOString(), active: true };
     this.patch((s) => ({ users: [...s.users, user] }));
     if (user.role === 'COACH') {
-      this.upsertCoachProfile({ userId: user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0 });
+      this.upsertCoachProfile({ userId: user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0, currency: DEFAULT_CURRENCY });
     }
     return user;
   }

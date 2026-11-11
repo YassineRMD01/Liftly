@@ -6,6 +6,7 @@ import { Avatar } from 'primeng/avatar';
 import { Chip } from 'primeng/chip';
 import { Rating } from 'primeng/rating';
 import { StoreService } from '../core/store.service';
+import { MoneyPipe } from '../core/currency';
 
 @Component({
   selector: 'app-page-header',
@@ -67,7 +68,7 @@ export class Stars {
 
 @Component({
   selector: 'app-coach-card',
-  imports: [Avatar, Chip, Stars],
+  imports: [Avatar, Chip, Stars, MoneyPipe],
   template: `
     @if (coach(); as c) {
       <div class="card h-full flex flex-col gap-4">
@@ -83,7 +84,7 @@ export class Stars {
           <div class="flex flex-wrap gap-1.5">
             @for (s of p.specialties; track s) { <p-chip [label]="s" styleClass="!text-xs !py-1" /> }
           </div>
-          <div class="text-xs muted">{{ p.yearsExperience }} yrs experience · \${{ p.hourlyRate }}/h</div>
+          <div class="text-xs muted">{{ p.yearsExperience }} yrs experience · {{ p.hourlyRate | money: p.currency }}/h</div>
         }
         <div class="text-xs muted">
           Coaches at: {{ gymNames() }}
