@@ -1,4 +1,4 @@
-import { Audience, DbState, ScheduleSlot } from './models';
+import { Audience, DbState, Payment, ScheduleSlot } from './models';
 
 const d = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).toISOString();
 
@@ -8,6 +8,29 @@ const slots = (gymId: string, days: number[], open: string, close: string, audie
   days.map((day) => ({ id: `s-${++slotN}`, gymId, day, open, close, audience, ...(sport ? { sport } : {}), ...(note ? { note } : {}) }));
 const WEEKDAYS = [1, 2, 3, 4, 5];
 const isoDay = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
+
+let payN = 0;
+/** Monthly payments going back n months from today (on the given day of month). */
+const monthly = (gymId: string, clientId: string, amount: number, months: number, dayOfMonth: number, method: Payment['method'] = 'CASH'): Payment[] =>
+  Array.from({ length: months }, (_, i) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    d.setDate(Math.min(dayOfMonth, 28));
+    return { id: `p-${++payN}`, gymId, clientId, date: d.toISOString().slice(0, 10), amount, method };
+  }).filter((p) => p.date <= new Date().toISOString().slice(0, 10));
+
+let histN = 0;
+/** Expired monthly memberships for the months before the current one, matching monthly() payments. */
+const history = (gymId: string, clientId: string, planId: string, price: number, months: number, dayOfMonth: number) =>
+  Array.from({ length: months - 1 }, (_, k) => {
+    const start = new Date();
+    start.setDate(1);
+    start.setMonth(start.getMonth() - (k + 1));
+    start.setDate(Math.min(dayOfMonth, 28));
+    const end = new Date(start.getTime() + 30 * 86400000);
+    return { id: `mh-${++histN}`, gymId, clientId, planId, pricePaid: price, startDate: start.toISOString(), endDate: end.toISOString(), status: 'EXPIRED' as const };
+  });
 
 export const SEED: DbState = {
   users: [
@@ -70,6 +93,11 @@ export const SEED: DbState = {
     { id: 'm-5', gymId: 'g-wave', clientId: 'u-k4', planId: 'mp-5', coachId: 'u-c2', pricePaid: 99, startDate: d(-3), endDate: d(27), status: 'ACTIVE' },
     { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 89, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
     { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 89, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
+    ...history('g-iron', 'u-k1', 'mp-2', 149, 5, 2),
+    ...history('g-iron', 'u-k2', 'mp-1', 49, 3, 10),
+    ...history('g-wave', 'u-k1', 'mp-4', 39, 2, 6),
+    ...history('g-wave', 'u-k4', 'mp-5', 99, 4, 8),
+    ...history('g-kumite', 'u-k5', 'mp-6', 89, 2, 4),
   ],
   reviews: [
     { id: 'r-1', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', rating: 5, comment: 'Added 40kg to my deadlift in 3 months. Jordan is the real deal.', createdAt: d(-6) },
@@ -102,5 +130,14 @@ export const SEED: DbState = {
   closures: [
     { id: 'cl-1', gymId: 'g-iron', date: isoDay(14), reason: 'Equipment maintenance' },
     { id: 'cl-2', gymId: 'g-wave', date: isoDay(30), reason: 'Pool cleaning' },
+  ],
+  payments: [
+    ...monthly('g-iron', 'u-k1', 149, 5, 2, 'CARD'),
+    ...monthly('g-iron', 'u-k2', 49, 3, 10),
+    { id: 'p-ann', gymId: 'g-iron', clientId: 'u-k3', date: isoDay(-80), amount: 450, method: 'TRANSFER', note: 'Annual pass' },
+    ...monthly('g-wave', 'u-k1', 39, 2, 6, 'CARD'),
+    ...monthly('g-wave', 'u-k4', 99, 4, 8),
+    ...monthly('g-kumite', 'u-k5', 89, 2, 4),
+    ...monthly('g-kumite', 'u-k2', 89, 1, 9),
   ],
 };

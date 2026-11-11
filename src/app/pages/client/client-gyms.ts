@@ -14,7 +14,7 @@ import { AuthService } from '../../core/auth.service';
 import { Gym } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
-import { OpenStatusBadge, WeekSchedule } from '../../shared/schedule-ui';
+import { OpenStatusBadge, WeekCalendar, WeekSchedule } from '../../shared/schedule-ui';
 import { PageHeader, Stars } from '../../shared/ui';
 
 /**
@@ -23,7 +23,7 @@ import { PageHeader, Stars } from '../../shared/ui';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekSchedule],
+  imports: [FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   template: `
     <app-page-header title="Gyms" subtitle="Browse gyms, their sports, plans and opening hours. To become a member, ask the gym — they register you." />
 
@@ -62,7 +62,7 @@ import { PageHeader, Stars } from '../../shared/ui';
       } @empty { <p class="muted">No gyms match your search.</p> }
     </div>
 
-    <p-dialog [header]="gym()?.name ?? ''" [(visible)]="visible" [modal]="true" [style]="{ width: '42rem' }" [breakpoints]="{ '640px': '95vw' }" (onHide)="theme.preview.set(null)">
+    <p-dialog [header]="gym()?.name ?? ''" [(visible)]="visible" [modal]="true" [style]="{ width: '64rem' }" [breakpoints]="{ '1100px': '95vw' }" (onHide)="theme.preview.set(null)">
       @if (gym(); as g) {
         <div class="space-y-6">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -102,8 +102,12 @@ import { PageHeader, Stars } from '../../shared/ui';
           </div>
 
           <div>
-            <h3 class="font-semibold mb-2">Opening hours</h3>
-            <app-week-schedule [gymId]="g.id" [gender]="gender()" />
+            <h3 class="font-semibold mb-2">Weekly schedule</h3>
+            <app-week-calendar [gymId]="g.id" [gender]="gender()" />
+            <details class="mt-3 text-sm">
+              <summary class="cursor-pointer text-primary font-medium">Show as list</summary>
+              <div class="mt-2"><app-week-schedule [gymId]="g.id" [gender]="gender()" /></div>
+            </details>
           </div>
         </div>
       }

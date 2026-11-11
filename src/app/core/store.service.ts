@@ -1,11 +1,11 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
+  ClientMembership, CoachProfile, CoachReview, DbState, Gender, Gym, MembershipPlan, Payment, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, User,
 } from './models';
 import { openStatus } from './schedule';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v2';
+const STORAGE_KEY = 'liftly-db-v4';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -35,6 +35,7 @@ export class StoreService {
   readonly coachProfiles = computed(() => this.state().coachProfiles);
   readonly schedule = computed(() => this.state().schedule);
   readonly closures = computed(() => this.state().closures);
+  readonly payments = computed(() => this.state().payments);
 
   readonly coaches = computed(() => this.users().filter((u) => u.role === 'COACH'));
   readonly clients = computed(() => this.users().filter((u) => u.role === 'CLIENT'));
@@ -55,6 +56,7 @@ export class StoreService {
         // light migration for older saved data
         db.schedule ??= [];
         db.closures ??= [];
+        db.payments ??= [];
         db.gyms = db.gyms.map((g) => ({ ...g, sports: g.sports ?? [(g as unknown as { sport?: string }).sport ?? 'Fitness'] }));
         return db;
       }
@@ -219,8 +221,10 @@ export class StoreService {
       endDate: end.toISOString(),
       status: 'ACTIVE',
     };
+    const payment: Payment = { id: uid('p'), gymId: m.gymId, clientId: m.clientId, date: m.startDate.slice(0, 10), amount: m.pricePaid, method: 'CASH', note: plan.name };
     this.patch((s) => ({
       memberships: [...s.memberships, m],
+      payments: m.pricePaid > 0 ? [...s.payments, payment] : s.payments,
       promoCodes: check?.ok
         ? s.promoCodes.map((p) => (p.id === check.promo!.id ? { ...p, uses: p.uses + 1 } : p))
         : s.promoCodes,
@@ -272,4 +276,17 @@ export class StoreService {
   gymOpenStatus(gymId: string, gender?: Gender) {
     return openStatus(this.scheduleOfGym(gymId), this.closuresOfGym(gymId), gender);
   }
+
+  // ---------- payments ----------
+  paymentsOf(gymId: string, clientId: string) {
+    return this.payments().filter((p) => p.gymId === gymId && p.clientId === clientId).sort((a, b) => a.date.localeCompare(b.date));
+  }
+  savePayment(p: Payment) {
+    this.patch((s) => ({
+      payments: s.payments.some((x) => x.id === p.id)
+        ? s.payments.map((x) => (x.id === p.id ? p : x))
+        : [...s.payments, { ...p, id: p.id || uid('p') }],
+    }));
+  }
+  deletePayment(id: string) { this.patch((s) => ({ payments: s.payments.filter((p) => p.id !== id) })); }
 }

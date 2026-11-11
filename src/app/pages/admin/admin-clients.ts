@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -18,11 +18,12 @@ import { AuthService } from '../../core/auth.service';
 import { ClientMembership, Gender } from '../../core/models';
 import { PromoCheck, StoreService } from '../../core/store.service';
 import { PageHeader } from '../../shared/ui';
+import { PaymentCalendar } from '../../shared/payment-calendar';
 import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader],
+  imports: [FormsModule, CurrencyPipe, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Tooltip, PageHeader, PaymentCalendar],
   template: `
     <app-page-header title="Clients" subtitle="Only you can register members — create their account and membership here.">
       <p-button label="Add client" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
@@ -64,6 +65,7 @@ import { statusSeverity } from '../super-admin/sa-gyms';
             <td class="text-sm">{{ r.m.startDate | date: 'mediumDate' }} → {{ r.m.endDate | date: 'mediumDate' }}</td>
             <td><p-tag [value]="r.m.status" [severity]="sev(r.m.status)" /></td>
             <td class="whitespace-nowrap">
+              <p-button [text]="true" [rounded]="true" pTooltip="Payments calendar" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
               <p-button [text]="true" [rounded]="true" pTooltip="Renew" (onClick)="renew(r.m)"><fa-icon icon="rotate" /></p-button>
               @if (r.m.status === 'ACTIVE') {
                 <p-button [text]="true" [rounded]="true" severity="danger" pTooltip="Cancel" (onClick)="cancel(r.m)"><fa-icon icon="ban" /></p-button>
@@ -74,6 +76,8 @@ import { statusSeverity } from '../super-admin/sa-gyms';
         <ng-template #emptymessage><tr><td colspan="7" class="text-center muted py-8">No clients found.</td></tr></ng-template>
       </p-table>
     </div>
+
+    <app-payment-calendar />
 
     <p-dialog header="Add client subscription" [(visible)]="visible" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
       <div class="space-y-4">
@@ -134,6 +138,7 @@ export class AdminClients {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected readonly sev = statusSeverity;
+  protected readonly payments = viewChild(PaymentCalendar);
   protected visible = false;
   protected mode: 'existing' | 'new' = 'existing';
   protected readonly genders = [{ label: 'Male', value: 'MALE' }, { label: 'Female', value: 'FEMALE' }];

@@ -16,7 +16,7 @@ import { AuthService } from '../../core/auth.service';
 import { Audience, ScheduleSlot } from '../../core/models';
 import { AUDIENCE, DAY_LABEL, DAY_SHORT, WEEK, conflicts, isoDate, toMin } from '../../core/schedule';
 import { StoreService } from '../../core/store.service';
-import { AudienceTag, OpenStatusBadge, WeekSchedule } from '../../shared/schedule-ui';
+import { AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule } from '../../shared/schedule-ui';
 import { PageHeader } from '../../shared/ui';
 
 type Draft = { id: string; days: number[]; open: string; close: string; audience: Audience; sport: string | null; note: string };
@@ -28,7 +28,7 @@ const WEEKEND = [6, 0];
 
 @Component({
   selector: 'app-admin-schedule',
-  imports: [DatePipe, FormsModule, FaIconComponent, Button, DatePicker, Dialog, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekSchedule, PageHeader],
+  imports: [DatePipe, FormsModule, FaIconComponent, Button, DatePicker, Dialog, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule, PageHeader],
   template: `
     @if (gym(); as g) {
       <app-page-header title="Schedule" subtitle="Opening hours per day — mixed, men-only or women-only sessions, per sport or for the whole gym.">
@@ -49,9 +49,22 @@ const WEEKEND = [6, 0];
         </div>
       </div>
 
-      <div class="grid xl:grid-cols-5 gap-6">
+      <div class="flex items-center gap-3 mb-4">
+        <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false">
+          <ng-template #item let-o><fa-icon [icon]="o.icon" class="mr-1.5" />{{ o.label }}</ng-template>
+        </p-selectbutton>
+        @if (view() === 'calendar') { <span class="text-sm muted">Click a session to edit it.</span> }
+      </div>
+
+      @if (view() === 'calendar') {
+        <div class="card mb-6">
+          <app-week-calendar [gymId]="g.id" [editable]="true" (slotClick)="openSlot($event.day, $event)" />
+        </div>
+      }
+
+      <div class="grid gap-6" [class.xl:grid-cols-5]="view() === 'list'">
         <!-- editor -->
-        <div class="xl:col-span-3 space-y-3">
+        <div class="xl:col-span-3 space-y-3" [class.hidden]="view() === 'calendar'">
           @for (d of week(); track d.day) {
             <div class="card !p-4">
               <div class="flex items-center gap-2 mb-2">
@@ -80,7 +93,7 @@ const WEEKEND = [6, 0];
         </div>
 
         <!-- side: preview + closures -->
-        <div class="xl:col-span-2 space-y-6">
+        <div class="space-y-6" [class.xl:col-span-2]="view() === 'list'">
           <div class="card">
             <h2 class="font-semibold mb-1">Closures & holidays</h2>
             <p class="text-xs muted mb-3">The gym is closed all day on these dates, whatever the weekly schedule says.</p>
@@ -101,7 +114,7 @@ const WEEKEND = [6, 0];
             </div>
           </div>
 
-          <div class="card">
+          <div class="card" [class.hidden]="view() === 'calendar'">
             <h2 class="font-semibold mb-3">What members see</h2>
             <app-week-schedule [gymId]="g.id" />
           </div>
@@ -186,6 +199,8 @@ export class AdminSchedule {
   protected readonly today = new Date();
   protected readonly audiences = (Object.keys(AUDIENCE) as Audience[]).map((value) => ({ value, ...AUDIENCE[value] }));
 
+  protected readonly view = signal<'calendar' | 'list'>('calendar');
+  protected readonly views = [{ label: 'Week calendar', value: 'calendar', icon: 'calendar-week' }, { label: 'Day list', value: 'list', icon: 'list' }];
   protected slotVisible = false;
   protected copyVisible = false;
   protected draft: Draft = this.emptyDraft();

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -9,12 +9,14 @@ import { AuthService } from '../../core/auth.service';
 import { ClientMembership } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { PageHeader } from '../../shared/ui';
-import { OpenStatusBadge, WeekSchedule } from '../../shared/schedule-ui';
+import { OpenStatusBadge, WeekCalendar } from '../../shared/schedule-ui';
+import { PaymentCalendar } from '../../shared/payment-calendar';
+import { Dialog } from 'primeng/dialog';
 import { statusSeverity } from '../super-admin/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekSchedule],
+  imports: [CurrencyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
   template: `
     <app-page-header [title]="'Hey ' + auth.user()?.firstName + ' 👋'" subtitle="Your memberships across all your gyms.">
       <p-button label="Browse gyms" [outlined]="true" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
@@ -40,10 +42,10 @@ import { statusSeverity } from '../super-admin/sa-gyms';
             @if (m.coachId) {
               <div class="text-sm flex items-center gap-2"><fa-icon icon="user-tie" class="text-primary" /> Coach: <b>{{ store.fullName(m.coachId) }}</b></div>
             }
-            <details class="text-sm">
-              <summary class="cursor-pointer text-primary font-medium">Opening hours</summary>
-              <div class="mt-2"><app-week-schedule [gymId]="m.gymId" [gender]="auth.user()?.gender" /></div>
-            </details>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <p-button label="Schedule" size="small" [outlined]="true" (onClick)="showSchedule(m.gymId)"><ng-template #icon><fa-icon icon="calendar-week" /></ng-template></p-button>
+              <p-button label="My payments" size="small" [outlined]="true" severity="secondary" (onClick)="payments()?.open(m.gymId, m.clientId, true)"><ng-template #icon><fa-icon icon="calendar-days" /></ng-template></p-button>
+            </div>
           </div>
         </div>
       } @empty {
@@ -55,6 +57,16 @@ import { statusSeverity } from '../super-admin/sa-gyms';
         </div>
       }
     </div>
+
+    <app-payment-calendar />
+
+    <p-dialog [header]="'Weekly schedule · ' + (store.gym(scheduleGym() ?? undefined)?.name ?? '')" [(visible)]="scheduleVisible" [modal]="true"
+      [style]="{ width: '68rem' }" [breakpoints]="{ '1200px': '95vw' }">
+      @if (scheduleGym(); as gid) {
+        <div class="mb-3"><app-open-status [gymId]="gid" [gender]="auth.user()?.gender" /></div>
+        <app-week-calendar [gymId]="gid" [gender]="auth.user()?.gender" />
+      }
+    </p-dialog>
 
     @if (past().length) {
       <h2 class="font-semibold text-lg mt-8 mb-3">History</h2>
@@ -74,6 +86,14 @@ export class ClientDashboard {
   protected readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
+  protected readonly payments = viewChild(PaymentCalendar);
+  protected scheduleVisible = false;
+  protected readonly scheduleGym = signal<string | null>(null);
+
+  showSchedule(gymId: string) {
+    this.scheduleGym.set(gymId);
+    this.scheduleVisible = true;
+  }
   private readonly mine = computed(() => this.store.membershipsOfClient(this.auth.user()!.id));
   protected readonly active = computed(() => this.mine().filter((m) => m.status === 'ACTIVE'));
   protected readonly past = computed(() => this.mine().filter((m) => m.status !== 'ACTIVE'));

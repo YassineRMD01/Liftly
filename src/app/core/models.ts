@@ -149,6 +149,19 @@ export interface ScheduleClosure {
   reason: string;
 }
 
+export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER';
+
+/** A payment received from a client by a gym, recorded on a calendar day. */
+export interface Payment {
+  id: string;
+  gymId: string;
+  clientId: string;
+  date: string; // 'YYYY-MM-DD'
+  amount: number;
+  method: PaymentMethod;
+  note?: string;
+}
+
 export interface DbState {
   users: User[];
   coachProfiles: CoachProfile[];
@@ -161,4 +174,5 @@ export interface DbState {
   reviews: CoachReview[];
   schedule: ScheduleSlot[];
   closures: ScheduleClosure[];
+  payments: Payment[];
 }
