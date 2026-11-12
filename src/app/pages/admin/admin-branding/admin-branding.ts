@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -29,7 +29,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton, LogoUpload, SurfacePicker, ToggleSwitch],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, ColorPicker, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton, LogoUpload, SurfacePicker, ToggleSwitch],
   templateUrl: './admin-branding.html',
   styleUrl: './admin-branding.css',
 })

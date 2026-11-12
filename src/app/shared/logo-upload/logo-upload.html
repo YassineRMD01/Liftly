@@ -3,13 +3,13 @@
     <app-gym-logo [theme]="previewTheme()" [name]="name()" [size]="80" />
     <div class="flex flex-col gap-2">
       <div class="flex flex-wrap gap-2">
-        <label class="p-button p-component p-button-sm cursor-pointer inline-flex items-center gap-2" [class.opacity-60]="uploading()">
-          <fa-icon icon="upload" />
-          <span>{{ (logoUrl() ? 'Change logo' : 'Upload logo') | t }}</span>
+        <label pButton size="small" class="cursor-pointer" [class.opacity-60]="uploading()">
+          <fa-icon pButtonIcon icon="upload" />
+          <span pButtonLabel>{{ (logoUrl() ? 'Change logo' : 'Upload logo') | t }}</span>
           <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="sr-only" (change)="onFile($event)" [disabled]="uploading()" />
         </label>
         @if (logoUrl()) {
-          <p-button [label]="'Remove' | t" size="small" severity="danger" [text]="true" (onClick)="remove()"><ng-template #icon><fa-icon icon="trash" /></ng-template></p-button>
+          <button pButton type="button" size="small" severity="danger" [text]="true" (click)="remove()"><fa-icon pButtonIcon icon="trash" /><span pButtonLabel>{{ 'Remove' | t }}</span></button>
         }
       </div>
       <small class="muted">{{ 'PNG, JPG, SVG or WebP · square works best · resized to 256 px' | t }}</small>

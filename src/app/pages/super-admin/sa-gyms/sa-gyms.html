@@ -1,5 +1,5 @@
 <app-page-header [title]="'Gyms' | t" [subtitle]="'All tenants subscribed to the platform.' | t">
-  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="exportCsv()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
 </app-page-header>
 <div class="card">
   <p-table #dt [value]="store.gyms()" [paginator]="true" [rows]="10" [globalFilterFields]="['name', 'sports', 'city']" [tableStyle]="{ 'min-width': '76rem' }">

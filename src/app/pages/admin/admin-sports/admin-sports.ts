@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -17,7 +17,7 @@ import { SportDialog } from '../../../shared/sport-dialog/sport-dialog';
 /** Gym admin: the sports / activities the gym offers (from the catalog or custom). */
 @Component({
   selector: 'app-admin-sports',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, Button, Dialog, InputText, Tag, PageHeader, SportDialog],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputText, Tag, PageHeader, SportDialog],
   templateUrl: './admin-sports.html',
   styleUrl: './admin-sports.css',
 })

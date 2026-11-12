@@ -1,5 +1,5 @@
 <app-page-header [title]="('Hey ' | t) + auth.user()?.firstName + ' 👋'" [subtitle]="'Your memberships across all your gyms.' | t">
-  <p-button [label]="'Browse gyms' | t" [outlined]="true" routerLink="/client/gyms"><ng-template #icon><fa-icon icon="magnifying-glass" /></ng-template></p-button>
+  <button pButton type="button" [outlined]="true" routerLink="/client/gyms"><fa-icon pButtonIcon icon="magnifying-glass" /><span pButtonLabel>{{ 'Browse gyms' | t }}</span></button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -23,9 +23,9 @@
           <div class="text-sm flex items-center gap-2"><fa-icon icon="user-tie" class="text-primary" /> {{ 'Coach:' | t }} <b>{{ store.fullName(m.coachId) }}</b></div>
         }
         <div class="flex flex-wrap gap-2 pt-1">
-          <p-button [label]="'Schedule' | t" size="small" [outlined]="true" (onClick)="showSchedule(m.gymId)"><ng-template #icon><fa-icon icon="calendar-week" /></ng-template></p-button>
-          <p-button [label]="(myGymReview(m.gymId) ? 'Edit my gym review' : 'Rate this gym') | t" size="small" [outlined]="true" severity="secondary" (onClick)="rateGym(m.gymId)"><ng-template #icon><fa-icon icon="star" /></ng-template></p-button>
-          <p-button [label]="'My payments' | t" size="small" [outlined]="true" severity="secondary" (onClick)="payments()?.open(m.gymId, m.clientId, true)"><ng-template #icon><fa-icon icon="calendar-days" /></ng-template></p-button>
+          <button pButton type="button" size="small" [outlined]="true" (click)="showSchedule(m.gymId)"><fa-icon pButtonIcon icon="calendar-week" /><span pButtonLabel>{{ 'Schedule' | t }}</span></button>
+          <button pButton type="button" size="small" [outlined]="true" severity="secondary" (click)="rateGym(m.gymId)"><fa-icon pButtonIcon icon="star" /><span pButtonLabel>{{ (myGymReview(m.gymId) ? 'Edit my gym review' : 'Rate this gym') | t }}</span></button>
+          <button pButton type="button" size="small" [outlined]="true" severity="secondary" (click)="payments()?.open(m.gymId, m.clientId, true)"><fa-icon pButtonIcon icon="calendar-days" /><span pButtonLabel>{{ 'My payments' | t }}</span></button>
         </div>
       </div>
     </div>
@@ -34,7 +34,7 @@
       <fa-icon icon="dumbbell" class="text-4xl text-primary" />
       <p class="mt-3 font-semibold">{{ 'No active membership' | t }}</p>
       <p class="muted text-sm mb-4">{{ 'Your gym registers your membership — ask at the front desk or contact them.' | t }}</p>
-      <p-button [label]="'Browse gyms' | t" [outlined]="true" routerLink="/client/gyms" />
+      <button pButton type="button" [outlined]="true" routerLink="/client/gyms"><span pButtonLabel>{{ 'Browse gyms' | t }}</span></button>
     </div>
   }
 </div>
@@ -75,8 +75,8 @@
     </div>
   </div>
   <ng-template #footer>
-    @if (myGymReview(ratingGym() ?? '')) { <p-button [label]="'Delete' | t" severity="danger" [text]="true" (onClick)="deleteGymReview()" /> }
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="ratingGym.set(null)" />
-    <p-button [label]="'Submit' | t" (onClick)="saveGymReview()" [disabled]="!gymForm.rating" />
+    @if (myGymReview(ratingGym() ?? '')) { <button pButton type="button" severity="danger" [text]="true" (click)="deleteGymReview()"><span pButtonLabel>{{ 'Delete' | t }}</span></button> }
+    <button pButton type="button" [text]="true" severity="secondary" (click)="ratingGym.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="saveGymReview()" [disabled]="!gymForm.rating"><span pButtonLabel>{{ 'Submit' | t }}</span></button>
   </ng-template>
 </p-dialog>

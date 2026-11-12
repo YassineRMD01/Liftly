@@ -32,7 +32,7 @@
         <div class="mt-auto flex items-center gap-2">
           @if (isMember(g.id)) { <p-tag [value]="'Member' | t" severity="success" /> }
           <div class="flex-1"></div>
-          <p-button [label]="'Details & hours' | t" [outlined]="true" (onClick)="open(g)"><ng-template #icon><fa-icon icon="clock" /></ng-template></p-button>
+          <button pButton type="button" [outlined]="true" (click)="open(g)"><fa-icon pButtonIcon icon="clock" /><span pButtonLabel>{{ 'Details & hours' | t }}</span></button>
         </div>
       </div>
     </div>

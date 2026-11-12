@@ -4,7 +4,7 @@
       <p class="text-sm">{{ 'Send this link to {name}. They open it, choose a password and their account is ready.' | t: { name: u.firstName + ' ' + u.lastName } }}</p>
       <div class="flex gap-2">
         <input pInputText class="flex-1 font-mono text-xs" [value]="link()" readonly data-testid="invite-link" (focus)="$any($event.target).select()" />
-        <p-button [ariaLabel]="'Copy' | t" (onClick)="copy()"><fa-icon icon="copy" /></p-button>
+        <button pButton type="button" iconOnly [attr.aria-label]="'Copy' | t" (click)="copy()"><fa-icon pButtonIcon icon="copy" /></button>
       </div>
       <div class="flex items-center gap-4">
         @if (qr()) { <img [src]="qr()" [alt]="'Invitation QR code' | t" class="w-28 h-28 rounded-lg border border-surface-200 bg-white p-1" /> }
@@ -17,5 +17,5 @@
       <p class="text-xs muted">{{ 'Automatic e-mails need a backend; in this demo you share the link yourself.' | t }}</p>
     </div>
   }
-  <ng-template #footer><p-button [label]="'Done' | t" (onClick)="user.set(null)" /></ng-template>
+  <ng-template #footer><button pButton type="button" (click)="user.set(null)"><span pButtonLabel>{{ 'Done' | t }}</span></button></ng-template>
 </p-dialog>

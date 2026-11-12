@@ -7,7 +7,7 @@ import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { PageHeader } from '../../../shared/page-header/page-header';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { downloadCsv } from '../../../core/csv';
 import { StatCard } from '../../../shared/stat-card/stat-card';
@@ -15,7 +15,7 @@ import { StatCard } from '../../../shared/stat-card/stat-card';
 /** Attendance statistics from check-ins and class bookings, plus members at risk of leaving. */
 @Component({
   selector: 'app-admin-attendance',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, Button, Select, ChartCard, PageHeader, StatCard],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Select, ChartCard, PageHeader, StatCard],
   templateUrl: './admin-attendance.html',
   styleUrl: './admin-attendance.css',
 })

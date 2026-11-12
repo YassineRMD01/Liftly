@@ -12,7 +12,7 @@
           <span class="w-24 font-medium">{{ dayLabel[w.day] }}</span>
           <span class="tabular-nums" dir="ltr">{{ w.start }}–{{ w.end }}</span>
           <span class="flex-1 text-xs muted">{{ slotCount(w) }} × {{ w.slotMin }} min</span>
-          <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="store.deleteAvailability(w.id)"><fa-icon icon="trash" /></p-button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteAvailability(w.id)"><fa-icon pButtonIcon icon="trash" /></button>
         </div>
       } @empty { <p class="text-sm muted py-2">{{ 'No availability yet: members cannot book you.' | t }}</p> }
     </div>
@@ -21,7 +21,7 @@
       <div class="field"><label>{{ 'From' | t }}</label><input pInputText type="time" [(ngModel)]="form.start" /></div>
       <div class="field"><label>{{ 'To' | t }}</label><input pInputText type="time" [(ngModel)]="form.end" /></div>
       <div class="field col-span-2"><label>{{ 'Session length' | t }}</label><p-selectbutton [options]="lengths" optionLabel="label" optionValue="value" [(ngModel)]="form.slotMin" [allowEmpty]="false" /></div>
-      <p-button [label]="'Add' | t" styleClass="w-full" class="col-span-2" (onClick)="addWindow()" [disabled]="!gym()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+      <button pButton type="button" (click)="addWindow()" [disabled]="!gym()" class="w-full col-span-2"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add' | t }}</span></button>
     </div>
   </div>
 
@@ -37,12 +37,12 @@
           </div>
           <p-tag [value]="s.status | t" [severity]="sev[s.status]" />
           @if (s.status === 'REQUESTED') {
-            <p-button [label]="'Confirm' | t" size="small" (onClick)="set(s, 'CONFIRMED')" />
-            <p-button [label]="'Decline' | t" size="small" severity="secondary" [outlined]="true" (onClick)="set(s, 'DECLINED')" />
+            <button pButton type="button" size="small" (click)="set(s, 'CONFIRMED')"><span pButtonLabel>{{ 'Confirm' | t }}</span></button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="set(s, 'DECLINED')"><span pButtonLabel>{{ 'Decline' | t }}</span></button>
           }
           @if (s.status === 'CONFIRMED') {
-            <p-button [text]="true" [rounded]="true" severity="success" [pTooltip]="'Mark as done' | t" (onClick)="set(s, 'DONE')"><fa-icon icon="check" /></p-button>
-            <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (onClick)="set(s, 'CANCELLED')"><fa-icon icon="xmark" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Mark as done' | t" (click)="set(s, 'DONE')"><fa-icon pButtonIcon icon="check" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="set(s, 'CANCELLED')"><fa-icon pButtonIcon icon="xmark" /></button>
           }
         </div>
       } @empty { <p class="text-center muted py-10">{{ 'Nothing here.' | t }}</p> }

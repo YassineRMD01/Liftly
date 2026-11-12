@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
@@ -21,7 +21,7 @@ export const REQUEST_SEV: Record<JoinRequestStatus, 'info' | 'warn' | 'success' 
 /** Join requests sent from the gym's public page; converting one creates the member account. */
 @Component({
   selector: 'app-admin-requests',
-  imports: [TranslatePipe, DatePipe, FormsModule, RouterLink, FaIconComponent, Button, SelectButton, Tag, Tooltip, InviteDialog, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, SelectButton, Tag, Tooltip, InviteDialog, PageHeader],
   templateUrl: './admin-requests.html',
   styleUrl: './admin-requests.css',
 })

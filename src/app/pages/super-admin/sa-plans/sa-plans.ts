@@ -4,7 +4,7 @@ import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
@@ -21,7 +21,7 @@ const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, ye
 
 @Component({
   selector: 'app-sa-plans',
-  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './sa-plans.html',
   styleUrl: './sa-plans.css',
 })

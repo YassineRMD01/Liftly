@@ -4,10 +4,7 @@
       <h2 class="font-semibold">{{ title() }}</h2>
       @if (subtitle()) { <p class="text-xs muted mt-0.5">{{ subtitle() }}</p> }
     </div>
-    <p-button [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="showTable.set(!showTable())"
-      [pTooltip]="(showTable() ? 'Show chart' : 'Show as table') | t" [ariaLabel]="(showTable() ? 'Show chart' : 'Show as table') | t">
-      <fa-icon [icon]="showTable() ? 'chart-column' : 'table'" />
-    </p-button>
+    <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="showTable.set(!showTable())" [pTooltip]="(showTable() ? 'Show chart' : 'Show as table') | t" [attr.aria-label]="(showTable() ? 'Show chart' : 'Show as table') | t"><fa-icon pButtonIcon [icon]="showTable() ? 'chart-column' : 'table'" /></button>
   </div>
   @if (showTable()) {
     <div class="overflow-auto" [style.max-height]="height()">

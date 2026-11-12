@@ -10,7 +10,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Avatar } from 'primeng/avatar';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
@@ -88,7 +88,7 @@ const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN:
 
 @Component({
   selector: 'app-shell',
-  imports: [InstallButton, NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
+  imports: [InstallButton, NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, ButtonDirective, ButtonIcon, Select, Tag, Tooltip],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })

@@ -52,7 +52,7 @@
   <div class="card" data-testid="trials-card">
     <div class="flex items-center justify-between gap-2 mb-3">
       <h2 class="font-semibold">{{ 'Trials ending this week' | t }}</h2>
-      <p-button [label]="'Send reminders' | t" size="small" [outlined]="true" (onClick)="sendTrialReminders()" [disabled]="!trialsSoon().length" />
+      <button pButton type="button" size="small" [outlined]="true" (click)="sendTrialReminders()" [disabled]="!trialsSoon().length"><span pButtonLabel>{{ 'Send reminders' | t }}</span></button>
     </div>
     @for (g of trialsSoon(); track g.id) {
       <div class="flex justify-between text-sm py-1"><span class="font-medium">{{ g.name }}</span><span class="muted">{{ store.trialDaysLeft(g) }} {{ 'days left' | t }}</span></div>

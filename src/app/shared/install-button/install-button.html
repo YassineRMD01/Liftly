@@ -1,5 +1,5 @@
 @if (pwa.updateReady()) {
-  <p-button size="small" severity="success" [label]="'Update' | t" [pTooltip]="'A new version is ready. Reload to use it.' | t" tooltipPosition="bottom" (onClick)="pwa.reload()"><ng-template #icon><fa-icon icon="rotate" /></ng-template></p-button>
+  <button pButton type="button" size="small" severity="success" [pTooltip]="'A new version is ready. Reload to use it.' | t" tooltipPosition="bottom" (click)="pwa.reload()"><fa-icon pButtonIcon icon="rotate" /><span pButtonLabel>{{ 'Update' | t }}</span></button>
 } @else if (pwa.canInstall()) {
-  <p-button size="small" [outlined]="true" [label]="'Install app' | t" [pTooltip]="'Add Liftly to your home screen. Works offline.' | t" tooltipPosition="bottom" (onClick)="pwa.install()" styleClass="hidden sm:inline-flex"><ng-template #icon><fa-icon icon="download" /></ng-template></p-button>
+  <button pButton type="button" size="small" [outlined]="true" [pTooltip]="'Add Liftly to your home screen. Works offline.' | t" tooltipPosition="bottom" (click)="pwa.install()" class="hidden sm:inline-flex"><fa-icon pButtonIcon icon="download" /><span pButtonLabel>{{ 'Install app' | t }}</span></button>
 }

@@ -7,9 +7,9 @@
         <div class="py-2 flex items-center gap-2">
           <span class="flex-1 font-medium text-sm">{{ store.fullName(b.clientId) }}</span>
           <p-tag [value]="b.status | t" [severity]="sev(b.status)" />
-          <p-button [text]="true" [rounded]="true" size="small" severity="success" [pTooltip]="'Attended' | t" (onClick)="set(b, 'ATTENDED')"><fa-icon icon="check" /></p-button>
-          <p-button [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'No-show' | t" (onClick)="set(b, 'NO_SHOW')"><fa-icon icon="user-xmark" /></p-button>
-          <p-button [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (onClick)="remove(b)"><fa-icon icon="trash" /></p-button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="success" [pTooltip]="'Attended' | t" (click)="set(b, 'ATTENDED')"><fa-icon pButtonIcon icon="check" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'No-show' | t" (click)="set(b, 'NO_SHOW')"><fa-icon pButtonIcon icon="user-xmark" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (click)="remove(b)"><fa-icon pButtonIcon icon="trash" /></button>
         </div>
       } @empty { <p class="text-sm muted py-2">{{ 'Nobody booked yet.' | t }}</p> }
     </div>
@@ -19,7 +19,7 @@
         <div class="py-2 flex items-center gap-2">
           <span class="w-6 text-xs muted">#{{ i + 1 }}</span>
           <span class="flex-1 text-sm">{{ store.fullName(b.clientId) }}</span>
-          <p-button [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (onClick)="remove(b)"><fa-icon icon="trash" /></p-button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (click)="remove(b)"><fa-icon pButtonIcon icon="trash" /></button>
         </div>
       } @empty { <p class="text-sm muted py-2">{{ 'Nobody waiting.' | t }}</p> }
     </div>

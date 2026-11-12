@@ -1,7 +1,7 @@
 <app-page-header [title]="'Classes' | t" [subtitle]="'Classes members book in advance. Full classes have a waitlist that fills freed places automatically.' | t">
   @if (canEdit()) {
     <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false" />
-    <p-button [label]="'New class' | t" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+    <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New class' | t }}</span></button>
   }
 </app-page-header>
 
@@ -47,8 +47,8 @@
           <td><app-audience-tag [audience]="c.audience" [short]="true" /></td>
           <td>{{ (c.active ? 'Yes' : 'No') | t }}</td>
           <td class="whitespace-nowrap">
-            <p-button [text]="true" [rounded]="true" (onClick)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></p-button>
-            <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
           </td>
         </tr>
       </ng-template>
@@ -82,7 +82,7 @@
     </div>
   }
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="editing.set(null)" />
-    <p-button [label]="'Save' | t" (onClick)="save()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
   </ng-template>
 </p-dialog>

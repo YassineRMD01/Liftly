@@ -1,7 +1,7 @@
 @if (gym(); as g) {
   <app-page-header [title]="('Welcome back, ' | t) + auth.user()?.firstName" [subtitle]="g.name + ' · ' + store.sportNames(g) + ' · ' + g.city">
-    <p-button [label]="'New promo code' | t" [outlined]="true" routerLink="/admin/promos" />
-    <p-button [label]="'Add client' | t" routerLink="/admin/clients" />
+    <button pButton type="button" [outlined]="true" routerLink="/admin/promos"><span pButtonLabel>{{ 'New promo code' | t }}</span></button>
+    <button pButton type="button" routerLink="/admin/clients"><span pButtonLabel>{{ 'Add client' | t }}</span></button>
   </app-page-header>
 
   @if (g.status === 'TRIAL') {
@@ -9,7 +9,7 @@
       <div class="flex-1">
         <b>{{ 'You\'re on a free trial' | t }}</b> {{ '— ends' | t }} {{ g.renewsAt | date }}{{ '. Add billing to keep your gym running.' | t }}
       </div>
-      <p-button [label]="'Manage billing' | t" size="small" routerLink="/admin/billing" />
+      <button pButton type="button" size="small" routerLink="/admin/billing"><span pButtonLabel>{{ 'Manage billing' | t }}</span></button>
     </div>
   }
 
@@ -48,7 +48,7 @@
       <div class="card" data-testid="ending-soon">
         <div class="flex items-center justify-between gap-2 mb-3">
           <h2 class="font-semibold">{{ 'Ending this week' | t }}</h2>
-          <p-button [label]="'Send reminders' | t" size="small" [outlined]="true" (onClick)="sendReminders()" [disabled]="!endingSoon().length" />
+          <button pButton type="button" size="small" [outlined]="true" (click)="sendReminders()" [disabled]="!endingSoon().length"><span pButtonLabel>{{ 'Send reminders' | t }}</span></button>
         </div>
         <div class="space-y-2">
           @for (m of endingSoon(); track m.id) {

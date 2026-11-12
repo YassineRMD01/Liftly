@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import { Tooltip } from 'primeng/tooltip';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
@@ -11,7 +11,7 @@ import { AppearanceChoice, ThemeService } from '../../core/theme.service';
 /** Header menu: Auto (theme / system setting), Light or Dark — the user's own choice. */
 @Component({
   selector: 'app-appearance-switcher',
-  imports: [TranslatePipe, FaIconComponent, Button, Menu, Tooltip],
+  imports: [TranslatePipe, FaIconComponent, ButtonDirective, ButtonIcon, Menu, Tooltip],
   templateUrl: './appearance-switcher.html',
   styleUrl: './appearance-switcher.css',
 })

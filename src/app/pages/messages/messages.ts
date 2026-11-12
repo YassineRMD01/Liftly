@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Avatar } from 'primeng/avatar';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { AuthService } from '../../core/auth.service';
@@ -16,7 +16,7 @@ import { PageHeader } from '../../shared/page-header/page-header';
 /** Direct messages between members, coaches, admins and front desk (same page for every role). */
 @Component({
   selector: 'app-messages',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Avatar, Button, InputText, Select, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Avatar, ButtonDirective, ButtonIcon, InputText, Select, PageHeader],
   templateUrl: './messages.html',
   styleUrl: './messages.css',
 })

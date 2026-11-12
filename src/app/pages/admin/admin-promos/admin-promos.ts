@@ -5,7 +5,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { Dialog } from 'primeng/dialog';
 import { InputGroup } from 'primeng/inputgroup';
@@ -28,7 +28,7 @@ type PromoState = { label: string; sev: 'success' | 'warn' | 'danger' | 'seconda
 
 @Component({
   selector: 'app-admin-promos',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, DatePicker, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText, MultiSelect, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, DatePicker, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText, MultiSelect, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
   templateUrl: './admin-promos.html',
   styleUrl: './admin-promos.css',
 })

@@ -24,9 +24,9 @@
   </div>
   <div class="flex flex-wrap items-center gap-3">
     <input pInputText class="flex-1 min-w-48" [(ngModel)]="form.note" [placeholder]="'Note (optional)' | t" />
-    <label class="p-button p-button-outlined p-button-secondary cursor-pointer !text-sm"><fa-icon icon="camera" class="me-2" />{{ (form.photoUrl ? 'Change photo' : 'Add photo') | t }}<input type="file" accept="image/*" class="hidden" (change)="onPhoto($event)" /></label>
+    <label pButton [outlined]="true" severity="secondary" class="cursor-pointer"><fa-icon pButtonIcon icon="camera" /><span pButtonLabel>{{ (form.photoUrl ? 'Change photo' : 'Add photo') | t }}</span><input type="file" accept="image/*" class="hidden" (change)="onPhoto($event)" /></label>
     @if (form.photoUrl) { <img [src]="form.photoUrl" alt="" class="w-10 h-10 rounded-lg object-cover" /> }
-    <p-button [label]="'Save' | t" (onClick)="add()" />
+    <button pButton type="button" (click)="add()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
   </div>
   <p class="text-xs muted">{{ 'Photos stay in this browser in the demo (no upload server).' | t }}</p>
 </div>
@@ -54,7 +54,7 @@
             <td class="text-end tabular-nums">{{ e.waist != null ? (e.waist | number: '1.0-1') + ' cm' : '—' }}</td>
             <td class="ps-4 muted">{{ e.note }}</td>
             <td class="muted">{{ store.fullName(e.byId) }}</td>
-            <td class="text-end"><p-button [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (onClick)="remove(e)"><fa-icon icon="trash" /></p-button></td>
+            <td class="text-end"><button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(e)"><fa-icon pButtonIcon icon="trash" /></button></td>
           </tr>
         } @empty { <tr><td colspan="7" class="text-center muted py-6">{{ 'No measurements yet.' | t }}</td></tr> }
       </tbody>

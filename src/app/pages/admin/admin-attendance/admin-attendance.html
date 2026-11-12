@@ -2,7 +2,7 @@
   @if (locations().length) {
     <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="locationId.set($event)" [showClear]="true" [placeholder]="'All locations' | t" styleClass="w-48" />
   }
-  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="export()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
 </app-page-header>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

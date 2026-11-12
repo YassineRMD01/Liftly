@@ -145,9 +145,9 @@
       </div>
       @if (action() !== 'view') {
         <div class="flex justify-center gap-2 pb-5">
-          <p-button [label]="'Cancel' | t" severity="secondary" [rounded]="true" (onClick)="editVisible.set(false)" />
-          <p-button [label]="action() === 'edit' ? ('Save' | t) : ('Add' | t)" [rounded]="true" [severity]="action() === 'edit' ? 'warn' : undefined" (onClick)="save()" />
-          @if (action() === 'edit') { <p-button [label]="'Delete' | t" severity="danger" [rounded]="true" [outlined]="true" (onClick)="remove()" /> }
+          <button pButton type="button" severity="secondary" [rounded]="true" (click)="editVisible.set(false)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+          <button pButton type="button" [rounded]="true" [severity]="action() === 'edit' ? 'warn' : undefined" (click)="save()"><span pButtonLabel>{{ action() === 'edit' ? ('Save' | t) : ('Add' | t) }}</span></button>
+          @if (action() === 'edit') { <button pButton type="button" severity="danger" [rounded]="true" [outlined]="true" (click)="remove()"><span pButtonLabel>{{ 'Delete' | t }}</span></button> }
         </div>
       }
     </div>

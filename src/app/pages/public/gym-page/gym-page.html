@@ -12,7 +12,7 @@
           <app-open-status [gymId]="g.id" />
         </div>
       </div>
-      <p-button [label]="'Join this gym' | t" (onClick)="pick(plans()[0]?.id ?? '')" styleClass="mb-1"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
+      <button pButton type="button" (click)="pick(plans()[0]?.id ?? '')" class="mb-1"><fa-icon pButtonIcon icon="user-plus" /><span pButtonLabel>{{ 'Join this gym' | t }}</span></button>
     </div>
   </section>
 
@@ -33,7 +33,7 @@
               <div class="font-semibold">{{ p.name }}</div>
               <div class="text-2xl font-extrabold mt-1">{{ p.price | money: store.planCurrency(p) }} <span class="text-sm font-normal muted">/ {{ p.durationDays }} {{ 'days' | t }}</span></div>
               <p class="text-sm muted mt-2 flex-1">{{ p.description }}</p>
-              <p-button [label]="'Choose' | t" [outlined]="true" size="small" styleClass="w-full mt-3" (onClick)="pick(p.id)" />
+              <button pButton type="button" [outlined]="true" size="small" (click)="pick(p.id)" class="w-full mt-3"><span pButtonLabel>{{ 'Choose' | t }}</span></button>
             </div>
           }
         </div>
@@ -110,7 +110,7 @@
           <textarea pTextarea class="w-full" rows="3" [(ngModel)]="form.message" [placeholder]="'Message (optional)' | t"></textarea>
           <input pInputText class="w-full uppercase" [(ngModel)]="form.ref" [placeholder]="'Referral code (optional)' | t" />
           @if (error) { <p-message severity="error" size="small">{{ error }}</p-message> }
-          <p-button [label]="'Send request' | t" styleClass="w-full" (onClick)="submit()" />
+          <button pButton type="button" (click)="submit()" class="w-full"><span pButtonLabel>{{ 'Send request' | t }}</span></button>
           <p class="text-xs muted">{{ 'No payment online: the gym registers you and you pay at the desk.' | t }}</p>
         }
       </div>

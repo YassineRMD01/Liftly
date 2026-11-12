@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
 import { AuthService } from '../../../core/auth.service';
@@ -13,7 +13,7 @@ import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 /** Activation page reached from an invitation link: the user chooses a password. */
 @Component({
   selector: 'app-activate',
-  imports: [TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, Message, Password, GymLogo],
+  imports: [TranslatePipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonLabel, Message, Password, GymLogo],
   templateUrl: './activate.html',
   styleUrl: './activate.css',
 })

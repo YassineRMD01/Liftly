@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { MoneyPipe } from '../../core/currency';
 import { TranslatePipe } from '../../core/i18n/i18n';
 import { GymTheme } from '../../core/models';
@@ -25,7 +25,7 @@ export interface PrintableDoc {
 /** A receipt / invoice laid out for A4 printing ("Save as PDF" in the print dialog). */
 @Component({
   selector: 'app-print-document',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, RouterLink, FaIconComponent, Button, GymLogo],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, GymLogo],
   templateUrl: './print-document.html',
   styleUrl: './print-document.css',
 })

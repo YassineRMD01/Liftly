@@ -4,7 +4,7 @@ import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { Message } from 'primeng/message';
 import { RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-billing',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, RouterLink, FaIconComponent, Button, Message, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, RouterLink, FaIconComponent, ButtonDirective, ButtonLabel, Message, Tag, PageHeader],
   templateUrl: './admin-billing.html',
   styleUrl: './admin-billing.css',
 })

@@ -4,7 +4,7 @@ import { MoneyPipe } from '../../../core/currency';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
@@ -20,7 +20,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-admin-memberships',
-  imports: [TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './admin-memberships.html',
   styleUrl: './admin-memberships.css',
 })

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
@@ -22,7 +22,7 @@ import { WeekSchedule } from '../../../shared/week-schedule/week-schedule';
 /** Public page of one gym (in its own theme): plans, hours, coaches, classes, reviews and a join form. */
 @Component({
   selector: 'app-gym-page',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, InputText, Message, Select, Textarea, GymLogo, OpenStatusBadge, PublicHeader, Stars, WeekSchedule],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputText, Message, Select, Textarea, GymLogo, OpenStatusBadge, PublicHeader, Stars, WeekSchedule],
   templateUrl: './gym-page.html',
   styleUrl: './gym-page.css',
 })

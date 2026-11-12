@@ -18,8 +18,8 @@
       </div>
     </div>
     <div class="flex flex-wrap gap-2">
-      <p-button [label]="g.billingCycle === 'MONTHLY' ? ('Switch to yearly (save ~17%)' | t) : ('Switch to monthly' | t)" [outlined]="true" (onClick)="switchCycle()" />
-      @if (g.status === 'TRIAL') { <p-button [label]="'Activate now' | t" (onClick)="activate()" /> }
+      <button pButton type="button" [outlined]="true" (click)="switchCycle()"><span pButtonLabel>{{ g.billingCycle === 'MONTHLY' ? ('Switch to yearly (save ~17%)' | t) : ('Switch to monthly' | t) }}</span></button>
+      @if (g.status === 'TRIAL') { <button pButton type="button" (click)="activate()"><span pButtonLabel>{{ 'Activate now' | t }}</span></button> }
     </div>
   </div>
 
@@ -34,9 +34,7 @@
         <ul class="mt-4 space-y-1.5 text-sm flex-1">
           @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
         </ul>
-        <p-button class="mt-5" styleClass="w-full" [disabled]="p.id === g.saasPlanId"
-          [label]="p.id === g.saasPlanId ? ('Current plan' | t) : (usd(p) > usd(current()) ? ('Upgrade' | t) : ('Downgrade' | t))"
-          (onClick)="change(p)" />
+        <button pButton type="button" [disabled]="p.id === g.saasPlanId" (click)="change(p)" class="mt-5 w-full"><span pButtonLabel>{{ p.id === g.saasPlanId ? ('Current plan' | t) : (usd(p) > usd(current()) ? ('Upgrade' | t) : ('Downgrade' | t)) }}</span></button>
       </div>
     }
   </div>

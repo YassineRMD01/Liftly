@@ -7,7 +7,7 @@
     <div class="flex items-center gap-3">
       <label class="flex items-center gap-2 text-sm"><p-toggleswitch [ngModel]="form().pinned" (ngModelChange)="patch({ pinned: $event })" /> {{ 'Pin to top' | t }}</label>
       <span class="flex-1"></span>
-      <p-button [label]="'Post' | t" (onClick)="post()" [disabled]="!form().title.trim() || !form().body.trim()"><ng-template #icon><fa-icon icon="bullhorn" /></ng-template></p-button>
+      <button pButton type="button" (click)="post()" [disabled]="!form().title.trim() || !form().body.trim()"><fa-icon pButtonIcon icon="bullhorn" /><span pButtonLabel>{{ 'Post' | t }}</span></button>
     </div>
   </div>
 }
@@ -26,8 +26,8 @@
           <p class="mt-2 text-sm whitespace-pre-line">{{ a.body }}</p>
         </div>
         @if (isAdmin()) {
-          <p-button [text]="true" [rounded]="true" [pTooltip]="(a.pinned ? 'Unpin' : 'Pin to top') | t" (onClick)="store.togglePin(a.id)"><fa-icon icon="thumbtack" /></p-button>
-          <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Delete' | t" (onClick)="remove(a)"><fa-icon icon="trash" /></p-button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="(a.pinned ? 'Unpin' : 'Pin to top') | t" (click)="store.togglePin(a.id)"><fa-icon pButtonIcon icon="thumbtack" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(a)"><fa-icon pButtonIcon icon="trash" /></button>
         }
       </div>
     </article>

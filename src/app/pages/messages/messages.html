@@ -24,7 +24,7 @@
   <section class="flex flex-col min-h-0" [class.hidden]="!other()" [class.md:flex]="true">
     @if (otherUser(); as u) {
       <header class="px-4 py-3 border-b border-surface-200 dark:border-surface-800 flex items-center gap-3">
-        <p-button [text]="true" [rounded]="true" styleClass="md:!hidden" (onClick)="other.set(null)"><fa-icon icon="arrow-left" class="rtl:rotate-180" /></p-button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="other.set(null)" class="md:!hidden"><fa-icon pButtonIcon icon="arrow-left" class="rtl:rotate-180" /></button>
         <p-avatar [label]="initials(u.id)" shape="circle" styleClass="!bg-primary-100 !text-primary-700" />
         <div><div class="font-semibold">{{ u.firstName }} {{ u.lastName }}</div><div class="text-xs muted">{{ roleOf(u) | t }}</div></div>
       </header>
@@ -43,7 +43,7 @@
       @if (canWrite()) {
         <form class="p-3 border-t border-surface-200 dark:border-surface-800 flex gap-2" (ngSubmit)="send()">
           <input pInputText class="flex-1" name="draft" [ngModel]="draft()" (ngModelChange)="draft.set($event)" [placeholder]="'Write a message…' | t" autocomplete="off" data-testid="message-input" />
-          <p-button type="submit" [disabled]="!draft().trim()" [ariaLabel]="'Send' | t"><fa-icon icon="paper-plane" class="rtl:-scale-x-100" /></p-button>
+          <button pButton iconOnly type="submit" [disabled]="!draft().trim()" [attr.aria-label]="'Send' | t"><fa-icon pButtonIcon icon="paper-plane" class="rtl:-scale-x-100" /></button>
         </form>
       } @else {
         <p class="p-3 text-center text-xs muted border-t border-surface-200 dark:border-surface-800">{{ 'You can no longer write to this person.' | t }}</p>

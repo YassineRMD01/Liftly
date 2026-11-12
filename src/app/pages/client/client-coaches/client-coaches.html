@@ -6,13 +6,11 @@
   @for (c of coaches(); track c.id) {
     <app-coach-card [coachId]="c.id">
       @if (canRate(c)) {
-        <p-button [label]="myReview(c) ? ('Edit my review' | t) : ('Rate coach' | t)" size="small" (onClick)="openRate(c)">
-          <ng-template #icon><fa-icon icon="star" /></ng-template>
-        </p-button>
+        <button pButton type="button" size="small" (click)="openRate(c)"><fa-icon pButtonIcon icon="star" /><span pButtonLabel>{{ myReview(c) ? ('Edit my review' | t) : ('Rate coach' | t) }}</span></button>
       }
-      <p-button [label]="'Reviews' | t" size="small" [outlined]="true" (onClick)="openReviews(c)" />
+      <button pButton type="button" size="small" [outlined]="true" (click)="openReviews(c)"><span pButtonLabel>{{ 'Reviews' | t }}</span></button>
       @if (canRate(c)) {
-        <p-button [label]="'Report' | t" size="small" severity="danger" [text]="true" (onClick)="openReport(c)"><ng-template #icon><fa-icon icon="flag" /></ng-template></p-button>
+        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="openReport(c)"><fa-icon pButtonIcon icon="flag" /><span pButtonLabel>{{ 'Report' | t }}</span></button>
       }
     </app-coach-card>
   } @empty {
@@ -33,9 +31,9 @@
     <div class="field"><label>{{ 'Comment' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="form.comment" [placeholder]="'How was your experience?' | t"></textarea></div>
   </div>
   <ng-template #footer>
-    @if (existing()) { <p-button [label]="'Delete' | t" severity="danger" [text]="true" (onClick)="remove()" /> }
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="rateVisible = false" />
-    <p-button [label]="'Submit' | t" (onClick)="submit()" [disabled]="!form.rating || !form.gymId" />
+    @if (existing()) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()"><span pButtonLabel>{{ 'Delete' | t }}</span></button> }
+    <button pButton type="button" [text]="true" severity="secondary" (click)="rateVisible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="submit()" [disabled]="!form.rating || !form.gymId"><span pButtonLabel>{{ 'Submit' | t }}</span></button>
   </ng-template>
 </p-dialog>
 
@@ -74,7 +72,7 @@
     </div>
   }
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="reporting.set(null)" />
-    <p-button [label]="'Send report' | t" severity="danger" (onClick)="sendReport()" [disabled]="!reportValid()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="reporting.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" severity="danger" (click)="sendReport()" [disabled]="!reportValid()"><span pButtonLabel>{{ 'Send report' | t }}</span></button>
   </ng-template>
 </p-dialog>

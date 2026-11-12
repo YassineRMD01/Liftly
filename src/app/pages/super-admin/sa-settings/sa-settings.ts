@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -24,7 +24,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 /** Platform settings: theme of the public site, default country and the shared sport catalog. */
 @Component({
   selector: 'app-sa-settings',
-  imports: [LogoUpload, SurfacePicker, GymLogo, SelectButton, TranslatePipe, FormsModule, FaIconComponent, Button, ColorPicker, InputText, Select, PageHeader, SportDialog],
+  imports: [LogoUpload, SurfacePicker, GymLogo, SelectButton, TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, ColorPicker, InputText, Select, PageHeader, SportDialog],
   templateUrl: './sa-settings.html',
   styleUrl: './sa-settings.css',
 })

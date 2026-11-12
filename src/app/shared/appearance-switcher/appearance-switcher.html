@@ -7,6 +7,4 @@
     </a>
   </ng-template>
 </p-menu>
-<p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="menu.toggle($event)" [pTooltip]="tooltip()" tooltipPosition="left" [ariaLabel]="'Appearance' | t">
-  <fa-icon [icon]="icon()" />
-</p-button>
+<button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="secondary" (click)="menu.toggle($event)" [pTooltip]="tooltip()" tooltipPosition="left" [attr.aria-label]="'Appearance' | t"><fa-icon pButtonIcon [icon]="icon()" /></button>

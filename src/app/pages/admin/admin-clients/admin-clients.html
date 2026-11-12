@@ -1,6 +1,6 @@
 <app-page-header [title]="'Clients' | t" [subtitle]="'Only you can register members — create their account and membership here.' | t">
-<p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="exportCsv()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
-  @if (isAdmin()) { <p-button [label]="'Add client' | t" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button> }
+<button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
+  @if (isAdmin()) { <button pButton type="button" (click)="open()"><fa-icon pButtonIcon icon="user-plus" /><span pButtonLabel>{{ 'Add client' | t }}</span></button> }
 </app-page-header>
 
 <div class="card">
@@ -46,23 +46,23 @@
           @if (isAdmin()) {
           @if (r.m.status === 'ACTIVE') {
             @if (hasFreeze(r.m)) {
-              <p-button [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (onClick)="unfreeze(r.m)"><fa-icon icon="play" /></p-button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (click)="unfreeze(r.m)"><fa-icon pButtonIcon icon="play" /></button>
             } @else {
-              <p-button [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (onClick)="freeze(r.m)"><fa-icon icon="snowflake" /></p-button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (click)="freeze(r.m)"><fa-icon pButtonIcon icon="snowflake" /></button>
             }
           }
           @if (store.user(r.m.clientId)?.invite) {
-            <p-button [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (onClick)="invite().open(store.user(r.m.clientId)!)"><fa-icon icon="link" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (click)="invite().open(store.user(r.m.clientId)!)"><fa-icon pButtonIcon icon="link" /></button>
           }
-          <p-button [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
-          <p-button [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (onClick)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></p-button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (click)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon pButtonIcon icon="calendar-days" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (click)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon pButtonIcon icon="rotate" /></button>
           @if (r.m.status === 'ACTIVE') {
-            <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (onClick)="cancel(r.m)"><fa-icon icon="ban" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="cancel(r.m)"><fa-icon pButtonIcon icon="ban" /></button>
           }
           @if (r.clientStatus === 'BANNED') {
-            <p-button [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (onClick)="unban(r.m.clientId)"><fa-icon icon="user-check" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (click)="unban(r.m.clientId)"><fa-icon pButtonIcon icon="user-check" /></button>
           } @else {
-            <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (onClick)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (click)="ban(r.m.clientId)"><fa-icon pButtonIcon icon="user-slash" /></button>
           }
           }
         </td>
@@ -106,7 +106,7 @@
       <label>{{ 'Promo code' | t }}</label>
       <div class="flex gap-2">
         <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="form.promo" [disabled]="!form.planId" />
-        <p-button [label]="'Apply' | t" [outlined]="true" (onClick)="applyPromo()" [disabled]="!form.planId || !form.promo" />
+        <button pButton type="button" [outlined]="true" (click)="applyPromo()" [disabled]="!form.planId || !form.promo"><span pButtonLabel>{{ 'Apply' | t }}</span></button>
       </div>
       @if (promoResult(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
     </div>
@@ -123,8 +123,8 @@
     @if (limitReached()) { <p-message severity="warn">{{ 'Client limit of your plan reached — upgrade in Billing.' | t }}</p-message> }
   </div>
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="visible = false" />
-    <p-button [label]="'Subscribe' | t" (onClick)="submit()" [disabled]="!form.planId || limitReached() || pickedBanned()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="submit()" [disabled]="!form.planId || limitReached() || pickedBanned()"><span pButtonLabel>{{ 'Subscribe' | t }}</span></button>
   </ng-template>
 </p-dialog>
 
@@ -161,7 +161,7 @@
         <label>{{ 'Promo code' | t }}</label>
         <div class="flex gap-2">
           <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="renewForm.promo" />
-          <p-button [label]="'Apply' | t" [outlined]="true" (onClick)="applyRenewPromo()" [disabled]="!renewForm.promo" />
+          <button pButton type="button" [outlined]="true" (click)="applyRenewPromo()" [disabled]="!renewForm.promo"><span pButtonLabel>{{ 'Apply' | t }}</span></button>
         </div>
         @if (renewPromo(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
       </div>
@@ -179,8 +179,8 @@
     </div>
   }
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="renewing.set(null)" />
-    <p-button [label]="'Renew' | t" (onClick)="confirmRenew()" [disabled]="!renewForm.planId" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="renewing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="confirmRenew()" [disabled]="!renewForm.planId"><span pButtonLabel>{{ 'Renew' | t }}</span></button>
   </ng-template>
 </p-dialog>
 
@@ -196,8 +196,8 @@
     </div>
   }
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="banning.set(null)" />
-    <p-button [label]="'Ban client' | t" severity="danger" (onClick)="confirmBan()" [disabled]="!banReason.trim()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="banning.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" severity="danger" (click)="confirmBan()" [disabled]="!banReason.trim()"><span pButtonLabel>{{ 'Ban client' | t }}</span></button>
   </ng-template>
 </p-dialog>
 
@@ -213,7 +213,7 @@
     </div>
   }
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="freezing.set(null)" />
-    <p-button [label]="'Freeze' | t" (onClick)="confirmFreeze()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="confirmFreeze()"><span pButtonLabel>{{ 'Freeze' | t }}</span></button>
   </ng-template>
 </p-dialog>

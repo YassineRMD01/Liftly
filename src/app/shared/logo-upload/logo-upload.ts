@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
 import { extractLogoColors, resizeImage } from '../../core/logo';
 import { GymTheme } from '../../core/models';
@@ -14,7 +14,7 @@ import { GymLogo } from '../gym-logo/gym-logo';
  */
 @Component({
   selector: 'app-logo-upload',
-  imports: [TranslatePipe, FaIconComponent, Button, GymLogo],
+  imports: [TranslatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, GymLogo],
   templateUrl: './logo-upload.html',
   styleUrl: './logo-upload.css',
 })

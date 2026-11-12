@@ -1,6 +1,6 @@
 import { CohortTable } from '../../../shared/cohort-table/cohort-table';
 import { MessageService } from 'primeng/api';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { lastMonths } from '../../../core/stats';
@@ -17,7 +17,7 @@ import { statusSeverity } from '../sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-sa-dashboard',
-  imports: [ChartCard, CohortTable, TranslatePipe, DatePipe, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard],
+  imports: [ChartCard, CohortTable, TranslatePipe, DatePipe, ButtonDirective, ButtonLabel, ProgressBar, TableModule, Tag, PageHeader, StatCard],
   templateUrl: './sa-dashboard.html',
   styleUrl: './sa-dashboard.css',
 })

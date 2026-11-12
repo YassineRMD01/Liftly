@@ -88,7 +88,7 @@
         }
 
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <p-button type="submit" [label]="role() === 'ADMIN' ? ('Start 14-day free trial' | t) : ('Create account' | t)" styleClass="w-full" />
+        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ role() === 'ADMIN' ? ('Start 14-day free trial' | t) : ('Create account' | t) }}</span></button>
       </form>
 
       @if (role() === 'ADMIN' && selectedPlan(); as p) {

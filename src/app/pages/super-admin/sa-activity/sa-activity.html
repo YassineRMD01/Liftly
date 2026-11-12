@@ -1,5 +1,5 @@
 <app-page-header [title]="'Activity log' | t" [subtitle]="'Every important change on the platform: who did it, when, and in which gym.' | t">
-  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="export()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
 </app-page-header>
 
 <div class="card">
@@ -24,6 +24,6 @@
     } @empty { <p class="text-center muted py-10">{{ 'No activity found.' | t }}</p> }
   </div>
   @if (filtered().length > shown().length) {
-    <div class="text-center mt-3"><p-button [label]="'Show more' | t" [text]="true" (onClick)="limit.set(limit() + 50)" /></div>
+    <div class="text-center mt-3"><button pButton type="button" [text]="true" (click)="limit.set(limit() + 50)"><span pButtonLabel>{{ 'Show more' | t }}</span></button></div>
   }
 </div>

@@ -1,5 +1,5 @@
 <app-page-header [title]="'Membership plans' | t" [subtitle]="'Subscriptions your clients can buy.' | t">
-  <p-button [label]="'New plan' | t" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+  <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New plan' | t }}</span></button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -18,8 +18,8 @@
         <span><fa-icon icon="users" class="text-primary" /> {{ subscribers(p.id) }} {{ 'subscribers' | t }}</span>
       </div>
       <div class="flex gap-2 mt-5">
-        <p-button [label]="'Edit' | t" size="small" [outlined]="true" (onClick)="edit(p)" />
-        <p-button [label]="'Delete' | t" size="small" severity="danger" [text]="true" (onClick)="remove(p)" />
+        <button pButton type="button" size="small" [outlined]="true" (click)="edit(p)"><span pButtonLabel>{{ 'Edit' | t }}</span></button>
+        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="remove(p)"><span pButtonLabel>{{ 'Delete' | t }}</span></button>
       </div>
     </div>
   } @empty {
@@ -53,7 +53,7 @@
     </div>
   </div>
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="visible = false" />
-    <p-button [label]="'Save' | t" (onClick)="save()" [disabled]="!draft().name || !draft().durationDays" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().name || !draft().durationDays"><span pButtonLabel>{{ 'Save' | t }}</span></button>
   </ng-template>
 </p-dialog>

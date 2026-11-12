@@ -1,5 +1,5 @@
 <app-page-header [title]="('Hi coach ' | t) + auth.user()?.firstName" [subtitle]="'Your gyms, your athletes, your reputation.' | t">
-  <p-button [label]="'Edit profile' | t" [outlined]="true" routerLink="/coach/profile" />
+  <button pButton type="button" [outlined]="true" routerLink="/coach/profile"><span pButtonLabel>{{ 'Edit profile' | t }}</span></button>
 </app-page-header>
 
 <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -7,7 +7,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { downloadCsv } from '../../../core/csv';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -25,7 +25,7 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })

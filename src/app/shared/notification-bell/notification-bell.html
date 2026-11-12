@@ -18,10 +18,8 @@
     </div>
   </div>
 </p-popover>
-<p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="pop.toggle($event)" [ariaLabel]="'Notifications' | t">
-  @if (unread()) {
+<button pButton type="button" [text]="true" [rounded]="true" severity="secondary" (click)="pop.toggle($event)" [attr.aria-label]="'Notifications' | t"><span pButtonLabel>@if (unread()) {
     <p-overlaybadge [value]="unread()" severity="danger" badgeSize="small"><fa-icon icon="bell" /></p-overlaybadge>
   } @else {
     <fa-icon icon="bell" />
-  }
-</p-button>
+  }</span></button>

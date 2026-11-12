@@ -20,7 +20,7 @@
           </td>
           <td class="text-xs muted whitespace-nowrap">{{ usageLabel(c.code) }}</td>
           <td><p-toggleswitch [ngModel]="c.active" (ngModelChange)="toggleCurrency(c, $event)" [disabled]="c.code === 'USD'" /></td>
-          <td><p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteCurrency(c)" [pTooltip]="'Delete' | t" [disabled]="c.code === 'USD'"><fa-icon icon="trash" /></p-button></td>
+          <td><button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="deleteCurrency(c)" [pTooltip]="'Delete' | t" [disabled]="c.code === 'USD'"><fa-icon pButtonIcon icon="trash" /></button></td>
         </tr>
       </ng-template>
     </p-table>
@@ -33,7 +33,7 @@
         <label class="!text-xs">{{ '1 unit =' | t }}</label>
         <p-inputnumber [(ngModel)]="newRate" [minFractionDigits]="2" [maxFractionDigits]="6" [min]="0" suffix=" USD" inputStyleClass="w-32" />
       </div>
-      <p-button [label]="'Add' | t" (onClick)="addCurrency()" [disabled]="!newCurrency() || !(newRate > 0)" />
+      <button pButton type="button" (click)="addCurrency()" [disabled]="!newCurrency() || !(newRate > 0)"><span pButtonLabel>{{ 'Add' | t }}</span></button>
     </div>
   </section>
 
@@ -54,7 +54,7 @@
           <td><p-inputnumber [ngModel]="c.vatRate ?? 0" (ngModelChange)="setVat(c, $event)" [min]="0" [max]="40" [maxFractionDigits]="1" suffix=" %" size="small" inputStyleClass="w-20" [attr.data-testid]="'vat-' + c.code" /></td>
           <td>{{ gymsIn(c.code) }}</td>
           <td><p-toggleswitch [ngModel]="c.active" (ngModelChange)="toggleCountry(c, $event)" /></td>
-          <td><p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteCountry(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></p-button></td>
+          <td><button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="deleteCountry(c)" [pTooltip]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button></td>
         </tr>
       </ng-template>
     </p-table>
@@ -67,7 +67,7 @@
         <label class="!text-xs">{{ 'Currency' | t }}</label>
         <p-select [options]="currencyOptions()" optionLabel="code" optionValue="code" [(ngModel)]="newCountryCurrency" [filter]="true" filterBy="label,code" styleClass="w-28" appendTo="body" />
       </div>
-      <p-button [label]="'Add' | t" (onClick)="addCountry()" [disabled]="!newCountry() || !newCountryCurrency" />
+      <button pButton type="button" (click)="addCountry()" [disabled]="!newCountry() || !newCountryCurrency"><span pButtonLabel>{{ 'Add' | t }}</span></button>
     </div>
   </section>
 </div>

@@ -23,7 +23,7 @@
           <h3 class="text-sm font-semibold mb-2">{{ day.date | date: 'EEEE d MMMM' }}</h3>
           <div class="flex flex-wrap gap-2">
             @for (s of day.slots; track s.start) {
-              <p-button size="small" [outlined]="slot()?.start !== s.start" (onClick)="slot.set(s)"><span dir="ltr">{{ s.start }}–{{ s.end }}</span></p-button>
+              <button pButton type="button" size="small" [outlined]="slot()?.start !== s.start" (click)="slot.set(s)"><span pButtonLabel><span dir="ltr">{{ s.start }}–{{ s.end }}</span></span></button>
             }
           </div>
         </div>
@@ -31,7 +31,7 @@
           <div class="flex flex-wrap gap-2 items-center pt-2 border-t border-surface-200 dark:border-surface-800">
             <input pInputText class="flex-1 min-w-48" [(ngModel)]="note" [placeholder]="'What do you want to work on? (optional)' | t" />
             <span class="font-semibold">{{ price() | money: profile()?.currency ?? 'USD' }}</span>
-            <p-button [label]="'Request session' | t" (onClick)="request()" />
+            <button pButton type="button" (click)="request()"><span pButtonLabel>{{ 'Request session' | t }}</span></button>
           </div>
           <p class="text-xs muted">{{ 'Paid to the coach or the gym on the day — no online payment.' | t }}</p>
         }
@@ -51,7 +51,7 @@
           <div class="py-2 flex items-center gap-2" data-testid="my-session">
             <div class="flex-1 text-sm"><div class="font-medium">{{ store.fullName(s.coachId) }}</div><div class="text-xs muted">{{ s.date | date: 'EEE d MMM' }} · <span dir="ltr">{{ s.start }}</span></div></div>
             <p-tag [value]="s.status | t" [severity]="sev[s.status]" />
-            <p-button [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="cancel(s)"><fa-icon icon="xmark" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="cancel(s)"><fa-icon pButtonIcon icon="xmark" /></button>
           </div>
         } @empty { <p class="text-sm muted py-2">{{ 'No upcoming sessions.' | t }}</p> }
       </div>

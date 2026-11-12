@@ -2,7 +2,7 @@ import { Component, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { TranslatePipe } from '../../core/i18n/i18n';
@@ -18,7 +18,7 @@ export const SPORT_ICONS = [
 /** Create / edit a sport (name + icon). Used by the gym Sports page and the super-admin catalog. */
 @Component({
   selector: 'app-sport-dialog',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, Button, Dialog, InputText],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonLabel, Dialog, InputText],
   templateUrl: './sport-dialog.html',
   styleUrl: './sport-dialog.css',
 })

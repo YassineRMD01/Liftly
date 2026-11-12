@@ -36,13 +36,13 @@
         </div>
         <div class="flex flex-wrap gap-2">
           @if (r.status === 'OPEN') {
-            <p-button [label]="'Resolve' | t" size="small" severity="success" (onClick)="handle(r, 'RESOLVED')" />
-            <p-button [label]="'Dismiss' | t" size="small" severity="secondary" [outlined]="true" (onClick)="handle(r, 'DISMISSED')" />
+            <button pButton type="button" size="small" severity="success" (click)="handle(r, 'RESOLVED')"><span pButtonLabel>{{ 'Resolve' | t }}</span></button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="handle(r, 'DISMISSED')"><span pButtonLabel>{{ 'Dismiss' | t }}</span></button>
             @if (coachWorksAt(r)) {
-              <p-button [label]="'Remove coach' | t" size="small" severity="danger" [text]="true" (onClick)="removeCoach(r)" />
+              <button pButton type="button" size="small" severity="danger" [text]="true" (click)="removeCoach(r)"><span pButtonLabel>{{ 'Remove coach' | t }}</span></button>
             }
           } @else {
-            <p-button [label]="'Reopen' | t" size="small" [text]="true" (onClick)="reopen(r)" />
+            <button pButton type="button" size="small" [text]="true" (click)="reopen(r)"><span pButtonLabel>{{ 'Reopen' | t }}</span></button>
           }
         </div>
       </div>
@@ -61,7 +61,7 @@
     <textarea pTextarea id="resolution-note" rows="4" [(ngModel)]="note" [placeholder]="'What was done? e.g. Talked with the coach' | t"></textarea>
   </div>
   <ng-template #footer>
-    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="handling.set(null)" />
-    <p-button [label]="'Confirm' | t" (onClick)="confirmHandle()" />
+    <button pButton type="button" [text]="true" severity="secondary" (click)="handling.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+    <button pButton type="button" (click)="confirmHandle()"><span pButtonLabel>{{ 'Confirm' | t }}</span></button>
   </ng-template>
 </p-dialog>

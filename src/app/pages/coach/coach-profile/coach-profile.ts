@@ -2,7 +2,7 @@ import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
@@ -17,7 +17,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-coach-profile',
-  imports: [TranslatePipe, FormsModule, Button, InputNumber, InputText, Textarea, SelectButton, Select, CoachCard, PageHeader],
+  imports: [TranslatePipe, FormsModule, ButtonDirective, ButtonLabel, InputNumber, InputText, Textarea, SelectButton, Select, CoachCard, PageHeader],
   templateUrl: './coach-profile.html',
   styleUrl: './coach-profile.css',
 })

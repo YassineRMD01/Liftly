@@ -143,5 +143,16 @@ and replace `AuthService.login` with your JWT flow. Payment in sign-up/billing i
 `ThemeService` builds a 50–950 palette from the gym's hex color and calls PrimeNG `updatePrimaryPalette`.
 `tailwindcss-primeui` maps the palette to Tailwind classes (`bg-primary`, `text-primary-600`…), so PrimeNG components and Tailwind utilities change color together.
 
+### Buttons (PrimeNG 22)
+Buttons use the `pButton` directive on native elements, not the `<p-button>` component, and `(click)`, not `(onClick)`. The icon and label are content marked with `pButtonIcon` / `pButtonLabel`. Use `iconOnly` for icon-only buttons and `type="button"` unless it submits a form. Links and file-upload labels use the same directive (`<a pButton routerLink=…>`, `<label pButton>`).
+
+```html
+<button pButton type="button" severity="secondary" [outlined]="true" (click)="save()">
+  <fa-icon pButtonIcon icon="check" /><span pButtonLabel>{{ 'Save' | t }}</span>
+</button>
+<button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="remove()"><fa-icon pButtonIcon icon="trash" /></button>
+```
+Import `ButtonDirective` (plus `ButtonIcon` / `ButtonLabel` when used) from `primeng/button`.
+
 ### Icons
 Font Awesome icons are registered in `core/icons.ts` (tree-shaken). Add new ones there before using `<fa-icon icon="name" />`.

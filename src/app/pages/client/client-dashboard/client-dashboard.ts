@@ -5,7 +5,7 @@ import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { ProgressBar } from 'primeng/progressbar';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../../core/auth.service';
@@ -25,7 +25,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
+  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })

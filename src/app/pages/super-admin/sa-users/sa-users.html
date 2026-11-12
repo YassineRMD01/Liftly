@@ -1,6 +1,6 @@
 <app-page-header [title]="'Users' | t" [subtitle]="'Everyone on the platform.' | t">
-  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="exportCsv()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
-  <p-button [label]="'Reset demo data' | t" severity="secondary" [outlined]="true" (onClick)="reset()" />
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="reset()"><span pButtonLabel>{{ 'Reset demo data' | t }}</span></button>
 </app-page-header>
 <div class="card">
   <div class="flex flex-col md:flex-row gap-3 mb-4">
@@ -25,7 +25,7 @@
         <td><p-toggleswitch [ngModel]="u.active" (ngModelChange)="toggle(u, $event)" [disabled]="u.role === 'SUPER_ADMIN'" /></td>
         <td>
           @if (u.role !== 'SUPER_ADMIN') {
-            <p-button [text]="true" [rounded]="true" [pTooltip]="'Impersonate' | t" (onClick)="auth.loginAs(u)"><fa-icon icon="user-secret" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Impersonate' | t" (click)="auth.loginAs(u)"><fa-icon pButtonIcon icon="user-secret" /></button>
           }
         </td>
       </tr>

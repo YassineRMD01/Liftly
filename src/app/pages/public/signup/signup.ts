@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -22,7 +22,7 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-signup',
-  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
+  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonLabel, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../../core/auth.service';
@@ -20,7 +20,7 @@ export const LEVEL_LABEL: Record<GymClass['level'], string> = {
 /** Member: book classes at their gyms (next 7 days), join waitlists, cancel. */
 @Component({
   selector: 'app-client-classes',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, SelectButton, Tag, AudienceTag, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonLabel, SelectButton, Tag, AudienceTag, PageHeader],
   templateUrl: './client-classes.html',
   styleUrl: './client-classes.css',
 })

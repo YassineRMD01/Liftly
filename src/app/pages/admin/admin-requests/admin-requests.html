@@ -1,5 +1,5 @@
 <app-page-header [title]="'Join requests' | t" [subtitle]="'People who asked to join from your public page. Contact them, then convert the request into a member account.' | t">
-  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="export()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
 </app-page-header>
 
 <div class="card flex flex-wrap items-center gap-3 mb-6 text-sm">
@@ -24,12 +24,12 @@
         @if (r.message) { <p class="text-sm mt-2 p-3 rounded-xl bg-surface-50 dark:bg-surface-800">{{ r.message }}</p> }
       </div>
       <div class="flex flex-wrap gap-2">
-        @if (r.status === 'NEW') { <p-button [label]="'Mark contacted' | t" size="small" severity="secondary" [outlined]="true" (onClick)="set(r, 'CONTACTED')" /> }
+        @if (r.status === 'NEW') { <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="set(r, 'CONTACTED')"><span pButtonLabel>{{ 'Mark contacted' | t }}</span></button> }
         @if (r.status === 'NEW' || r.status === 'CONTACTED') {
-          <p-button [label]="'Create member' | t" size="small" (onClick)="convert(r)"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
-          <p-button [text]="true" [rounded]="true" severity="danger" size="small" [pTooltip]="'Decline' | t" (onClick)="set(r, 'DECLINED')"><fa-icon icon="xmark" /></p-button>
+          <button pButton type="button" size="small" (click)="convert(r)"><fa-icon pButtonIcon icon="user-plus" /><span pButtonLabel>{{ 'Create member' | t }}</span></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" size="small" [pTooltip]="'Decline' | t" (click)="set(r, 'DECLINED')"><fa-icon pButtonIcon icon="xmark" /></button>
         }
-        @if (r.status === 'CONVERTED') { <a routerLink="/admin/clients"><p-button [label]="'Add membership' | t" size="small" [outlined]="true" /></a> }
+        @if (r.status === 'CONVERTED') { <a pButton routerLink="/admin/clients" size="small" [outlined]="true"><span pButtonLabel>{{ 'Add membership' | t }}</span></a> }
       </div>
     </div>
   } @empty { <div class="card text-center py-12 muted">{{ 'No requests to handle.' | t }}</div> }

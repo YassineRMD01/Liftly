@@ -1,6 +1,6 @@
 <app-page-header [title]="'Platform settings' | t" [subtitle]="'Theme of the public site, default country and the shared sport catalog.' | t">
-  <p-button [label]="'Reset' | t" severity="secondary" [outlined]="true" (onClick)="reset()" [disabled]="!dirty()" />
-  <p-button [label]="'Save changes' | t" (onClick)="save()" [disabled]="!dirty()" />
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="reset()" [disabled]="!dirty()"><span pButtonLabel>{{ 'Reset' | t }}</span></button>
+  <button pButton type="button" (click)="save()" [disabled]="!dirty()"><span pButtonLabel>{{ 'Save changes' | t }}</span></button>
 </app-page-header>
 
 <div class="grid lg:grid-cols-5 gap-6">
@@ -63,7 +63,7 @@
           <h2 class="font-semibold">{{ 'Sport catalog' | t }}</h2>
           <p class="text-sm muted">{{ 'Sports every gym can pick. Gyms can also create their own.' | t }}</p>
         </div>
-        <p-button [label]="'New sport' | t" size="small" (onClick)="newSport()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+        <button pButton type="button" size="small" (click)="newSport()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New sport' | t }}</span></button>
       </div>
       <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
         @for (s of catalog(); track s.id) {
@@ -73,8 +73,8 @@
               <div class="text-sm font-medium truncate">{{ store.sportName(s.id) }}</div>
               <div class="text-xs muted">{{ usage(s) }} {{ 'gyms' | t }}</div>
             </div>
-            <p-button [text]="true" [rounded]="true" size="small" (onClick)="editSport(s)" [ariaLabel]="'Edit' | t"><fa-icon icon="pen" /></p-button>
-            <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteSport(s)" [ariaLabel]="'Delete' | t"><fa-icon icon="trash" /></p-button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="editSport(s)" [attr.aria-label]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="deleteSport(s)" [attr.aria-label]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
           </div>
         }
       </div>

@@ -12,7 +12,7 @@
         <div class="field"><label for="p1">{{ 'Password' | t }}</label><p-password inputId="p1" name="p1" [(ngModel)]="password" [toggleMask]="true" [feedback]="true" styleClass="w-full" inputStyleClass="w-full" /></div>
         <div class="field"><label for="p2">{{ 'Confirm password' | t }}</label><p-password inputId="p2" name="p2" [(ngModel)]="confirm" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
         @if (error) { <p-message severity="error">{{ error }}</p-message> }
-        <p-button type="submit" [label]="'Activate my account' | t" styleClass="w-full" />
+        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ 'Activate my account' | t }}</span></button>
       </form>
     } @else {
       <div class="text-center space-y-3 py-6">

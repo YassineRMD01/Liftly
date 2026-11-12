@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
@@ -27,7 +27,7 @@ import { LEVEL_LABEL } from '../../client/client-classes/client-classes';
 /** Gym classes: upcoming occurrences with rosters, and the weekly timetable (admins only). */
 @Component({
   selector: 'app-admin-classes',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, Dialog, InputNumber, InputText, Message, Select, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, AudienceTag, ClassRoster, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputNumber, InputText, Message, Select, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, AudienceTag, ClassRoster, PageHeader],
   templateUrl: './admin-classes.html',
   styleUrl: './admin-classes.css',
 })

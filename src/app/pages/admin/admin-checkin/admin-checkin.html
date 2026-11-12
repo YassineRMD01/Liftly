@@ -14,12 +14,12 @@
         <div class="absolute inset-[18%] border-4 border-white/80 rounded-2xl pointer-events-none"></div>
       </div>
       @if (scanning()) {
-        <p-button [label]="'Stop camera' | t" severity="secondary" [outlined]="true" (onClick)="stopCamera()" styleClass="w-full" />
+        <button pButton type="button" severity="secondary" [outlined]="true" (click)="stopCamera()" class="w-full"><span pButtonLabel>{{ 'Stop camera' | t }}</span></button>
       } @else {
-        <p-button [label]="'Start camera' | t" (onClick)="startCamera()" styleClass="w-full"><ng-template #icon><fa-icon icon="camera" /></ng-template></p-button>
+        <button pButton type="button" (click)="startCamera()" class="w-full"><fa-icon pButtonIcon icon="camera" /><span pButtonLabel>{{ 'Start camera' | t }}</span></button>
       }
-      <label class="p-button p-button-outlined p-button-secondary w-full justify-center cursor-pointer !text-sm">
-        <fa-icon icon="image" class="me-2" />{{ 'Scan a photo' | t }}
+      <label pButton [outlined]="true" severity="secondary" [fluid]="true" class="cursor-pointer">
+        <fa-icon pButtonIcon icon="image" /><span pButtonLabel>{{ 'Scan a photo' | t }}</span>
         <input type="file" accept="image/*" capture="environment" class="hidden" (change)="scanPhoto($event)" data-testid="scan-photo" />
       </label>
       @if (cameraError()) { <p class="text-sm text-red-600 dark:text-red-400">{{ cameraError() }}</p> }
@@ -30,7 +30,7 @@
       @for (c of matches(); track c.id) {
         <div class="flex items-center gap-3 py-1">
           <span class="flex-1"><span class="font-medium">{{ c.firstName }} {{ c.lastName }}</span><span class="block text-xs muted">{{ c.email }}</span></span>
-          <p-button [label]="'Check in' | t" size="small" (onClick)="manual(c.id)" />
+          <button pButton type="button" size="small" (click)="manual(c.id)"><span pButtonLabel>{{ 'Check in' | t }}</span></button>
         </div>
       }
     </div>

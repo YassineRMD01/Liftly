@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -30,7 +30,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })

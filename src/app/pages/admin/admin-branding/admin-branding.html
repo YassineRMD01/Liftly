@@ -1,6 +1,6 @@
 <app-page-header [title]="'Branding' | t" [subtitle]="'Make the app look like your gym — your members and coaches will see it too.' | t">
-  <p-button [label]="'Reset' | t" severity="secondary" [outlined]="true" (onClick)="load()" />
-  <p-button [label]="'Save changes' | t" (onClick)="save()" />
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()"><span pButtonLabel>{{ 'Reset' | t }}</span></button>
+  <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save changes' | t }}</span></button>
 </app-page-header>
 
 @if (!allowed()) {
@@ -108,8 +108,8 @@
             <div class="text-2xl font-bold text-primary">{{ 49 | money: draft.currency }}</div>
           </div>
           <div class="flex gap-2">
-            <p-button [label]="'Join now' | t" styleClass="flex-1" class="flex-1" />
-            <p-button [outlined]="true"><fa-icon icon="heart" /></p-button>
+            <button pButton type="button" class="flex-1 flex-1"><span pButtonLabel>{{ 'Join now' | t }}</span></button>
+            <button pButton type="button" iconOnly [outlined]="true"><fa-icon pButtonIcon icon="heart" /></button>
           </div>
         </div>
       </div>

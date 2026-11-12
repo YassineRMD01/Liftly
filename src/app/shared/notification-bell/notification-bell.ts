@@ -2,7 +2,7 @@ import { Component, computed, effect, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { Button } from 'primeng/button';
+import { ButtonDirective, ButtonLabel } from 'primeng/button';
 import { OverlayBadge } from 'primeng/overlaybadge';
 import { Popover } from 'primeng/popover';
 import { AuthService } from '../../core/auth.service';
@@ -13,7 +13,7 @@ import { StoreService } from '../../core/store.service';
 /** Header bell: the user's in-app notifications (waitlist places, reminders, messages…). */
 @Component({
   selector: 'app-notification-bell',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, Button, OverlayBadge, Popover],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, ButtonLabel, OverlayBadge, Popover],
   templateUrl: './notification-bell.html',
   styleUrl: './notification-bell.css',
 })

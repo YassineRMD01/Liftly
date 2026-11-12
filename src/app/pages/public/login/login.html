@@ -24,7 +24,7 @@
           <p-password inputId="pwd" name="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
         </div>
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <p-button type="submit" [label]="'Sign in' | t" styleClass="w-full" />
+        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ 'Sign in' | t }}</span></button>
       </form>
 
       <div class="mt-8">

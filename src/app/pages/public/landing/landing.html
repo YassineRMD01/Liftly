@@ -13,10 +13,10 @@
     <app-language-switcher />
     <app-appearance-switcher />
     @if (auth.user(); as u) {
-      <p-button [label]="'Open dashboard' | t" [routerLink]="home()" />
+      <button pButton type="button" [routerLink]="home()"><span pButtonLabel>{{ 'Open dashboard' | t }}</span></button>
     } @else {
-      <p-button [label]="'Sign in' | t" [text]="true" routerLink="/login" />
-      <p-button [label]="'Start free trial' | t" routerLink="/signup" class="hidden sm:inline-flex" />
+      <button pButton type="button" [text]="true" routerLink="/login"><span pButtonLabel>{{ 'Sign in' | t }}</span></button>
+      <button pButton type="button" routerLink="/signup" class="hidden sm:inline-flex"><span pButtonLabel>{{ 'Start free trial' | t }}</span></button>
     }
   </div>
 </header>
@@ -34,10 +34,8 @@
         {{ 'Memberships, promo codes, coaches with star ratings and your own brand colors — one platform for owners, coaches and members.' | t }}
       </p>
       <div class="flex flex-wrap gap-3 mt-8">
-        <p-button [label]="'Start 14-day free trial' | t" size="large" routerLink="/signup">
-          <ng-template #icon><fa-icon icon="rocket" /></ng-template>
-        </p-button>
-        <p-button [label]="'Try the demo' | t" size="large" severity="secondary" [outlined]="true" routerLink="/login" />
+        <button pButton type="button" size="large" routerLink="/signup"><fa-icon pButtonIcon icon="rocket" /><span pButtonLabel>{{ 'Start 14-day free trial' | t }}</span></button>
+        <button pButton type="button" size="large" severity="secondary" [outlined]="true" routerLink="/login"><span pButtonLabel>{{ 'Try the demo' | t }}</span></button>
       </div>
     </div>
     <div class="grid grid-cols-2 gap-4">
@@ -101,8 +99,7 @@
             <li class="flex gap-2"><fa-icon icon="check" class="text-primary w-4" />{{ f }}</li>
           }
         </ul>
-        <p-button class="mt-6" styleClass="w-full" [label]="('Choose ' | t) + p.name" [outlined]="!p.highlighted"
-          routerLink="/signup" [queryParams]="{ plan: p.id, cycle: cycle() }" />
+        <button pButton type="button" [outlined]="!p.highlighted" routerLink="/signup" [queryParams]="{ plan: p.id, cycle: cycle() }" class="mt-6 w-full"><span pButtonLabel>{{ ('Choose ' | t) + p.name }}</span></button>
       </div>
     }
   </div>
