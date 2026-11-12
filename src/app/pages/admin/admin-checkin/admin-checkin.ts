@@ -65,20 +65,42 @@ export class AdminCheckin implements OnDestroy {
       .map((b) => this.store.gymClass(b.classId)).filter((c) => !!c);
   });
 
+  /** Camera access only works on https:// or localhost. */
+  protected readonly secure = typeof window !== 'undefined' && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+
   async startCamera() {
     this.cameraError.set('');
+    if (!this.secure) {
+      this.cameraError.set(t('The camera only works on a secure page (https:// or localhost). Use "Scan a photo" or search the member by name.'));
+      return;
+    }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      } catch (e) {
+        // some laptops reject the facing-mode hint: retry with any camera
+        if ((e as DOMException).name !== 'OverconstrainedError') throw e;
+        this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+      // the <video> is always in the page (hidden until scanning), so it can be attached right away
+      const v = this.video()?.nativeElement;
+      if (!v) throw new Error('no video element');
+      v.srcObject = this.stream;
+      v.setAttribute('playsinline', 'true');
+      v.muted = true;
+      await v.play();
       this.scanning.set(true);
-      queueMicrotask(() => {
-        const v = this.video()?.nativeElement;
-        if (!v || !this.stream) return;
-        v.srcObject = this.stream;
-        v.play().catch(() => undefined);
-        this.timer = setInterval(() => this.scanFrame(v), 300);
-      });
-    } catch {
-      this.cameraError.set(t('Camera not available. Allow camera access or search the member by name.'));
+      clearInterval(this.timer);
+      this.timer = setInterval(() => this.scanFrame(v), 250);
+    } catch (e) {
+      this.stopCamera();
+      const name = (e as DOMException)?.name;
+      this.cameraError.set(
+        name === 'NotAllowedError' ? t('Camera access was blocked. Allow the camera in your browser settings (icon in the address bar), then try again.')
+          : name === 'NotFoundError' ? t('No camera found on this device. Use "Scan a photo" or search the member by name.')
+            : name === 'NotReadableError' ? t('The camera is used by another app. Close it and try again.')
+              : t('Camera not available. Allow camera access or search the member by name.'),
+      );
     }
   }
 
@@ -86,7 +108,31 @@ export class AdminCheckin implements OnDestroy {
     clearInterval(this.timer);
     this.stream?.getTracks().forEach((tr) => tr.stop());
     this.stream = undefined;
+    const v = this.video()?.nativeElement;
+    if (v) v.srcObject = null;
     this.scanning.set(false);
+  }
+
+  /** Fallback without live camera: decode a photo of the QR card (phones open the camera for it). */
+  async scanPhoto(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.cameraError.set('');
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));
+      const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+      this.canvas.width = w; this.canvas.height = h;
+      const ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
+      ctx.drawImage(bmp, 0, 0, w, h);
+      const code = jsQR(ctx.getImageData(0, 0, w, h).data, w, h);
+      if (code?.data) { this.lastScan = { text: '', at: 0 }; this.onScan(code.data); }
+      else this.cameraError.set(t('No QR code found in the photo. Try again closer and without glare.'));
+    } catch {
+      this.cameraError.set(t('No QR code found in the photo. Try again closer and without glare.'));
+    }
   }
 
   private canvas = document.createElement('canvas');

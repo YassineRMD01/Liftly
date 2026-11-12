@@ -9,15 +9,19 @@
   <div class="space-y-4">
     <div class="card space-y-3">
       <h2 class="font-semibold flex items-center gap-2"><fa-icon icon="qrcode" /> {{ 'Scan QR card' | t }}</h2>
+      <div class="relative rounded-xl overflow-hidden bg-black aspect-video" [class.hidden]="!scanning()">
+        <video #video class="w-full h-full object-cover" autoplay playsinline muted data-testid="camera-video"></video>
+        <div class="absolute inset-[18%] border-4 border-white/80 rounded-2xl pointer-events-none"></div>
+      </div>
       @if (scanning()) {
-        <div class="relative rounded-xl overflow-hidden bg-black aspect-video">
-          <video #video class="w-full h-full object-cover" playsinline muted></video>
-          <div class="absolute inset-[18%] border-4 border-white/80 rounded-2xl pointer-events-none"></div>
-        </div>
         <p-button [label]="'Stop camera' | t" severity="secondary" [outlined]="true" (onClick)="stopCamera()" styleClass="w-full" />
       } @else {
         <p-button [label]="'Start camera' | t" (onClick)="startCamera()" styleClass="w-full"><ng-template #icon><fa-icon icon="camera" /></ng-template></p-button>
       }
+      <label class="p-button p-button-outlined p-button-secondary w-full justify-center cursor-pointer !text-sm">
+        <fa-icon icon="image" class="me-2" />{{ 'Scan a photo' | t }}
+        <input type="file" accept="image/*" capture="environment" class="hidden" (change)="scanPhoto($event)" data-testid="scan-photo" />
+      </label>
       @if (cameraError()) { <p class="text-sm text-red-600 dark:text-red-400">{{ cameraError() }}</p> }
     </div>
     <div class="card space-y-3">
