@@ -15,6 +15,8 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 - Gyms have a **country**. Each SaaS plan has a USD price plus optional **local prices per country** (in that country's currency); the pricing page, sign-up and billing show the price for the gym's country. MRR is converted to USD with the super-admin's exchange rates.
 - The super-admin manages **currencies** (active, rate to USD) and **countries** (default currency, active).
 - **Themes:** each gym has its own theme (Branding); the public site (home, pricing, login) and users outside a gym use the **platform theme** set by the super-admin in Settings.
+- **Logos:** gym admins upload a logo (PNG, JPG, SVG, WebP), resized in the browser to 256 px and stored with the theme. Its main colors are extracted (`core/logo.ts`): the strongest becomes the theme color and the others are offered as swatches; any color can still be picked. Gyms without a logo show their initials (`shared/gym-logo`).
+- **Light / dark:** every theme has an appearance — *Auto (system)*, *Light* or *Dark* — chosen by the gym admin (Branding) or the super-admin (public site). Auto follows the visitor's OS setting and updates live. Each user can override it from the header menu (Auto / Light / Dark), stored in `localStorage` (`liftly-appearance`).
 
 ### Sports, bans, reports & reviews
 - `Sport` is a model: platform **catalog** sports (managed by the super-admin) and **custom** sports created by a gym; gyms reference sports by id (`Gym.sportIds`, `ScheduleSlot.sportId`).

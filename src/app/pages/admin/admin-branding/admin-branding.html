@@ -11,6 +11,44 @@
 
 <div class="grid lg:grid-cols-5 gap-6">
   <div class="lg:col-span-3 space-y-6">
+    <!-- logo -->
+    <div class="card space-y-4">
+      <div>
+        <h2 class="font-semibold">{{ 'Logo' | t }}</h2>
+        <p class="text-sm muted">{{ 'Upload your logo — the theme color is matched to it automatically.' | t }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <app-gym-logo [theme]="draftTheme()" [name]="draft.name" [size]="80" />
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-wrap gap-2">
+            <label class="p-button p-component p-button-sm cursor-pointer inline-flex items-center gap-2" [class.opacity-60]="uploading()">
+              <fa-icon icon="upload" />
+              <span>{{ (logoUrl() ? 'Change logo' : 'Upload logo') | t }}</span>
+              <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="sr-only" (change)="onLogoFile($event)" [disabled]="uploading()" />
+            </label>
+            @if (logoUrl()) {
+              <p-button [label]="'Remove' | t" size="small" severity="danger" [text]="true" (onClick)="removeLogo()"><ng-template #icon><fa-icon icon="trash" /></ng-template></p-button>
+            }
+          </div>
+          <small class="muted">{{ 'PNG, JPG, SVG or WebP · square works best · resized to 256 px' | t }}</small>
+        </div>
+      </div>
+      @if (logoColors().length) {
+        <div>
+          <div class="text-sm font-medium mb-2">{{ 'Colors from your logo' | t }}</div>
+          <div class="flex flex-wrap gap-2">
+            @for (c of logoColors(); track c) {
+              <button type="button" (click)="setColor(c)" [attr.aria-label]="c" [attr.aria-pressed]="color() === c"
+                class="flex items-center gap-2 ps-1 pe-3 py-1 rounded-full border border-surface-200 dark:border-surface-700 cursor-pointer text-xs font-mono hover:bg-surface-50 dark:hover:bg-surface-800"
+                [class.!border-primary]="color() === c" [class.ring-1]="color() === c" [class.ring-primary]="color() === c">
+                <span class="w-6 h-6 rounded-full" [style.background]="c"></span>{{ c }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
     <div class="card space-y-5">
       <h2 class="font-semibold">{{ 'Brand color' | t }}</h2>
       <div class="flex flex-wrap gap-3">
@@ -25,7 +63,13 @@
         <input pInputText class="w-32 font-mono" [ngModel]="color()" (ngModelChange)="onHex($event)" />
         <span class="text-sm muted">{{ 'Any hex color' | t }}</span>
       </div>
-      <label class="flex items-center gap-3"><p-toggleswitch [ngModel]="theme.dark()" (ngModelChange)="theme.dark.set($event)" /> {{ 'Preview in dark mode' | t }}</label>
+      <div class="field">
+        <label>{{ 'Light / dark mode' | t }}</label>
+        <p-selectbutton [options]="appearances" optionLabel="label" optionValue="value" [ngModel]="appearance()" (ngModelChange)="appearance.set($event)" [allowEmpty]="false">
+          <ng-template #item let-o><fa-icon [icon]="o.icon" class="me-1.5" />{{ o.label }}</ng-template>
+        </p-selectbutton>
+        <small class="muted">{{ 'Default for your gym. Auto follows each person\'s device setting; people can still switch for themselves.' | t }}</small>
+      </div>
     </div>
 
     <div class="card space-y-4">
@@ -56,7 +100,7 @@
       <div class="card !p-0 overflow-hidden">
         <div class="bg-primary text-primary-contrast p-5">
           <div class="flex items-center gap-3">
-            <span class="w-11 h-11 rounded-xl bg-white/20 grid place-items-center font-extrabold">{{ logo() }}</span>
+            <app-gym-logo [theme]="draftTheme()" [name]="draft.name" [size]="44" [onColor]="true" />
             <div>
               <div class="font-bold text-lg">{{ draft.name || ('Your gym' | t) }}</div>
               <div class="text-sm opacity-80">{{ store.sportNames(draft) }} · {{ draft.city }}</div>

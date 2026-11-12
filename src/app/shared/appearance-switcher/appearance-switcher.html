@@ -1,0 +1,12 @@
+<p-menu #menu [model]="items()" [popup]="true" appendTo="body">
+  <ng-template #item let-item>
+    <a class="flex items-center gap-2.5 px-3 py-2 cursor-pointer">
+      <fa-icon [icon]="iconOf(item.id)" class="w-4 text-center" />
+      <span class="flex-1">{{ item.label }}</span>
+      @if (selected(item.id)) { <fa-icon icon="check" class="text-primary" /> }
+    </a>
+  </ng-template>
+</p-menu>
+<p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="menu.toggle($event)" [pTooltip]="tooltip()" tooltipPosition="left" [ariaLabel]="'Appearance' | t">
+  <fa-icon [icon]="icon()" />
+</p-button>

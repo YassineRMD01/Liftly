@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { Stars } from '../../../shared/stars/stars';
 import { countryName } from '../../../core/currency';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -22,7 +23,7 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })

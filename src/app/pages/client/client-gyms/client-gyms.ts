@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
@@ -28,7 +29,7 @@ import { Stars } from '../../../shared/stars/stars';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
+  imports: [GymLogo, TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   templateUrl: './client-gyms.html',
   styleUrl: './client-gyms.css',
 })

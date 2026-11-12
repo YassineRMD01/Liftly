@@ -8,7 +8,8 @@ import { ColorPicker } from 'primeng/colorpicker';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
-import { Sport } from '../../../core/models';
+import { Appearance, Sport } from '../../../core/models';
+import { SelectButton } from 'primeng/selectbutton';
 import { StoreService } from '../../../core/store.service';
 import { ThemeService } from '../../../core/theme.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
@@ -19,7 +20,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 /** Platform settings: theme of the public site, default country and the shared sport catalog. */
 @Component({
   selector: 'app-sa-settings',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, Button, ColorPicker, InputText, Select, PageHeader, SportDialog],
+  imports: [SelectButton, TranslatePipe, FormsModule, FaIconComponent, Button, ColorPicker, InputText, Select, PageHeader, SportDialog],
   templateUrl: './sa-settings.html',
   styleUrl: './sa-settings.css',
 })
@@ -34,17 +35,23 @@ export class SaSettings implements OnDestroy {
   protected readonly color = signal(this.store.platform().theme.primary);
   protected readonly logo = signal(this.store.platform().theme.logoText);
   protected readonly defaultCountry = signal(this.store.platform().defaultCountry);
+  protected readonly appearance = signal<Appearance>(this.store.platform().theme.appearance ?? 'system');
+  protected readonly appearances = [
+    { value: 'system', label: t('Auto (system)'), icon: 'circle-half-stroke' },
+    { value: 'light', label: t('Light'), icon: 'sun' },
+    { value: 'dark', label: t('Dark'), icon: 'moon' },
+  ];
   protected readonly countries = this.store.countryOptions;
   protected readonly catalog = computed(() =>
     [...this.store.catalogSports()].sort((a, b) => this.store.sportName(a.id).localeCompare(this.store.sportName(b.id))));
   protected readonly dirty = computed(() => {
     const p = this.store.platform();
-    return p.theme.primary !== this.color() || p.theme.logoText !== this.logo() || p.defaultCountry !== this.defaultCountry();
+    return p.theme.primary !== this.color() || p.theme.logoText !== this.logo() || p.defaultCountry !== this.defaultCountry() || (p.theme.appearance ?? 'system') !== this.appearance();
   });
 
   constructor() {
     // live preview of the public theme while editing
-    effect(() => this.theme.preview.set({ primary: this.color(), logoText: this.logo() }));
+    effect(() => this.theme.preview.set({ primary: this.color(), logoText: this.logo(), appearance: this.appearance() }));
   }
 
   ngOnDestroy() { this.theme.preview.set(null); }
@@ -55,7 +62,7 @@ export class SaSettings implements OnDestroy {
   iconOf(s: Sport) { return s.icon as IconProp; }
 
   save() {
-    this.store.updatePlatform({ theme: { primary: this.color(), logoText: this.logo() || 'LF' }, defaultCountry: this.defaultCountry() });
+    this.store.updatePlatform({ theme: { primary: this.color(), logoText: this.logo() || 'LF', appearance: this.appearance() }, defaultCountry: this.defaultCountry() });
     this.toast.add({ severity: 'success', summary: t('Settings saved'), detail: t('The public site now uses this theme.') });
   }
 
@@ -64,6 +71,7 @@ export class SaSettings implements OnDestroy {
     this.color.set(p.theme.primary);
     this.logo.set(p.theme.logoText);
     this.defaultCountry.set(p.defaultCountry);
+    this.appearance.set(p.theme.appearance ?? 'system');
   }
 
   // ---------- sport catalog ----------

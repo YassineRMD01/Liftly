@@ -32,8 +32,12 @@ const history = (gymId: string, clientId: string, planId: string, price: number,
     return { id: `mh-${++histN}`, gymId, clientId, planId, pricePaid: price, startDate: start.toISOString(), endDate: end.toISOString(), status: 'EXPIRED' as const };
   });
 
+/** Demo logos (SVG data URLs). */
+const IRON_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2256%22%20fill%3D%22%23111827%22/%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2246%22%20fill%3D%22%23ef4444%22/%3E%3Crect%20x%3D%2222%22%20y%3D%2254%22%20width%3D%2276%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2228%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2282%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2216%22%20y%3D%2247%22%20width%3D%228%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2296%22%20y%3D%2247%22%20width%3D%228%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E';
+const WAVE_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2228%22%20fill%3D%22%230ea5e9%22/%3E%3Cpath%20d%3D%22M10%2070%20Q30%2050%2050%2070%20T90%2070%20T130%2070%20V120%20H10Z%22%20fill%3D%22%230369a1%22/%3E%3Cpath%20d%3D%22M10%2082%20Q30%2064%2050%2082%20T90%2082%20T130%2082%20V120%20H10Z%22%20fill%3D%22%23e0f2fe%22/%3E%3Ccircle%20cx%3D%2284%22%20cy%3D%2236%22%20r%3D%2214%22%20fill%3D%22%23facc15%22/%3E%3C/svg%3E';
+
 export const SEED: DbState = {
-  platform: { theme: { primary: '#6366f1', logoText: 'LF' }, defaultCountry: 'US' },
+  platform: { theme: { primary: '#6366f1', logoText: 'LF', appearance: 'system' }, defaultCountry: 'US' },
   sports: [
     { id: 'sport-fitness', name: 'Fitness', icon: 'dumbbell' },
     { id: 'sport-bodybuilding', name: 'Bodybuilding', icon: 'dumbbell' },
@@ -139,8 +143,8 @@ export const SEED: DbState = {
     { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 1790, yearly: 17900 }, { country: 'FR', monthly: 185, yearly: 1850 }, { country: 'ES', monthly: 179, yearly: 1790 }] },
   ],
   gyms: [
-    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sportIds: ['sport-bodybuilding', 'sport-fitness', 'sport-crossfit'], country: 'US', currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
-    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sportIds: ['sport-swimming', 'sport-aqua'], country: 'ES', currency: 'EUR', city: 'Barcelona', address: 'Passeig Marítim 4', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
+    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sportIds: ['sport-bodybuilding', 'sport-fitness', 'sport-crossfit'], country: 'US', currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT', logoUrl: IRON_LOGO, appearance: 'system' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12) },
+    { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sportIds: ['sport-swimming', 'sport-aqua'], country: 'ES', currency: 'EUR', city: 'Barcelona', address: 'Passeig Marítim 4', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW', logoUrl: WAVE_LOGO, appearance: 'light' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
     { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sportIds: ['sport-karate', 'sport-bjj', 'sport-kickboxing', 'sport-kids-karate'], country: 'MA', currency: 'MAD', city: 'Casablanca', address: '88 Bd Zerktouni', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(10) },
   ],
   gymCoaches: [

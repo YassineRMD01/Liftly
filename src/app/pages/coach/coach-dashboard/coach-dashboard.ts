@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { TranslatePipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
@@ -12,7 +13,7 @@ import { OpenStatusBadge } from '../../../shared/open-status/open-status';
 
 @Component({
   selector: 'app-coach-dashboard',
-  imports: [TranslatePipe, DatePipe, RouterLink, Button, PageHeader, StatCard, Stars, OpenStatusBadge],
+  imports: [GymLogo, TranslatePipe, DatePipe, RouterLink, Button, PageHeader, StatCard, Stars, OpenStatusBadge],
   templateUrl: './coach-dashboard.html',
   styleUrl: './coach-dashboard.css',
 })

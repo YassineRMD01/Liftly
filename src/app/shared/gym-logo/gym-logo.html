@@ -1,0 +1,7 @@
+@if (theme()?.logoUrl; as url) {
+  <img [src]="url" [alt]="name()" class="object-contain bg-white" [style.width.px]="size()" [style.height.px]="size()" [style.border-radius.px]="radius()" [style.padding.px]="size() / 12" />
+} @else {
+  <span class="grid place-items-center font-extrabold text-white" [class.bg-white/20]="onColor()" [class.backdrop-blur]="onColor()"
+    [style.background]="onColor() ? null : theme()?.primary" [style.width.px]="size()" [style.height.px]="size()"
+    [style.border-radius.px]="radius()" [style.font-size.px]="fontSize()" [attr.aria-label]="name()" role="img">{{ theme()?.logoText }}</span>
+}

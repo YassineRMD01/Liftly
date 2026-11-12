@@ -1,3 +1,5 @@
+import { AppearanceSwitcher } from '../../shared/appearance-switcher/appearance-switcher';
+import { GymLogo } from '../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t, CURRENT_LANGUAGE } from '../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -55,7 +57,7 @@ const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN:
 
 @Component({
   selector: 'app-shell',
-  imports: [LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
+  imports: [AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })
@@ -75,5 +77,4 @@ export class Shell {
     return u ? (u.firstName[0] + u.lastName[0]).toUpperCase() : '?';
   });
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
-  protected readonly brandLogo = computed(() => this.theme.current().logoText || 'LF');
 }

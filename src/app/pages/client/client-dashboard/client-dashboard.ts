@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
@@ -24,7 +25,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
+  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, Button, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })

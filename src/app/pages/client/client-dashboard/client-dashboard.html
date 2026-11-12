@@ -8,7 +8,7 @@
     <div class="card !p-0 overflow-hidden flex flex-col">
       <div class="p-5 text-white" [style.background]="g?.theme?.primary">
         <div class="flex items-center gap-3">
-          <span class="w-10 h-10 rounded-lg bg-white/20 grid place-items-center font-bold text-sm">{{ g?.theme?.logoText }}</span>
+          <app-gym-logo [theme]="g?.theme" [name]="g?.name ?? ''" [size]="40" [onColor]="true" />
           <div><div class="font-bold">{{ g?.name }}</div><div class="text-sm opacity-80">{{ store.sportNames(g) }} · {{ g?.city }}</div><app-stars [value]="store.gymRating(m.gymId).avg" [count]="store.gymRating(m.gymId).count" class="[&_*]:!text-white" /></div>
         </div>
       </div>

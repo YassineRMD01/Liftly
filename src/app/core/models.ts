@@ -81,10 +81,16 @@ export interface PlatformSettings {
 export type BillingCycle = 'MONTHLY' | 'YEARLY';
 export type GymStatus = 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
 
+/** Light / dark: follow the visitor's system setting, or force one. */
+export type Appearance = 'system' | 'light' | 'dark';
+
 export interface GymTheme {
   primary: string; // hex
   logoText: string;
+  /** Uploaded logo (resized data URL). Falls back to logoText initials. */
   logoUrl?: string;
+  /** Default light/dark mode of this theme (system when unset). Users can override it for themselves. */
+  appearance?: Appearance;
 }
 
 export interface Gym {

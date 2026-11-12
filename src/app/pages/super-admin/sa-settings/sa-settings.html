@@ -25,6 +25,13 @@
           <input pInputText id="logo-initials" class="w-24 uppercase" maxlength="3" [ngModel]="logo()" (ngModelChange)="setLogo($event)" />
         </div>
       </div>
+      <div class="field">
+        <label>{{ 'Light / dark mode' | t }}</label>
+        <p-selectbutton [options]="appearances" optionLabel="label" optionValue="value" [ngModel]="appearance()" (ngModelChange)="appearance.set($event)" [allowEmpty]="false">
+          <ng-template #item let-o><fa-icon [icon]="o.icon" class="me-1.5" />{{ o.label }}</ng-template>
+        </p-selectbutton>
+        <small class="muted">{{ 'Default for the public site. Auto follows each visitor\'s device setting; people can still switch for themselves.' | t }}</small>
+      </div>
     </section>
 
     <section class="card space-y-3">

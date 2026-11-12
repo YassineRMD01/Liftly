@@ -1,3 +1,4 @@
+import { AppearanceSwitcher } from '../../../shared/appearance-switcher/appearance-switcher';
 import { formatMoney } from '../../../core/currency';
 import { Select } from 'primeng/select';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
@@ -18,7 +19,7 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-landing',
-  imports: [Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, Button, SelectButton, Tag],
+  imports: [AppearanceSwitcher, Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, Button, SelectButton, Tag],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })

@@ -1,8 +1,8 @@
-import { Injectable, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { updatePrimaryPalette } from '@primeuix/themes';
 import { AuthService } from './auth.service';
 import { StoreService } from './store.service';
-import { GymTheme } from './models';
+import { Appearance, GymTheme } from './models';
 
 export const DEFAULT_PRIMARY = '#6366f1';
 
@@ -26,36 +26,59 @@ export function buildPalette(hex: string): Record<string, string> {
   return Object.fromEntries(Object.entries(steps).map(([k, [target, w]]) => [k, rgbToHex(mix(base, target, w))]));
 }
 
+export type AppearanceChoice = 'auto' | 'light' | 'dark';
+const APPEARANCE_KEY = 'liftly-appearance';
+
 /**
  * Applies the white-label theme of the gym in context.
- * Admins see their gym brand; other roles see the platform default
+ * Admins see their gym brand; other roles see the platform theme set by the super-admin,
  * unless a page sets a preview (e.g. branding editor, client browsing a gym).
- * Dark mode is a per-user preference.
+ *
+ * Dark mode: each theme has an appearance (system / light / dark) chosen by its admin.
+ * A user can override it for themselves (light / dark), or keep "auto" to use the theme's setting;
+ * "system" follows the operating system and updates live when it changes.
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly auth = inject(AuthService);
   private readonly store = inject(StoreService);
   readonly preview = signal<GymTheme | null>(null);
-  readonly dark = signal(this.readDark());
-  readonly current = signal<GymTheme>({ primary: DEFAULT_PRIMARY, logoText: 'LF' });
+  /** Theme in use: preview → gym of the admin → platform. */
+  readonly current = computed<GymTheme>(() => this.preview() ?? this.auth.activeGym()?.theme ?? this.store.platform().theme);
+
+  /** The user's own choice in the header menu. */
+  readonly userAppearance = signal<AppearanceChoice>(this.readChoice());
+  private readonly media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+  /** Live operating-system preference. */
+  readonly systemDark = signal(this.media?.matches ?? false);
+
+  readonly dark = computed(() => {
+    const resolve = (a: Appearance | undefined) => ((a ?? 'system') === 'system' ? this.systemDark() : a === 'dark');
+    // while an admin previews a theme with a forced light/dark mode, show it so they see what members will see
+    const previewing = this.preview()?.appearance;
+    if (previewing && previewing !== 'system') return previewing === 'dark';
+    const choice = this.userAppearance();
+    if (choice !== 'auto') return choice === 'dark';
+    return resolve(this.current().appearance);
+  });
 
   constructor() {
+    this.media?.addEventListener('change', (e) => this.systemDark.set(e.matches));
+    effect(() => updatePrimaryPalette(buildPalette(this.current().primary)));
+    effect(() => document.documentElement.classList.toggle('app-dark', this.dark()));
     effect(() => {
-      // gym admins see their gym; everyone else sees the platform theme set by the super-admin
-      const theme = this.preview() ?? this.auth.activeGym()?.theme ?? this.store.platform().theme;
-      this.current.set(theme);
-      updatePrimaryPalette(buildPalette(theme.primary));
-    });
-    effect(() => {
-      document.documentElement.classList.toggle('app-dark', this.dark());
-      try { localStorage.setItem('liftly-dark', this.dark() ? '1' : '0'); } catch { /* ignore */ }
+      try { localStorage.setItem(APPEARANCE_KEY, this.userAppearance()); } catch { /* ignore */ }
     });
   }
 
-  private readDark() {
-    try { return localStorage.getItem('liftly-dark') === '1'; } catch { return false; }
+  private readChoice(): AppearanceChoice {
+    try {
+      const v = localStorage.getItem(APPEARANCE_KEY);
+      return v === 'light' || v === 'dark' ? v : 'auto';
+    } catch {
+      return 'auto';
+    }
   }
 
-  toggleDark() { this.dark.update((v) => !v); }
+  setAppearance(choice: AppearanceChoice) { this.userAppearance.set(choice); }
 }

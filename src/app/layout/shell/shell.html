@@ -9,9 +9,7 @@
     [class.-translate-x-full]="!open() && !rtl" [class.translate-x-full]="!open() && rtl"
   >
     <a routerLink="/" class="flex items-center gap-3 px-5 h-16 border-b border-surface-200 dark:border-surface-800">
-      <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center font-extrabold text-sm">
-        {{ brandLogo() }}
-      </span>
+      <app-gym-logo [theme]="theme.current()" [name]="brandName()" [size]="36" />
       <span class="font-bold text-lg truncate">{{ brandName() }}</span>
     </a>
 
@@ -66,9 +64,7 @@
       }
       <div class="flex-1"></div>
       <app-language-switcher />
-      <p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="theme.toggleDark()" [pTooltip]="theme.dark() ? ('Light mode' | t) : ('Dark mode' | t)" tooltipPosition="left">
-        <fa-icon [icon]="theme.dark() ? 'sun' : 'moon'" />
-      </p-button>
+      <app-appearance-switcher />
     </header>
     <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
       <router-outlet />

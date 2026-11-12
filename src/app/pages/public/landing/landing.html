@@ -10,9 +10,7 @@
     </nav>
     <div class="flex-1"></div>
     <app-language-switcher />
-    <p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="theme.toggleDark()" [ariaLabel]="'Toggle dark mode' | t">
-      <fa-icon [icon]="theme.dark() ? 'sun' : 'moon'" />
-    </p-button>
+    <app-appearance-switcher />
     @if (auth.user(); as u) {
       <p-button [label]="'Open dashboard' | t" [routerLink]="home()" />
     } @else {
