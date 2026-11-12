@@ -1,14 +1,14 @@
 import { t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  BillingCycle, ClientMembership, ClientStatus, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  AppNotification, BillingCycle, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
-import { openStatus } from './schedule';
+import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v9';
+const STORAGE_KEY = 'liftly-db-v11';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -46,6 +46,11 @@ export class StoreService {
   readonly bans = computed(() => this.state().bans);
   readonly reports = computed(() => this.state().reports);
   readonly gymReviews = computed(() => this.state().gymReviews);
+  readonly staff = computed(() => this.state().staff);
+  readonly classes = computed(() => this.state().classes);
+  readonly bookings = computed(() => this.state().bookings);
+  readonly checkIns = computed(() => this.state().checkIns);
+  readonly notifications = computed(() => this.state().notifications);
 
   /** Platform catalog of sports (shared by all gyms). */
   readonly catalogSports = computed(() => this.sports().filter((s) => !s.gymId));
@@ -413,8 +418,45 @@ export class StoreService {
   /** BANNED if banned, ACTIVE with an active membership, otherwise EXPIRED. */
   clientStatus(gymId: string, clientId: string): ClientStatus {
     if (this.isBanned(gymId, clientId)) return 'BANNED';
-    const today = new Date().toISOString();
-    return this.memberships().some((m) => m.gymId === gymId && m.clientId === clientId && m.status === 'ACTIVE' && m.endDate >= today) ? 'ACTIVE' : 'EXPIRED';
+    const now = new Date().toISOString();
+    const active = this.memberships().filter((m) => m.gymId === gymId && m.clientId === clientId && m.status === 'ACTIVE' && m.startDate <= now && m.endDate >= now);
+    if (!active.length) return 'EXPIRED';
+    return active.every((m) => this.frozenToday(m)) ? 'FROZEN' : 'ACTIVE';
+  }
+  /** Is today inside one of the membership's freezes? */
+  frozenToday(m: ClientMembership) {
+    const today = isoDate();
+    return (m.freezes ?? []).some((f) => f.start <= today && today <= f.end);
+  }
+  /** Pause a membership for `days` days from `start`: the end date moves back by the same length. */
+  freezeMembership(id: string, start: string, days: number, reason: string) {
+    this.patch((s) => ({
+      memberships: s.memberships.map((m) => {
+        if (m.id !== id) return m;
+        const startD = new Date(start + 'T00:00:00');
+        const end = isoDate(new Date(startD.getTime() + (days - 1) * 86400000));
+        return { ...m, endDate: new Date(new Date(m.endDate).getTime() + days * 86400000).toISOString(), freezes: [...(m.freezes ?? []), { start, end, reason }] };
+      }),
+    }));
+    const m = this.memberships().find((x) => x.id === id);
+    if (m) this.notify(m.clientId, 'Membership frozen', 'Your membership at {gym} is paused from {start} for {days} days. Its end date moved back accordingly.', { gym: this.gym(m.gymId)?.name ?? '', start, days }, '/client');
+  }
+  unfreezeMembership(id: string) {
+    // ends the current freeze today; the days not used are given back to the end date
+    const today = isoDate();
+    this.patch((s) => ({
+      memberships: s.memberships.map((m) => {
+        if (m.id !== id) return m;
+        let giveBack = 0;
+        const freezes = (m.freezes ?? []).flatMap((f) => {
+          if (f.end < today) return [f];
+          const unused = Math.round((new Date(f.end).getTime() - new Date(f.start > today ? f.start : today).getTime()) / 86400000) + (f.start > today ? 1 : 0);
+          giveBack += Math.max(0, unused);
+          return f.start > today ? [] : [{ ...f, end: isoDate(new Date(Date.now() - 86400000)) }];
+        });
+        return { ...m, freezes, endDate: new Date(new Date(m.endDate).getTime() - giveBack * 86400000).toISOString() };
+      }),
+    }));
   }
   /** Ban a client from a gym: their active memberships are cancelled. */
   banClient(gymId: string, clientId: string, reason: string) {
@@ -449,4 +491,162 @@ export class StoreService {
     this.patch((s) => ({ gymReviews: existing ? s.gymReviews.map((x) => (x.id === existing.id ? review : x)) : [...s.gymReviews, review] }));
   }
   deleteGymReview(id: string) { this.patch((s) => ({ gymReviews: s.gymReviews.filter((r) => r.id !== id) })); }
+
+  // ---------- staff (front desk) ----------
+  staffOfGym(gymId: string) {
+    const ids = this.staff().filter((x) => x.gymId === gymId).map((x) => x.userId);
+    return this.users().filter((u) => ids.includes(u.id));
+  }
+  gymsOfStaff(userId: string) {
+    const ids = this.staff().filter((x) => x.userId === userId).map((x) => x.gymId);
+    return this.gyms().filter((g) => ids.includes(g.id));
+  }
+  linkStaff(gymId: string, userId: string) {
+    if (this.staff().some((x) => x.gymId === gymId && x.userId === userId)) return;
+    this.patch((s) => ({ staff: [...s.staff, { gymId, userId, since: new Date().toISOString() }] }));
+  }
+  unlinkStaff(gymId: string, userId: string) { this.patch((s) => ({ staff: s.staff.filter((x) => !(x.gymId === gymId && x.userId === userId)) })); }
+
+  // ---------- classes & bookings ----------
+  classesOfGym(gymId: string) { return this.classes().filter((c) => c.gymId === gymId).sort((a, b) => (a.day - b.day) || a.start.localeCompare(b.start)); }
+  gymClass(id: string | undefined) { return this.classes().find((c) => c.id === id); }
+  saveClass(c: GymClass): GymClass {
+    const saved = { ...c, id: c.id || uid('cls') };
+    this.patch((s) => ({ classes: s.classes.some((x) => x.id === saved.id) ? s.classes.map((x) => (x.id === saved.id ? saved : x)) : [...s.classes, saved] }));
+    return saved;
+  }
+  /** Delete a class: future bookings are cancelled and their members notified. */
+  deleteClass(id: string) {
+    const c = this.gymClass(id);
+    const today = isoDate();
+    const affected = this.bookings().filter((b) => b.classId === id && b.date >= today && (b.status === 'BOOKED' || b.status === 'WAITLIST'));
+    this.patch((s) => ({ classes: s.classes.filter((x) => x.id !== id), bookings: s.bookings.map((b) => (affected.includes(b) ? { ...b, status: 'CANCELLED' as const } : b)) }));
+    for (const b of affected) this.notify(b.clientId, 'Class cancelled', '{class} on {date} was cancelled by the gym.', { class: c?.name ?? '', date: b.date }, '/client/classes');
+  }
+
+  /** Bookings of one class occurrence, in booking order. */
+  bookingsOf(classId: string, date: string) {
+    return this.bookings().filter((b) => b.classId === classId && b.date === date).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+  /** Places taken (booked or attended) and waitlist length of an occurrence. */
+  occupancy(classId: string, date: string) {
+    const list = this.bookingsOf(classId, date);
+    return { taken: list.filter((b) => b.status === 'BOOKED' || b.status === 'ATTENDED').length, waitlist: list.filter((b) => b.status === 'WAITLIST').length };
+  }
+  /** Occurrences of a gym's active classes over the next `days` days (today included), by start time. */
+  upcomingClasses(gymId: string, days = 7) {
+    const out: { cls: GymClass; date: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      for (const c of this.classesOfGym(gymId).filter((x) => x.active && x.day === d.getDay())) out.push({ cls: c, date: isoDate(d) });
+    }
+    return out;
+  }
+  /** Has this occurrence already started? */
+  started(c: GymClass, date: string) {
+    const now = new Date();
+    return date < isoDate(now) || (date === isoDate(now) && toMin(c.start) <= now.getHours() * 60 + now.getMinutes());
+  }
+  myBooking(classId: string, date: string, clientId: string) {
+    return this.bookingsOf(classId, date).find((b) => b.clientId === clientId && b.status !== 'CANCELLED');
+  }
+  /** Can a client book this occurrence? Returns the English reason when not. */
+  canBook(c: GymClass, date: string, clientId: string): { ok: boolean; reason?: string } {
+    const status = this.clientStatus(c.gymId, clientId);
+    if (status === 'BANNED') return { ok: false, reason: 'You are banned from this gym.' };
+    if (status === 'FROZEN') return { ok: false, reason: 'Your membership is frozen.' };
+    if (status !== 'ACTIVE') return { ok: false, reason: 'You need an active membership at this gym.' };
+    if (!canAttend({ audience: c.audience } as ScheduleSlot, this.user(clientId)?.gender)) return { ok: false, reason: 'This class is not open to you.' };
+    if (this.started(c, date)) return { ok: false, reason: 'This class has already started.' };
+    if (this.myBooking(c.id, date, clientId)) return { ok: false, reason: 'You already have a place.' };
+    return { ok: true };
+  }
+  /** Book a place, or join the waitlist when the class is full. */
+  book(classId: string, date: string, clientId: string): ClassBooking | null {
+    const c = this.gymClass(classId);
+    if (!c || !this.canBook(c, date, clientId).ok) return null;
+    const full = this.occupancy(classId, date).taken >= c.capacity;
+    const b: ClassBooking = { id: uid('b'), classId, gymId: c.gymId, clientId, date, status: full ? 'WAITLIST' : 'BOOKED', createdAt: new Date().toISOString() };
+    this.patch((s) => ({ bookings: [...s.bookings, b] }));
+    return b;
+  }
+  /** Cancel a booking; a freed place goes to the first person on the waitlist (who is notified). */
+  cancelBooking(id: string) {
+    const b = this.bookings().find((x) => x.id === id);
+    if (!b) return;
+    this.patch((s) => ({ bookings: s.bookings.map((x) => (x.id === id ? { ...x, status: 'CANCELLED' as const } : x)) }));
+    if (b.status === 'BOOKED') this.promoteWaitlist(b.classId, b.date);
+  }
+  private promoteWaitlist(classId: string, date: string) {
+    const c = this.gymClass(classId);
+    if (!c) return;
+    const { taken } = this.occupancy(classId, date);
+    const next = this.bookingsOf(classId, date).find((x) => x.status === 'WAITLIST');
+    if (!next || taken >= c.capacity) return;
+    this.patch((s) => ({ bookings: s.bookings.map((x) => (x.id === next.id ? { ...x, status: 'BOOKED' as const } : x)) }));
+    this.notify(next.clientId, 'You got a place!', 'A spot opened up in {class} on {date} at {time}. You are now booked.', { class: c.name, date, time: c.start }, '/client/classes');
+  }
+  /** Gym staff: mark a booking attended / no-show. */
+  setBookingStatus(id: string, status: ClassBooking['status']) {
+    this.patch((s) => ({ bookings: s.bookings.map((x) => (x.id === id ? { ...x, status } : x)) }));
+  }
+  bookingsOfClient(clientId: string) { return this.bookings().filter((b) => b.clientId === clientId).sort((a, b) => a.date.localeCompare(b.date)); }
+
+  // ---------- check-in ----------
+  checkInsOfGym(gymId: string) { return this.checkIns().filter((c) => c.gymId === gymId).sort((a, b) => b.at.localeCompare(a.at)); }
+  checkInsOfClient(clientId: string) { return this.checkIns().filter((c) => c.clientId === clientId).sort((a, b) => b.at.localeCompare(a.at)); }
+  /**
+   * Check a member in at a gym. Refused when unknown, banned, frozen or without an active membership;
+   * allowed with a warning outside the sessions open to them. Today's booked class is marked attended.
+   */
+  checkIn(gymId: string, clientId: string, method: CheckIn['method'], staffId?: string): CheckIn {
+    const user = this.user(clientId);
+    let ok = true;
+    let reason: string | undefined;
+    if (!user || user.role !== 'CLIENT') { ok = false; reason = 'Unknown member'; }
+    else {
+      const status = this.clientStatus(gymId, clientId);
+      if (status === 'BANNED') { ok = false; reason = 'Banned from this gym'; }
+      else if (status === 'FROZEN') { ok = false; reason = 'Membership frozen'; }
+      else if (status === 'EXPIRED') { ok = false; reason = 'No active membership'; }
+      else if (!this.gymOpenStatus(gymId, user.gender).open) reason = 'Outside the sessions open to this member';
+    }
+    const entry: CheckIn = { id: uid('ci'), gymId, clientId, at: new Date().toISOString(), method, ok, ...(reason ? { reason } : {}), ...(staffId ? { staffId } : {}) };
+    const today = isoDate();
+    this.patch((s) => ({
+      checkIns: [...s.checkIns, entry],
+      bookings: ok ? s.bookings.map((b) => (b.gymId === gymId && b.clientId === clientId && b.date === today && b.status === 'BOOKED' ? { ...b, status: 'ATTENDED' as const } : b)) : s.bookings,
+    }));
+    return entry;
+  }
+
+  // ---------- notifications ----------
+  notificationsOf(userId: string) { return this.notifications().filter((n) => n.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  /** Send an in-app notification (title/body are English keys translated for the reader). Skipped if `key` was already sent. */
+  notify(userId: string, title: string, body: string, params?: Record<string, string | number>, link?: string, key?: string) {
+    if (key && this.notifications().some((n) => n.key === key && n.userId === userId)) return false;
+    const n: AppNotification = { id: uid('n'), userId, title, body, ...(params ? { params } : {}), ...(link ? { link } : {}), read: false, createdAt: new Date().toISOString(), ...(key ? { key } : {}) };
+    this.patch((s) => ({ notifications: [...s.notifications, n] }));
+    return true;
+  }
+  markRead(id: string) { this.patch((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) })); }
+  markAllRead(userId: string) { this.patch((s) => ({ notifications: s.notifications.map((n) => (n.userId === userId ? { ...n, read: true } : n)) })); }
+
+  /** Active memberships of a gym ending within `days` days. */
+  endingSoon(gymId: string, days = 7) {
+    const now = new Date().toISOString();
+    const limit = new Date(Date.now() + days * 86400000).toISOString();
+    return this.membershipsOfGym(gymId).filter((m) => m.status === 'ACTIVE' && m.endDate >= now && m.endDate <= limit
+      && !this.membershipsOfGym(gymId).some((o) => o.clientId === m.clientId && o.id !== m.id && o.status === 'ACTIVE' && o.startDate >= m.startDate));
+  }
+  /** Remind members whose membership ends soon (once per membership). Returns how many were sent. */
+  sendRenewalReminders(gymId: string, days = 7) {
+    let sent = 0;
+    for (const m of this.endingSoon(gymId, days)) {
+      if (this.notify(m.clientId, 'Your membership ends soon', 'Your {plan} membership at {gym} ends on {date}. Ask the gym to renew it.',
+        { plan: this.plan(m.planId)?.name ?? '', gym: this.gym(gymId)?.name ?? '', date: m.endDate.slice(0, 10) }, '/client', `renew-${m.id}`)) sent++;
+    }
+    return sent;
+  }
 }

@@ -45,6 +45,17 @@
       </p-table>
     </div>
     <div class="space-y-6">
+      <div class="card" data-testid="ending-soon">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h2 class="font-semibold">{{ 'Ending this week' | t }}</h2>
+          <p-button [label]="'Send reminders' | t" size="small" [outlined]="true" (onClick)="sendReminders()" [disabled]="!endingSoon().length" />
+        </div>
+        <div class="space-y-2">
+          @for (m of endingSoon(); track m.id) {
+            <div class="flex justify-between text-sm gap-2"><span class="font-medium truncate">{{ store.fullName(m.clientId) }}</span><span class="muted whitespace-nowrap">{{ m.endDate | date: 'EEE d MMM' }}</span></div>
+          } @empty { <p class="text-sm muted">{{ 'No membership ends in the next 7 days.' | t }}</p> }
+        </div>
+      </div>
       <div class="card">
         <h2 class="font-semibold mb-4">{{ 'Plan usage ·' | t }} {{ saas()?.name }}</h2>
         <div class="space-y-4 text-sm">

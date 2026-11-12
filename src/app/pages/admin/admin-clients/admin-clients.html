@@ -1,5 +1,5 @@
 <app-page-header [title]="'Clients' | t" [subtitle]="'Only you can register members — create their account and membership here.' | t">
-  <p-button [label]="'Add client' | t" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
+  @if (isAdmin()) { <p-button [label]="'Add client' | t" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button> }
 </app-page-header>
 
 <div class="card">
@@ -28,7 +28,7 @@
         </td>
         <td>{{ r.planName }}</td>
         <td>
-          <p-select [options]="coaches()" [optionLabel]="'label'" optionValue="id" [ngModel]="r.m.coachId" (ngModelChange)="setCoach(r.m, $event)"
+          <p-select [options]="coaches()" [optionLabel]="'label'" optionValue="id" [ngModel]="r.m.coachId" (ngModelChange)="setCoach(r.m, $event)" [disabled]="!isAdmin()"
             [placeholder]="'Assign' | t" [showClear]="true" size="small" appendTo="body" styleClass="w-40" />
         </td>
         <td>
@@ -42,6 +42,14 @@
           @if (banInfo(r.m.clientId); as b) { <div class="text-[11px] muted mt-1 max-w-40 truncate" [pTooltip]="b.reason">{{ b.reason }}</div> }
         </td>
         <td class="whitespace-nowrap">
+          @if (isAdmin()) {
+          @if (r.m.status === 'ACTIVE') {
+            @if (hasFreeze(r.m)) {
+              <p-button [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (onClick)="unfreeze(r.m)"><fa-icon icon="play" /></p-button>
+            } @else {
+              <p-button [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (onClick)="freeze(r.m)"><fa-icon icon="snowflake" /></p-button>
+            }
+          }
           <p-button [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
           <p-button [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (onClick)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></p-button>
           @if (r.m.status === 'ACTIVE') {
@@ -51,6 +59,7 @@
             <p-button [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (onClick)="unban(r.m.clientId)"><fa-icon icon="user-check" /></p-button>
           } @else {
             <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (onClick)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></p-button>
+          }
           }
         </td>
       </tr>
@@ -184,5 +193,22 @@
   <ng-template #footer>
     <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="banning.set(null)" />
     <p-button [label]="'Ban client' | t" severity="danger" (onClick)="confirmBan()" [disabled]="!banReason.trim()" />
+  </ng-template>
+</p-dialog>
+
+<p-dialog [header]="'Freeze membership' | t" [visible]="!!freezing()" (visibleChange)="closeFreeze($event)" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (freezing(); as m) {
+    <div class="space-y-4">
+      <p class="text-sm muted">{{ 'Pause the membership of {name} (holiday, injury...). The end date moves back by the same number of days.' | t: { name: store.fullName(m.clientId) } }}</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field"><label>{{ 'From' | t }}</label><input pInputText type="date" [(ngModel)]="freezeForm.start" /></div>
+        <div class="field"><label>{{ 'Days' | t }}</label><p-inputnumber [(ngModel)]="freezeForm.days" [min]="1" [max]="180" [showButtons]="true" /></div>
+      </div>
+      <div class="field"><label>{{ 'Reason (optional)' | t }}</label><input pInputText [(ngModel)]="freezeForm.reason" /></div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="freezing.set(null)" />
+    <p-button [label]="'Freeze' | t" (onClick)="confirmFreeze()" />
   </ng-template>
 </p-dialog>

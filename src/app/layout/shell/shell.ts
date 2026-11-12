@@ -1,3 +1,4 @@
+import { NotificationBell } from '../../shared/notification-bell/notification-bell';
 import { AppearanceSwitcher } from '../../shared/appearance-switcher/appearance-switcher';
 import { GymLogo } from '../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
@@ -34,30 +35,43 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Memberships'), icon: 'id-card', link: '/admin/memberships' },
     { label: t('Promo codes'), icon: 'ticket', link: '/admin/promos' },
     { label: t('Clients'), icon: 'users', link: '/admin/clients' },
+    { label: t('Classes'), icon: 'calendar-check', link: '/admin/classes' },
+    { label: t('Check-in'), icon: 'qrcode', link: '/admin/checkin' },
+    { label: t('Attendance'), icon: 'chart-column', link: '/admin/attendance' },
     { label: t('Coaches'), icon: 'user-tie', link: '/admin/coaches' },
     { label: t('Schedule'), icon: 'clock', link: '/admin/schedule' },
     { label: t('Sports'), icon: 'medal', link: '/admin/sports' },
     { label: t('Reports'), icon: 'flag', link: '/admin/reports' },
+    { label: t('Staff'), icon: 'id-badge', link: '/admin/staff' },
     { label: t('Branding'), icon: 'palette', link: '/admin/branding' },
     { label: t('Billing'), icon: 'credit-card', link: '/admin/billing' },
   ],
   COACH: [
     { label: t('Dashboard'), icon: 'gauge-high', link: '/coach', exact: true },
+    { label: t('My classes'), icon: 'calendar-check', link: '/coach/classes' },
     { label: t('Reviews'), icon: 'star', link: '/coach/reviews' },
     { label: t('My profile'), icon: 'user-pen', link: '/coach/profile' },
   ],
+  STAFF: [
+    { label: t('Check-in'), icon: 'qrcode', link: '/staff', exact: true },
+    { label: t('Classes'), icon: 'calendar-check', link: '/staff/classes' },
+    { label: t('Clients'), icon: 'users', link: '/staff/clients' },
+    { label: t('Attendance'), icon: 'chart-column', link: '/staff/attendance' },
+  ],
   CLIENT: [
     { label: t('My memberships'), icon: 'id-card', link: '/client', exact: true },
+    { label: t('My QR card'), icon: 'qrcode', link: '/client/card' },
+    { label: t('Classes'), icon: 'calendar-check', link: '/client/classes' },
     { label: t('Gyms'), icon: 'magnifying-glass', link: '/client/gyms' },
     { label: t('Coaches'), icon: 'user-tie', link: '/client/coaches' },
   ],
 };
 
-const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN: t('Gym admin'), COACH: t('Coach'), CLIENT: t('Member') };
+const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN: t('Gym admin'), COACH: t('Coach'), CLIENT: t('Member'), STAFF: t('Front desk') };
 
 @Component({
   selector: 'app-shell',
-  imports: [AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
+  imports: [NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })

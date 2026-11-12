@@ -2,14 +2,23 @@
 
 Angular 22 · Tailwind CSS 4 · PrimeNG 22 · Font Awesome · signals, zoneless, standalone components.
 
-Works for any sport (gym, pool, dojo, court…). Four roles:
+Works for any sport (gym, pool, dojo, court…). Five roles:
 
 | Role | What they can do |
 |---|---|
 | **Super-admin** | Platform KPIs and **charts** (MRR trend, new users, gyms by country, reports), manage the SaaS **pricing plans** with **local prices per country**, **currencies & countries** (exchange rates for stats), the **home theme** and the **sport catalog** (Settings), review **coach reports** of every gym, change a gym's plan/status (active / trial / suspended), activate/deactivate users, impersonate |
 | **Gym admin** | Dashboard **charts** (revenue, active members, clients by status, members by plan) and gym rating; manages the gym's **sports** (catalog or custom, with icons); **renews** memberships with an optional **plan change**; **bans / unbans** clients (client status Active / Expired / Banned); reviews **coach reports**; runs a gym with **one or more sports**, manages the **weekly schedule** (opening/closing hours per day as mixed, men-only or women-only sessions, for the whole gym or one sport/area; templates, copy-a-day, holiday closures, overlap checks), manages each client's **payments on a yearly calendar** (click any day to add / edit / delete a payment: amount, method, note; months covered by a membership are highlighted; yearly and all-time totals), subscribes to a SaaS plan (sign-up + billing page: upgrade/downgrade, monthly↔yearly), **custom theme color & logo** (live preview, Pro+ plans), membership plans CRUD, **promo codes** (% or fixed, date range, max uses, plan restriction), **registers clients** — the only way a member account or membership is created (new account with temporary password `welcome`, add / renew / cancel / assign coach, apply promo), link coaches from the network or invite new ones; plan limits are enforced |
 | **Coach** | Works at **many gyms**, dashboard of gyms & assigned athletes, **star ratings & comments** with rating breakdown, editable public profile |
+| **Front desk (staff)** | Receptionist accounts created by the gym admin (Staff page): **QR / manual check-in**, members list (read-only), class rosters and attendance stats; no billing or settings |
 | **Client** | Account and memberships are **created only by the gym admin** (no self sign-up, no self checkout). Can be a member of **many gyms**, browses gyms (sports, plans, coaches, hours), sees live *open now* status, the gym schedule as a **weekly calendar** (hours open to them by gender), their **own payments** on the yearly calendar (read-only), **rates & reviews coaches** (1 review per coach per gym), **rates gyms**, **reports a coach** for inappropriate behavior |
+
+### Classes, waitlist & check-in
+- **Classes** (`GymClass`): weekly timetable per gym (day, time, coach, sport, capacity, level, room, who can attend). Admins edit it; members see the next 7 days and **book**. When a class is full, members **join the waitlist**; when someone cancels, the first person waiting is booked automatically and gets a notification. Bookings close when the class starts and respect bans, freezes, membership status and men/women sessions.
+- **Rosters:** admins, front desk and the class coach open an occurrence to see who's booked and who's waiting, mark **attended / no-show**, or remove someone (`shared/class-roster`).
+- **QR check-in:** each member has a **QR card** (`/client/card`, payload signed in `core/qr.ts`). The front desk scans it with the device camera (`jsqr`) or searches by name. Entry is refused for unknown codes, bans, frozen or missing memberships, and allowed with a warning outside the sessions open to that member. A check-in marks today's booked classes as attended.
+- **Attendance:** check-ins per day, busiest hours and weekdays, class show-up rate, and **members at risk** (active, but no visit for 14+ days).
+- **Freeze:** admins pause a membership for N days (holiday, injury); the end date moves back by the same amount, and unfreezing gives back unused days. A frozen member's status is `FROZEN`, so they can't check in or book.
+- **Notifications** (bell in the header): waitlist promotions, cancelled classes, freezes and **renewal reminders**. Members are reminded automatically when a membership ends within 7 days, and admins can send reminders from the dashboard's *Ending this week* card. These are in-app only; email, SMS and push need a backend.
 
 ### Country pricing, currencies & themes
 - Gyms have a **country**. Each SaaS plan has a USD price plus optional **local prices per country** (in that country's currency); the pricing page, sign-up and billing show the price for the gym's country. MRR is converted to USD with the super-admin's exchange rates.
@@ -66,7 +75,7 @@ npm run build
 ```
 
 Demo accounts (password `demo`, or use the one-click buttons on /login):
-`super@liftly.io`, `admin@irontemple.io`, `admin@bluewave.io`, `coach@liftly.io`, `client@liftly.io`.
+`super@liftly.io`, `admin@irontemple.io`, `admin@bluewave.io`, `coach@liftly.io`, `staff@liftly.io` (front desk at Iron Temple), `client@liftly.io`, `amine@liftly.io` (on the waitlist for *Powerlifting basics*).
 Super-admin → Users → "Reset demo data" restores the seed.
 
 ## PrimeNG license

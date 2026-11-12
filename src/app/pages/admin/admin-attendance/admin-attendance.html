@@ -1,0 +1,28 @@
+<app-page-header [title]="'Attendance' | t" [subtitle]="'Check-ins and class attendance over the last 30 days.' | t" />
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <app-stat-card icon="door-open" [label]="'Check-ins (30 days)' | t" [value]="total()" />
+  <app-stat-card icon="users" [label]="'Members who came' | t" [value]="uniqueMembers()" />
+  <app-stat-card icon="chart-line" [label]="'Visits per day' | t" [value]="perDay()" />
+  <app-stat-card icon="calendar-check" [label]="'Class show-up rate' | t" [value]="showRate()" />
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <div class="lg:col-span-2"><app-chart-card [title]="'Check-ins per day' | t" [labels]="days().labels" [series]="days().series" [timeAxis]="true" /></div>
+  <app-chart-card [title]="'Busiest hours' | t" [subtitle]="'Check-ins by hour of arrival' | t" [labels]="hours().labels" [series]="hours().series" />
+  <app-chart-card [title]="'Busiest days' | t" [labels]="weekdays().labels" [series]="weekdays().series" />
+</div>
+
+<div class="card mt-6">
+  <h2 class="font-semibold">{{ 'Members at risk' | t }}</h2>
+  <p class="text-sm muted mb-3">{{ 'Active members who have not checked in for 14 days or more. A message now can keep them.' | t }}</p>
+  <div class="divide-y divide-surface-100 dark:divide-surface-800">
+    @for (r of atRisk(); track r.client.id) {
+      <div class="py-2 flex items-center gap-3 text-sm">
+        <span class="flex-1 font-medium">{{ r.client.firstName }} {{ r.client.lastName }}</span>
+        <span class="muted">{{ r.client.email }}</span>
+        <span class="w-40 text-end">@if (daysAgo(r.last); as d) { {{ 'Last visit {n} days ago' | t: { n: d } }} } @else { {{ 'Never checked in' | t }} }</span>
+      </div>
+    } @empty { <p class="text-sm muted py-4 text-center">{{ 'Everyone came recently.' | t }}</p> }
+  </div>
+</div>

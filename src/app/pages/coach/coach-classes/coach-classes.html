@@ -1,0 +1,14 @@
+<app-page-header [title]="'My classes' | t" [subtitle]="'Classes you teach in the next 7 days. Open one to see who is coming and mark attendance.' | t" />
+<div class="card !p-0 divide-y divide-surface-100 dark:divide-surface-800">
+  @for (o of items(); track o.cls.id + o.date) {
+    @let oc = occ(o.cls, o.date);
+    <button type="button" (click)="roster().open(o.cls, o.date)" class="w-full text-start px-4 py-3 flex flex-wrap items-center gap-3 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer">
+      <span class="w-28 text-sm">{{ o.date | date: 'EEE d MMM' }}</span>
+      <span class="w-24 font-semibold tabular-nums text-sm" dir="ltr">{{ o.cls.start }}–{{ o.cls.end }}</span>
+      <span class="flex-1 min-w-40"><span class="font-medium">{{ o.cls.name }}</span><span class="block text-xs muted">{{ store.gym(o.cls.gymId)?.name }}</span></span>
+      <app-audience-tag [audience]="o.cls.audience" [short]="true" />
+      <span class="text-sm tabular-nums">{{ oc.taken }}/{{ o.cls.capacity }}@if (oc.waitlist) { · {{ oc.waitlist }} {{ 'waiting' | t }} }</span>
+    </button>
+  } @empty { <p class="text-center muted py-10">{{ 'No classes in the next 7 days.' | t }}</p> }
+</div>
+<app-class-roster />

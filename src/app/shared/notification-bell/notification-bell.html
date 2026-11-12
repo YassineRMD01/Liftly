@@ -1,0 +1,27 @@
+<p-popover #pop appendTo="body">
+  <div class="w-80 max-w-[85vw]">
+    <div class="flex items-center justify-between gap-2 pb-2 mb-1 border-b border-surface-200 dark:border-surface-700">
+      <span class="font-semibold text-sm">{{ 'Notifications' | t }}</span>
+      @if (unread()) { <button type="button" class="text-xs text-primary cursor-pointer" (click)="markAll()">{{ 'Mark all as read' | t }}</button> }
+    </div>
+    <div class="max-h-96 overflow-y-auto -mx-1">
+      @for (n of items(); track n.id) {
+        <button type="button" (click)="open(n, pop)" class="w-full text-start px-2 py-2 rounded-lg flex gap-2 hover:bg-surface-100 dark:hover:bg-surface-800 cursor-pointer">
+          <span class="mt-1.5 w-2 h-2 rounded-full shrink-0" [class.bg-primary]="!n.read" [class.bg-transparent]="n.read"></span>
+          <span class="min-w-0">
+            <span class="block text-sm" [class.font-semibold]="!n.read">{{ n.title | t: n.params }}</span>
+            <span class="block text-xs muted">{{ n.body | t: n.params }}</span>
+            <span class="block text-[10px] muted mt-0.5">{{ n.createdAt | date: 'short' }}</span>
+          </span>
+        </button>
+      } @empty { <p class="text-sm muted text-center py-6">{{ 'No notifications' | t }}</p> }
+    </div>
+  </div>
+</p-popover>
+<p-button [text]="true" [rounded]="true" severity="secondary" (onClick)="pop.toggle($event)" [ariaLabel]="'Notifications' | t">
+  @if (unread()) {
+    <p-overlaybadge [value]="unread()" severity="danger" badgeSize="small"><fa-icon icon="bell" /></p-overlaybadge>
+  } @else {
+    <fa-icon icon="bell" />
+  }
+</p-button>

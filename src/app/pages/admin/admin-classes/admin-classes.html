@@ -1,0 +1,85 @@
+<app-page-header [title]="'Classes' | t" [subtitle]="'Classes members book in advance. Full classes have a waitlist that fills freed places automatically.' | t">
+  @if (canEdit()) {
+    <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false" />
+    <p-button [label]="'New class' | t" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+  }
+</app-page-header>
+
+@if (view() === 'upcoming') {
+  <div class="space-y-6">
+    @for (d of upcoming(); track d.date) {
+      <section>
+        <h2 class="font-semibold mb-2">{{ d.date | date: 'EEEE d MMMM' }}</h2>
+        <div class="card !p-0 divide-y divide-surface-100 dark:divide-surface-800">
+          @for (o of d.items; track o.cls.id) {
+            @let oc = occ(o.cls, o.date);
+            <button type="button" (click)="roster().open(o.cls, o.date)" class="w-full text-start px-4 py-3 flex flex-wrap items-center gap-3 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer">
+              <span class="w-24 font-semibold tabular-nums text-sm" dir="ltr">{{ o.cls.start }}–{{ o.cls.end }}</span>
+              <span class="flex-1 min-w-40">
+                <span class="font-medium">{{ o.cls.name }}</span>
+                <span class="block text-xs muted">@if (o.cls.coachId) { {{ store.fullName(o.cls.coachId) }} · }{{ level[o.cls.level] }}@if (o.cls.room) { · {{ o.cls.room }} }</span>
+              </span>
+              <app-audience-tag [audience]="o.cls.audience" [short]="true" />
+              <span class="w-36 flex items-center gap-2 text-xs">
+                <span class="flex-1 h-1.5 rounded-full bg-surface-200 dark:bg-surface-700 overflow-hidden"><span class="block h-full bg-primary" [style.width.%]="(oc.taken / o.cls.capacity) * 100"></span></span>
+                <span class="tabular-nums">{{ oc.taken }}/{{ o.cls.capacity }}</span>
+              </span>
+              @if (oc.waitlist) { <p-tag [value]="oc.waitlist + ' ' + ('waiting' | t)" severity="warn" /> }
+            </button>
+          }
+        </div>
+      </section>
+    } @empty { <div class="card text-center py-12 muted">{{ 'No classes in the next 7 days.' | t }}</div> }
+  </div>
+} @else {
+  <div class="card">
+    <p-table [value]="classes()" [tableStyle]="{ 'min-width': '56rem' }">
+      <ng-template #header>
+        <tr><th>{{ 'Class' | t }}</th><th>{{ 'Day' | t }}</th><th>{{ 'Time' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Capacity' | t }}</th><th>{{ 'Who can attend' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
+      </ng-template>
+      <ng-template #body let-c>
+        <tr [class.opacity-50]="!c.active">
+          <td><div class="font-medium">{{ c.name }}</div><div class="text-xs muted">{{ c.sportId ? store.sportName(c.sportId) : '' }} · {{ levelOf(c.level) }}</div></td>
+          <td>{{ dayLabel[c.day] }}</td>
+          <td class="tabular-nums" dir="ltr">{{ c.start }}–{{ c.end }}</td>
+          <td>{{ c.coachId ? store.fullName(c.coachId) : '—' }}</td>
+          <td>{{ c.capacity }}</td>
+          <td><app-audience-tag [audience]="c.audience" [short]="true" /></td>
+          <td>{{ (c.active ? 'Yes' : 'No') | t }}</td>
+          <td class="whitespace-nowrap">
+            <p-button [text]="true" [rounded]="true" (onClick)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></p-button>
+            <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage><tr><td colspan="8" class="text-center muted py-8">{{ 'No classes yet.' | t }}</td></tr></ng-template>
+    </p-table>
+  </div>
+}
+
+<app-class-roster />
+
+<p-dialog [header]="(editing()?.id ? 'Edit class' : 'New class') | t" [visible]="!!editing()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '38rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (editing(); as c) {
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="c.name" [placeholder]="'e.g. Morning HIIT' | t" /></div>
+      <div class="field"><label>{{ 'Day' | t }}</label><p-select [options]="days" optionLabel="label" optionValue="value" [(ngModel)]="c.day" styleClass="w-full" appendTo="body" /></div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="field"><label>{{ 'Starts' | t }}</label><input pInputText type="time" [(ngModel)]="c.start" /></div>
+        <div class="field"><label>{{ 'Ends' | t }}</label><input pInputText type="time" [(ngModel)]="c.end" /></div>
+      </div>
+      <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-select [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="c.sportId" [showClear]="true" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Coach (optional)' | t }}</label><p-select [options]="coaches()" optionLabel="label" optionValue="value" [(ngModel)]="c.coachId" [showClear]="true" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Capacity' | t }}</label><p-inputnumber [(ngModel)]="c.capacity" [min]="1" [showButtons]="true" /></div>
+      <div class="field"><label>{{ 'Level' | t }}</label><p-select [options]="levels" optionLabel="label" optionValue="value" [(ngModel)]="c.level" styleClass="w-full" appendTo="body" /></div>
+      <div class="field sm:col-span-2"><label>{{ 'Who can attend' | t }}</label><p-selectbutton [options]="audiences" optionLabel="label" optionValue="value" [(ngModel)]="c.audience" [allowEmpty]="false" /></div>
+      <div class="field"><label>{{ 'Room' | t }}</label><input pInputText [(ngModel)]="c.room" [placeholder]="'e.g. Studio A' | t" /></div>
+      <label class="flex items-center gap-3 self-end pb-2"><p-toggleswitch [(ngModel)]="c.active" /> {{ 'Open for booking' | t }}</label>
+      @if (error) { <p-message severity="error" styleClass="sm:col-span-2">{{ error }}</p-message> }
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="editing.set(null)" />
+    <p-button [label]="'Save' | t" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

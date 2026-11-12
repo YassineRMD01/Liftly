@@ -1,4 +1,4 @@
-import { Audience, DbState, Payment, ScheduleSlot } from './models';
+import { Audience, CheckIn, ClassBooking, DbState, GymClass, Payment, ScheduleSlot } from './models';
 
 const d = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).toISOString();
 
@@ -35,6 +35,42 @@ const history = (gymId: string, clientId: string, planId: string, price: number,
 /** Demo logos (SVG data URLs). */
 const IRON_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2256%22%20fill%3D%22%23111827%22/%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2246%22%20fill%3D%22%23ef4444%22/%3E%3Crect%20x%3D%2222%22%20y%3D%2254%22%20width%3D%2276%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2228%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2282%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2216%22%20y%3D%2247%22%20width%3D%228%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3Crect%20x%3D%2296%22%20y%3D%2247%22%20width%3D%228%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E';
 const WAVE_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2228%22%20fill%3D%22%230ea5e9%22/%3E%3Cpath%20d%3D%22M10%2070%20Q30%2050%2050%2070%20T90%2070%20T130%2070%20V120%20H10Z%22%20fill%3D%22%230369a1%22/%3E%3Cpath%20d%3D%22M10%2082%20Q30%2064%2050%2082%20T90%2082%20T130%2082%20V120%20H10Z%22%20fill%3D%22%23e0f2fe%22/%3E%3Ccircle%20cx%3D%2284%22%20cy%3D%2236%22%20r%3D%2214%22%20fill%3D%22%23facc15%22/%3E%3C/svg%3E';
+
+/** Next date (today included) falling on a weekday (getDay()), as YYYY-MM-DD. */
+const nextDate = (day: number, weeksAhead = 0) => {
+  const t = new Date();
+  const diff = (day - t.getDay() + 7) % 7 + weeksAhead * 7;
+  const x = new Date(t.getFullYear(), t.getMonth(), t.getDate() + diff);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
+
+const cls = (id: string, gymId: string, name: string, day: number, start: string, end: string, capacity: number, audience: Audience, extra: Partial<GymClass> = {}): GymClass =>
+  ({ id: `${id}-${day}`, gymId, name, day, start, end, capacity, audience, level: 'ALL', active: true, ...extra });
+
+/** Deterministic pseudo-random numbers so the demo check-in history is stable. */
+let seedN = 7;
+const rnd = () => ((seedN = (seedN * 16807) % 2147483647) / 2147483647);
+
+/** ~30 days of past check-ins for members with memberships (for attendance stats). */
+const checkInHistory = (): CheckIn[] => {
+  const members: [string, string, number][] = [
+    ['g-iron', 'u-k1', 0.7], ['g-iron', 'u-k3', 0.5], ['g-wave', 'u-k1', 0.25], ['g-wave', 'u-k4', 0.6],
+    ['g-kumite', 'u-k5', 0.55], ['g-kumite', 'u-k6', 0.45], ['g-kumite', 'u-k2', 0.3],
+  ];
+  const out: CheckIn[] = [];
+  let n = 0;
+  for (let back = 30; back >= 1; back--) {
+    for (const [gymId, clientId, p] of members) {
+      if (rnd() > p) continue;
+      const day = new Date(Date.now() - back * 86400000);
+      const hour = [7, 8, 12, 13, 17, 18, 19, 20][Math.floor(rnd() * 8)];
+      day.setHours(hour, Math.floor(rnd() * 60), 0, 0);
+      out.push({ id: `ci-${++n}`, gymId, clientId, at: day.toISOString(), method: rnd() > 0.2 ? 'QR' : 'MANUAL', ok: true });
+    }
+  }
+  // Ethan (Iron) stopped coming two weeks ago: shows up in "members at risk"
+  return out.filter((c) => !(c.clientId === 'u-k3' && c.at > new Date(Date.now() - 16 * 86400000).toISOString()));
+};
 
 export const SEED: DbState = {
   platform: { theme: { primary: '#6366f1', logoText: 'LF', appearance: 'system' }, defaultCountry: 'US' },
@@ -129,6 +165,7 @@ export const SEED: DbState = {
     { id: 'u-k4', gender: 'FEMALE', role: 'CLIENT', firstName: 'Zoe', lastName: 'Martin', email: 'zoe@liftly.io', password: 'demo', createdAt: d(-60), active: true },
     { id: 'u-k5', gender: 'MALE', role: 'CLIENT', firstName: 'Liam', lastName: 'Brown', email: 'liam@liftly.io', password: 'demo', createdAt: d(-30), active: true },
     { id: 'u-k6', gender: 'MALE', role: 'CLIENT', firstName: 'Amine', lastName: 'El Idrissi', email: 'amine@liftly.io', password: 'demo', phone: '+212 600 000 106', createdAt: d(-45), active: true },
+    { id: 'u-s1', gender: 'FEMALE', role: 'STAFF', firstName: 'Rita', lastName: 'Gomez', email: 'staff@liftly.io', password: 'demo', createdAt: d(-90), active: true },
     { id: 'u-k7', gender: 'FEMALE', role: 'CLIENT', firstName: 'Sara', lastName: 'Lopez', email: 'sara@liftly.io', password: 'demo', createdAt: d(-70), active: true },
   ],
   coachProfiles: [
@@ -170,13 +207,14 @@ export const SEED: DbState = {
     { id: 'pc-3', gymId: 'g-wave', code: 'SPLASH15', discountType: 'PERCENT', value: 15, validFrom: d(-10), validUntil: d(90), maxUses: -1, uses: 3, planIds: [], active: true },
   ],
   memberships: [
-    { id: 'm-1', gymId: 'g-iron', clientId: 'u-k1', planId: 'mp-2', coachId: 'u-c1', promoCodeId: 'pc-1', pricePaid: 119.2, startDate: d(-10), endDate: d(20), status: 'ACTIVE' },
+    { id: 'm-1', gymId: 'g-iron', clientId: 'u-k1', planId: 'mp-2', coachId: 'u-c1', promoCodeId: 'pc-1', pricePaid: 119.2, startDate: d(-25), endDate: d(5), status: 'ACTIVE' },
     { id: 'm-2', gymId: 'g-wave', clientId: 'u-k1', planId: 'mp-4', pricePaid: 39, startDate: d(-5), endDate: d(25), status: 'ACTIVE' },
     { id: 'm-3', gymId: 'g-iron', clientId: 'u-k2', planId: 'mp-1', pricePaid: 49, startDate: d(-40), endDate: d(-10), status: 'EXPIRED' },
     { id: 'm-4', gymId: 'g-iron', clientId: 'u-k3', planId: 'mp-3', pricePaid: 450, startDate: d(-80), endDate: d(285), status: 'ACTIVE' },
     { id: 'm-5', gymId: 'g-wave', clientId: 'u-k4', planId: 'mp-5', coachId: 'u-c2', pricePaid: 99, startDate: d(-3), endDate: d(27), status: 'ACTIVE' },
     { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
     { id: 'm-8', gymId: 'g-kumite', clientId: 'u-k6', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-12), endDate: d(18), status: 'ACTIVE' },
+    { id: 'm-10', gymId: 'g-iron', clientId: 'u-k6', planId: 'mp-1', pricePaid: 49, startDate: d(-5), endDate: d(25), status: 'ACTIVE' },
     { id: 'm-9', gymId: 'g-iron', clientId: 'u-k7', planId: 'mp-1', pricePaid: 49, startDate: d(-60), endDate: d(-12), status: 'CANCELLED' },
     { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 450, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
     ...history('g-iron', 'u-k1', 'mp-2', 149, 5, 2),
@@ -229,4 +267,30 @@ export const SEED: DbState = {
     { id: 'p-sara', gymId: 'g-iron', clientId: 'u-k7', date: isoDay(-60), amount: 49, method: 'CASH' },
     ...monthly('g-kumite', 'u-k2', 450, 1, 9),
   ],
+  staff: [{ gymId: 'g-iron', userId: 'u-s1', since: d(-90) }],
+  classes: [
+    ...[1, 3, 5].map((day) => cls('c-hiit', 'g-iron', 'Morning HIIT', day, '07:00', '08:00', 12, 'MIXED', { coachId: 'u-c4', sportId: 'sport-fitness', room: 'Studio A' })),
+    ...[3, 5].map((day) => cls('c-wod', 'g-iron', 'CrossFit WOD', day, '18:00', '19:00', 10, 'MIXED', { coachId: 'u-c1', sportId: 'sport-crossfit', level: 'INTERMEDIATE', room: 'Box' })),
+    ...[2, 4].map((day) => cls('c-power', 'g-iron', 'Powerlifting basics', day, '19:00', '20:30', 2, 'MIXED', { coachId: 'u-c1', sportId: 'sport-bodybuilding', level: 'BEGINNER', room: 'Platform 1' })),
+    ...[2, 4].map((day) => cls('c-swimtech', 'g-wave', 'Swim technique', day, '10:30', '11:30', 8, 'WOMEN', { coachId: 'u-c2', sportId: 'sport-swimming', room: 'Lane 1-2' })),
+    ...[2, 4].map((day) => cls('c-aqua', 'g-wave', 'Aqua fitness', day, '18:00', '19:00', 15, 'WOMEN', { coachId: 'u-c4', sportId: 'sport-aqua', room: 'Small pool' })),
+    ...[6].map((day) => cls('c-masters', 'g-wave', 'Masters swim', day, '14:00', '15:00', 10, 'MEN', { coachId: 'u-c2', sportId: 'sport-swimming', level: 'ADVANCED', room: 'Lane 3-6' })),
+    ...[1, 2, 3, 4, 5].map((day) => cls('c-kids', 'g-kumite', 'Kids karate', day, '16:00', '17:00', 15, 'MIXED', { coachId: 'u-c3', sportId: 'sport-kids-karate', room: 'Tatami' })),
+    ...[1, 3, 5].map((day) => cls('c-bjj', 'g-kumite', 'BJJ fundamentals', day, '18:00', '19:30', 12, 'MEN', { coachId: 'u-c3', sportId: 'sport-bjj', level: 'BEGINNER', room: 'Tatami' })),
+    ...[2, 4].map((day) => cls('c-kick', 'g-kumite', 'Women kickboxing', day, '18:00', '19:30', 12, 'WOMEN', { coachId: 'u-c1', sportId: 'sport-kickboxing', room: 'Tatami' })),
+  ],
+  bookings: ([
+    // Powerlifting basics (capacity 2) is full next Tuesday, with Amine on the waitlist
+    ['b-1', 'c-power-2', 'g-iron', 'u-k1', nextDate(2), 'BOOKED', -3],
+    ['b-2', 'c-power-2', 'g-iron', 'u-k3', nextDate(2), 'BOOKED', -2.5],
+    ['b-5', 'c-power-2', 'g-iron', 'u-k6', nextDate(2), 'WAITLIST', -1],
+    ['b-6', 'c-wod-3', 'g-iron', 'u-k1', nextDate(3), 'BOOKED', -1],
+    ['b-7', 'c-kick-2', 'g-kumite', 'u-k2', nextDate(2), 'BOOKED', -1],
+    ['b-8', 'c-bjj-1', 'g-kumite', 'u-k5', nextDate(1), 'BOOKED', -1],
+    ['b-9', 'c-bjj-1', 'g-kumite', 'u-k6', nextDate(1), 'BOOKED', -1],
+    ['b-10', 'c-swimtech-2', 'g-wave', 'u-k4', nextDate(2), 'BOOKED', -2],
+  ] as [string, string, string, string, string, ClassBooking['status'], number][]).map(([id, classId, gymId, clientId, date, status, ago]) =>
+    ({ id, classId, gymId, clientId, date, status, createdAt: d(ago) })),
+  checkIns: checkInHistory(),
+  notifications: [],
 };

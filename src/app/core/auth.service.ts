@@ -10,6 +10,7 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   ADMIN: '/admin',
   COACH: '/coach',
   CLIENT: '/client',
+  STAFF: '/staff',
 };
 
 /** Fake authentication against the mock store. Replace with a real JWT flow. */
@@ -26,9 +27,10 @@ export class AuthService {
   readonly role = computed(() => this.user()?.role);
   readonly isLoggedIn = computed(() => !!this.user());
 
+  /** Gyms the user manages: owned (admin) or works the front desk of (staff). */
   readonly adminGyms = computed(() => {
     const u = this.user();
-    return u?.role === 'ADMIN' ? this.store.gymsOfAdmin(u.id) : [];
+    return u?.role === 'ADMIN' ? this.store.gymsOfAdmin(u.id) : u?.role === 'STAFF' ? this.store.gymsOfStaff(u.id) : [];
   });
   readonly activeGym = computed(() => {
     const gyms = this.adminGyms();

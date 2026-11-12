@@ -1,0 +1,67 @@
+<app-page-header [title]="'Check-in' | t" [subtitle]="'Scan the member QR card or search by name. Access is checked against memberships, freezes, bans and opening hours.' | t">
+  <div class="text-sm"><span class="text-2xl font-bold tabular-nums">{{ todayOk() }}</span> {{ 'members in today' | t }}</div>
+</app-page-header>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <div class="space-y-4">
+    <div class="card space-y-3">
+      <h2 class="font-semibold flex items-center gap-2"><fa-icon icon="qrcode" /> {{ 'Scan QR card' | t }}</h2>
+      @if (scanning()) {
+        <div class="relative rounded-xl overflow-hidden bg-black aspect-video">
+          <video #video class="w-full h-full object-cover" playsinline muted></video>
+          <div class="absolute inset-[18%] border-4 border-white/80 rounded-2xl pointer-events-none"></div>
+        </div>
+        <p-button [label]="'Stop camera' | t" severity="secondary" [outlined]="true" (onClick)="stopCamera()" styleClass="w-full" />
+      } @else {
+        <p-button [label]="'Start camera' | t" (onClick)="startCamera()" styleClass="w-full"><ng-template #icon><fa-icon icon="camera" /></ng-template></p-button>
+      }
+      @if (cameraError()) { <p class="text-sm text-red-600 dark:text-red-400">{{ cameraError() }}</p> }
+    </div>
+    <div class="card space-y-3">
+      <h2 class="font-semibold flex items-center gap-2"><fa-icon icon="magnifying-glass" /> {{ 'Find a member' | t }}</h2>
+      <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Name, email or phone' | t" data-testid="checkin-search" />
+      @for (c of matches(); track c.id) {
+        <div class="flex items-center gap-3 py-1">
+          <span class="flex-1"><span class="font-medium">{{ c.firstName }} {{ c.lastName }}</span><span class="block text-xs muted">{{ c.email }}</span></span>
+          <p-button [label]="'Check in' | t" size="small" (onClick)="manual(c.id)" />
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    @if (result(); as r) {
+      <div class="card border-2" [class.border-green-500]="r.ok && !r.reason" [class.border-amber-500]="r.ok && r.reason" [class.border-red-500]="!r.ok" data-testid="checkin-result">
+        <div class="flex items-center gap-4">
+          <span class="w-14 h-14 rounded-full grid place-items-center text-2xl text-white" [class.bg-green-600]="r.ok && !r.reason" [class.bg-amber-500]="r.ok && r.reason" [class.bg-red-600]="!r.ok">
+            <fa-icon [icon]="r.ok ? 'check' : 'xmark'" />
+          </span>
+          <div class="flex-1">
+            <div class="text-xl font-bold">{{ (r.ok ? 'Welcome!' : 'Access denied') | t }}</div>
+            <div class="font-medium">{{ store.user(r.clientId) ? store.fullName(r.clientId) : ('Unknown QR code' | t) }}</div>
+            @if (r.reason) { <div class="text-sm" [class.text-red-600]="!r.ok" [class.text-amber-600]="r.ok">{{ r.reason | t }}</div> }
+          </div>
+        </div>
+        @if (activeMembership(); as m) {
+          <div class="mt-4 text-sm muted">{{ store.plan(m.planId)?.name }} · {{ 'until' | t }} {{ m.endDate | date: 'mediumDate' }}</div>
+        }
+        @for (c of todayClasses(); track c.id) {
+          <div class="mt-2 text-sm"><fa-icon icon="calendar-check" class="text-primary" /> {{ c.name }} · <span dir="ltr">{{ c.start }}</span></div>
+        }
+      </div>
+    }
+    <div class="card">
+      <h2 class="font-semibold mb-2">{{ 'Today' | t }}</h2>
+      <div class="divide-y divide-surface-100 dark:divide-surface-800 max-h-[28rem] overflow-auto">
+        @for (c of today(); track c.id) {
+          <div class="py-2 flex items-center gap-3 text-sm">
+            <span class="tabular-nums w-12 muted">{{ c.at | date: 'HH:mm' }}</span>
+            <span class="flex-1">{{ store.user(c.clientId) ? store.fullName(c.clientId) : ('Unknown QR code' | t) }}</span>
+            <fa-icon [icon]="c.method === 'QR' ? 'qrcode' : 'keyboard'" class="muted" />
+            <p-tag [value]="(c.ok ? 'In' : 'Denied') | t" [severity]="c.ok ? 'success' : 'danger'" />
+          </div>
+        } @empty { <p class="text-sm muted py-4 text-center">{{ 'No check-ins yet today.' | t }}</p> }
+      </div>
+    </div>
+  </div>
+</div>

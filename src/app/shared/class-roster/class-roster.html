@@ -1,0 +1,27 @@
+<p-dialog [header]="current()?.cls?.name ?? ''" [visible]="!!current()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (current(); as c) {
+    <div class="text-sm muted mb-4">{{ c.date | date: 'EEEE d MMMM' }} · <span dir="ltr">{{ c.cls.start }}–{{ c.cls.end }}</span> · {{ booked().length }}/{{ c.cls.capacity }}</div>
+    <h3 class="text-sm font-semibold mb-2">{{ 'Booked' | t }}</h3>
+    <div class="divide-y divide-surface-100 dark:divide-surface-800 mb-4">
+      @for (b of booked(); track b.id) {
+        <div class="py-2 flex items-center gap-2">
+          <span class="flex-1 font-medium text-sm">{{ store.fullName(b.clientId) }}</span>
+          <p-tag [value]="b.status | t" [severity]="sev(b.status)" />
+          <p-button [text]="true" [rounded]="true" size="small" severity="success" [pTooltip]="'Attended' | t" (onClick)="set(b, 'ATTENDED')"><fa-icon icon="check" /></p-button>
+          <p-button [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'No-show' | t" (onClick)="set(b, 'NO_SHOW')"><fa-icon icon="user-xmark" /></p-button>
+          <p-button [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (onClick)="remove(b)"><fa-icon icon="trash" /></p-button>
+        </div>
+      } @empty { <p class="text-sm muted py-2">{{ 'Nobody booked yet.' | t }}</p> }
+    </div>
+    <h3 class="text-sm font-semibold mb-2">{{ 'Waitlist' | t }} ({{ waitlist().length }})</h3>
+    <div class="divide-y divide-surface-100 dark:divide-surface-800">
+      @for (b of waitlist(); track b.id; let i = $index) {
+        <div class="py-2 flex items-center gap-2">
+          <span class="w-6 text-xs muted">#{{ i + 1 }}</span>
+          <span class="flex-1 text-sm">{{ store.fullName(b.clientId) }}</span>
+          <p-button [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Remove' | t" (onClick)="remove(b)"><fa-icon icon="trash" /></p-button>
+        </div>
+      } @empty { <p class="text-sm muted py-2">{{ 'Nobody waiting.' | t }}</p> }
+    </div>
+  }
+</p-dialog>

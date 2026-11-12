@@ -30,7 +30,7 @@ export class SaUsers {
   private readonly toast = inject(MessageService);
   protected readonly role = signal<Role | 'ALL'>('ALL');
   protected readonly q = signal('');
-  protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success' };
+  protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success', STAFF: 'info' };
   protected readonly roleFilters = [
     { label: t('All'), value: 'ALL' }, { label: t('Admins'), value: 'ADMIN' }, { label: t('Coaches'), value: 'COACH' }, { label: t('Clients'), value: 'CLIENT' },
   ];

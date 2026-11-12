@@ -26,8 +26,8 @@ export class Login {
   protected email = '';
   protected password = '';
   protected readonly error = signal<string | null>(null);
-  protected readonly label: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN: t('Gym admin'), COACH: t('Coach'), CLIENT: t('Member') };
-  protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success' };
+  protected readonly label: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN: t('Gym admin'), COACH: t('Coach'), CLIENT: t('Member'), STAFF: t('Front desk') };
+  protected readonly sev: Record<Role, 'danger' | 'warn' | 'info' | 'success'> = { SUPER_ADMIN: 'danger', ADMIN: 'warn', COACH: 'info', CLIENT: 'success', STAFF: 'info' };
   protected readonly demo = computed(() =>
     ['u-sa', 'u-a1', 'u-a2', 'u-c1', 'u-k1', 'u-k2'].map((id) => this.store.user(id)).filter((u): u is User => !!u),
   );

@@ -1,4 +1,4 @@
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COACH' | 'CLIENT';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COACH' | 'CLIENT' | 'STAFF';
 export type Gender = 'MALE' | 'FEMALE';
 
 export interface User {
@@ -173,10 +173,83 @@ export interface ClientMembership {
   startDate: string;
   endDate: string;
   status: MembershipStatus;
+  /** Pauses (illness, travel…); each one pushes endDate back by its length. */
+  freezes?: MembershipFreeze[];
+}
+
+export interface MembershipFreeze {
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD (inclusive)
+  reason: string;
+}
+
+/** Receptionist / front-desk staff of a gym (limited permissions). */
+export interface GymStaff {
+  gymId: string;
+  userId: string;
+  since: string;
+}
+
+export type ClassLevel = 'ALL' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
+/** A recurring weekly class members can book. */
+export interface GymClass {
+  id: string;
+  gymId: string;
+  name: string;
+  sportId?: string;
+  coachId?: string;
+  day: number; // getDay(): 0 = Sunday
+  start: string; // HH:mm
+  end: string; // HH:mm
+  capacity: number;
+  audience: Audience;
+  level: ClassLevel;
+  room?: string;
+  active: boolean;
+}
+
+export type BookingStatus = 'BOOKED' | 'WAITLIST' | 'CANCELLED' | 'ATTENDED' | 'NO_SHOW';
+
+/** A member's place in one occurrence (date) of a class. Waitlist order = createdAt. */
+export interface ClassBooking {
+  id: string;
+  classId: string;
+  gymId: string;
+  clientId: string;
+  date: string; // YYYY-MM-DD
+  status: BookingStatus;
+  createdAt: string;
+}
+
+export interface CheckIn {
+  id: string;
+  gymId: string;
+  clientId: string;
+  at: string;
+  method: 'QR' | 'MANUAL';
+  ok: boolean;
+  /** Why it was refused, or a warning (English key, translated for display). */
+  reason?: string;
+  staffId?: string;
+}
+
+/** In-app notification. Title/body are English keys translated for the reader, with params. */
+export interface AppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  params?: Record<string, string | number>;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+  /** De-duplication key (e.g. one renewal reminder per membership). */
+  key?: string;
 }
 
 /** Status of a client at one gym, derived from memberships and bans. */
-export type ClientStatus = 'ACTIVE' | 'EXPIRED' | 'BANNED';
+export type ClientStatus = 'ACTIVE' | 'FROZEN' | 'EXPIRED' | 'BANNED';
 
 /** A gym admin banning a client from their gym. */
 export interface ClientBan {
@@ -281,4 +354,9 @@ export interface DbState {
   bans: ClientBan[];
   reports: CoachReport[];
   gymReviews: GymReview[];
+  staff: GymStaff[];
+  classes: GymClass[];
+  bookings: ClassBooking[];
+  checkIns: CheckIn[];
+  notifications: AppNotification[];
 }

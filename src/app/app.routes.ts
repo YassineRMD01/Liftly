@@ -34,6 +34,10 @@ export const routes: Routes = [
       { path: 'schedule', loadComponent: () => import('./pages/admin/admin-schedule/admin-schedule').then((m) => m.AdminSchedule) },
       { path: 'branding', loadComponent: () => import('./pages/admin/admin-branding/admin-branding').then((m) => m.AdminBranding) },
       { path: 'billing', loadComponent: () => import('./pages/admin/admin-billing/admin-billing').then((m) => m.AdminBilling) },
+      { path: 'classes', loadComponent: () => import('./pages/admin/admin-classes/admin-classes').then((m) => m.AdminClasses) },
+      { path: 'checkin', loadComponent: () => import('./pages/admin/admin-checkin/admin-checkin').then((m) => m.AdminCheckin) },
+      { path: 'attendance', loadComponent: () => import('./pages/admin/admin-attendance/admin-attendance').then((m) => m.AdminAttendance) },
+      { path: 'staff', loadComponent: () => import('./pages/admin/admin-staff/admin-staff').then((m) => m.AdminStaff) },
     ],
   },
   {
@@ -44,6 +48,7 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./pages/coach/coach-dashboard/coach-dashboard').then((m) => m.CoachDashboard) },
       { path: 'reviews', loadComponent: () => import('./pages/coach/coach-reviews/coach-reviews').then((m) => m.CoachReviews) },
       { path: 'profile', loadComponent: () => import('./pages/coach/coach-profile/coach-profile').then((m) => m.CoachProfilePage) },
+      { path: 'classes', loadComponent: () => import('./pages/coach/coach-classes/coach-classes').then((m) => m.CoachClasses) },
     ],
   },
   {
@@ -54,6 +59,19 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./pages/client/client-dashboard/client-dashboard').then((m) => m.ClientDashboard) },
       { path: 'gyms', loadComponent: () => import('./pages/client/client-gyms/client-gyms').then((m) => m.ClientGyms) },
       { path: 'coaches', loadComponent: () => import('./pages/client/client-coaches/client-coaches').then((m) => m.ClientCoaches) },
+      { path: 'card', loadComponent: () => import('./pages/client/client-card/client-card').then((m) => m.ClientCard) },
+      { path: 'classes', loadComponent: () => import('./pages/client/client-classes/client-classes').then((m) => m.ClientClasses) },
+    ],
+  },
+  {
+    path: 'staff',
+    loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
+    canActivate: [roleGuard('STAFF')],
+    children: [
+      { path: '', loadComponent: () => import('./pages/admin/admin-checkin/admin-checkin').then((m) => m.AdminCheckin) },
+      { path: 'classes', loadComponent: () => import('./pages/admin/admin-classes/admin-classes').then((m) => m.AdminClasses) },
+      { path: 'clients', loadComponent: () => import('./pages/admin/admin-clients/admin-clients').then((m) => m.AdminClients) },
+      { path: 'attendance', loadComponent: () => import('./pages/admin/admin-attendance/admin-attendance').then((m) => m.AdminAttendance) },
     ],
   },
   { path: '**', redirectTo: '' },

@@ -15,6 +15,8 @@ import { SelectButton } from 'primeng/selectbutton';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
+import { InputNumber } from 'primeng/inputnumber';
+import { isoDate } from '../../../core/schedule';
 import { AuthService } from '../../../core/auth.service';
 import { ClientMembership, ClientStatus, Gender } from '../../../core/models';
 import { Textarea } from 'primeng/textarea';
@@ -26,7 +28,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, PageHeader, PaymentCalendar],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })
@@ -36,6 +38,8 @@ export class AdminClients {
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected readonly sev = statusSeverity;
+  /** Front-desk staff see members read-only. */
+  protected readonly isAdmin = computed(() => this.auth.role() === 'ADMIN');
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly payments = viewChild(PaymentCalendar);
   protected visible = false;
@@ -43,7 +47,7 @@ export class AdminClients {
   protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
   protected readonly modes = [{ label: t('Existing member'), value: 'existing' }, { label: t('New member'), value: 'new' }];
   /** Filter by the client's status at this gym. */
-  protected readonly filters = [{ label: t('All'), value: 'ALL' }, { label: t('Active'), value: 'ACTIVE' }, { label: t('Expired'), value: 'EXPIRED' }, { label: t('Banned'), value: 'BANNED' }];
+  protected readonly filters = [{ label: t('All'), value: 'ALL' }, { label: t('Active'), value: 'ACTIVE' }, { label: t('Frozen'), value: 'FROZEN' }, { label: t('Expired'), value: 'EXPIRED' }, { label: t('Banned'), value: 'BANNED' }];
   protected readonly status = signal('ALL');
   protected readonly promoResult = signal<PromoCheck | null>(null);
   protected form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined as string | undefined, promo: '', gender: null as Gender | null };
@@ -194,7 +198,26 @@ export class AdminClients {
     });
   }
   banInfo(clientId: string) { return this.store.ban(this.gymId(), clientId); }
-  clientSev(s: ClientStatus) { return ({ ACTIVE: 'success', EXPIRED: 'secondary', BANNED: 'danger' } as const)[s]; }
+  clientSev(s: ClientStatus) { return ({ ACTIVE: 'success', FROZEN: 'info', EXPIRED: 'secondary', BANNED: 'danger' } as const)[s]; }
+
+  // ---------- freeze ----------
+  protected readonly freezing = signal<ClientMembership | null>(null);
+  protected freezeForm = { start: isoDate(), days: 14, reason: '' };
+  freeze(m: ClientMembership) { this.freezeForm = { start: isoDate(), days: 14, reason: '' }; this.freezing.set(m); }
+  closeFreeze(visible: boolean) { if (!visible) this.freezing.set(null); }
+  confirmFreeze() {
+    const m = this.freezing();
+    if (!m || !(this.freezeForm.days > 0) || !this.freezeForm.start) return;
+    this.store.freezeMembership(m.id, this.freezeForm.start, this.freezeForm.days, this.freezeForm.reason.trim());
+    this.toast.add({ severity: 'info', summary: t('Membership frozen'), detail: t('{0}: end date moved back {1} days.', { 0: this.store.fullName(m.clientId), 1: this.freezeForm.days }) });
+    this.freezing.set(null);
+  }
+  /** A freeze is running now or planned. */
+  hasFreeze(m: ClientMembership) { return (m.freezes ?? []).some((f) => f.end >= isoDate()); }
+  unfreeze(m: ClientMembership) {
+    this.store.unfreezeMembership(m.id);
+    this.toast.add({ severity: 'success', summary: t('Membership unfrozen'), detail: this.store.fullName(m.clientId) });
+  }
 
   cancel(m: ClientMembership) {
     this.confirm.confirm({

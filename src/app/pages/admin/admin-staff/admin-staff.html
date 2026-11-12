@@ -1,0 +1,28 @@
+<app-page-header [title]="'Staff' | t" [subtitle]="'Front-desk accounts can check members in, see members and manage class rosters. They cannot see billing or change settings.' | t">
+  <p-button [label]="'Add staff member' | t" (onClick)="openAdd()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="card !p-0 divide-y divide-surface-100 dark:divide-surface-800">
+  @for (u of staff(); track u.id) {
+    <div class="px-4 py-3 flex items-center gap-3">
+      <span class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="id-badge" /></span>
+      <span class="flex-1"><span class="font-medium">{{ u.firstName }} {{ u.lastName }}</span><span class="block text-xs muted">{{ u.email }}</span></span>
+      <span class="text-xs muted hidden sm:block">{{ 'Since' | t }} {{ since(u) | date: 'mediumDate' }}</span>
+      <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(u)"><fa-icon icon="trash" /></p-button>
+    </div>
+  } @empty { <p class="text-center muted py-10">{{ 'No staff members yet.' | t }}</p> }
+</div>
+
+<p-dialog [header]="'Add staff member' | t" [(visible)]="addVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <div class="space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div class="field"><label>{{ 'First name' | t }}</label><input pInputText [(ngModel)]="form.firstName" /></div>
+      <div class="field"><label>{{ 'Last name' | t }}</label><input pInputText [(ngModel)]="form.lastName" /></div>
+    </div>
+    <div class="field"><label>{{ 'Email' | t }}</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
+  </div>
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="addVisible = false" />
+    <p-button [label]="'Add' | t" (onClick)="add()" />
+  </ng-template>
+</p-dialog>

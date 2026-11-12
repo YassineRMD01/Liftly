@@ -3,6 +3,7 @@ import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { lastMonths } from '../../../core/stats';
 import { formatMoney } from '../../../core/currency';
 import { Component, computed, inject } from '@angular/core';
+import { MessageService } from 'primeng/api';
 import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -27,6 +28,13 @@ export class AdminDashboard {
   protected readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
+  private readonly toast = inject(MessageService);
+  /** Memberships ending in the next 7 days (renewal reminders). */
+  protected readonly endingSoon = computed(() => (this.gym() ? this.store.endingSoon(this.gym()!.id, 7) : []));
+  sendReminders() {
+    const n = this.store.sendRenewalReminders(this.gym()!.id, 7);
+    this.toast.add({ severity: n ? 'success' : 'info', summary: n ? t('{0} reminders sent', { 0: n }) : t('Everyone was already reminded') });
+  }
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly gym = this.auth.activeGym;
   protected readonly saas = computed(() => this.store.saasPlan(this.gym()?.saasPlanId));
