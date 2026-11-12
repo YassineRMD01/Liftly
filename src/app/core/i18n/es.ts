@@ -1150,4 +1150,10 @@ export const ES: Record<string, string> = {
   "New": "Nueva",
   "Contacted": "Contactado",
   "Converted": "Convertido",
+  "The camera only works on a secure page (https:// or localhost). Use \"Scan a photo\" or search the member by name.": "La cámara solo funciona en una página segura (https:// o localhost). Usa «Escanear una foto» o busca al miembro por nombre.",
+  "Camera access was blocked. Allow the camera in your browser settings (icon in the address bar), then try again.": "El acceso a la cámara está bloqueado. Permite la cámara en los ajustes del navegador (icono en la barra de direcciones) y vuelve a intentarlo.",
+  "No camera found on this device. Use \"Scan a photo\" or search the member by name.": "No hay cámara en este dispositivo. Usa «Escanear una foto» o busca al miembro por nombre.",
+  "The camera is used by another app. Close it and try again.": "Otra aplicación está usando la cámara. Ciérrala y vuelve a intentarlo.",
+  "No QR code found in the photo. Try again closer and without glare.": "No se encontró ningún código QR en la foto. Inténtalo más cerca y sin reflejos.",
+  "Scan a photo": "Escanear una foto",
 };

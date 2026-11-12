@@ -1150,4 +1150,10 @@ export const AR: Record<string, string> = {
   "New": "جديد",
   "Contacted": "تم التواصل",
   "Converted": "تم التسجيل",
+  "The camera only works on a secure page (https:// or localhost). Use \"Scan a photo\" or search the member by name.": "الكاميرا تعمل فقط على صفحة آمنة (https:// أو localhost). استخدم «مسح صورة» أو ابحث عن العضو بالاسم.",
+  "Camera access was blocked. Allow the camera in your browser settings (icon in the address bar), then try again.": "تم حظر الوصول إلى الكاميرا. اسمح بالكاميرا من إعدادات المتصفح (الأيقونة في شريط العنوان) ثم أعد المحاولة.",
+  "No camera found on this device. Use \"Scan a photo\" or search the member by name.": "لا توجد كاميرا على هذا الجهاز. استخدم «مسح صورة» أو ابحث عن العضو بالاسم.",
+  "The camera is used by another app. Close it and try again.": "الكاميرا مستخدمة من تطبيق آخر. أغلقه وأعد المحاولة.",
+  "No QR code found in the photo. Try again closer and without glare.": "لم يُعثر على رمز QR في الصورة. أعد المحاولة عن قرب ودون انعكاس.",
+  "Scan a photo": "مسح صورة",
 };
