@@ -1,7 +1,7 @@
 @if (gym(); as g) {
   <app-page-header [title]="'Billing' | t" [subtitle]="'Your Liftly subscription.' | t" />
   @if (g.status === 'TRIAL') {
-    <p-message [severity]="trialDays() <= 7 ? 'warn' : 'info'" styleClass="mb-4" data-testid="trial-banner">{{ 'Your free trial ends in {days} days. Activate a plan to keep your members and data.' | t: { days: trialDays() } }}</p-message>
+    <p-message [severity]="trialDays() <= 7 ? 'warn' : 'info'" data-testid="trial-banner" class="mb-4">{{ 'Your free trial ends in {days} days. Activate a plan to keep your members and data.' | t: { days: trialDays() } }}</p-message>
   }
 
   <div class="card flex flex-col md:flex-row md:items-center gap-6">
@@ -18,8 +18,8 @@
       </div>
     </div>
     <div class="flex flex-wrap gap-2">
-      <button pButton type="button" [outlined]="true" (click)="switchCycle()"><span pButtonLabel>{{ g.billingCycle === 'MONTHLY' ? ('Switch to yearly (save ~17%)' | t) : ('Switch to monthly' | t) }}</span></button>
-      @if (g.status === 'TRIAL') { <button pButton type="button" (click)="activate()"><span pButtonLabel>{{ 'Activate now' | t }}</span></button> }
+      <button pButton type="button" [outlined]="true" (click)="switchCycle()">{{ g.billingCycle === 'MONTHLY' ? ('Switch to yearly (save ~17%)' | t) : ('Switch to monthly' | t) }}</button>
+      @if (g.status === 'TRIAL') { <button pButton type="button" (click)="activate()">{{ 'Activate now' | t }}</button> }
     </div>
   </div>
 
@@ -34,7 +34,7 @@
         <ul class="mt-4 space-y-1.5 text-sm flex-1">
           @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
         </ul>
-        <button pButton type="button" [disabled]="p.id === g.saasPlanId" (click)="change(p)" class="mt-5 w-full"><span pButtonLabel>{{ p.id === g.saasPlanId ? ('Current plan' | t) : (usd(p) > usd(current()) ? ('Upgrade' | t) : ('Downgrade' | t)) }}</span></button>
+        <button pButton type="button" [disabled]="p.id === g.saasPlanId" (click)="change(p)" class="mt-5 w-full">{{ p.id === g.saasPlanId ? ('Current plan' | t) : (usd(p) > usd(current()) ? ('Upgrade' | t) : ('Downgrade' | t)) }}</button>
       </div>
     }
   </div>

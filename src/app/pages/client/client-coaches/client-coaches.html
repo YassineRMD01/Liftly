@@ -6,11 +6,11 @@
   @for (c of coaches(); track c.id) {
     <app-coach-card [coachId]="c.id">
       @if (canRate(c)) {
-        <button pButton type="button" size="small" (click)="openRate(c)"><fa-icon pButtonIcon icon="star" /><span pButtonLabel>{{ myReview(c) ? ('Edit my review' | t) : ('Rate coach' | t) }}</span></button>
+        <button pButton type="button" size="small" (click)="openRate(c)"><fa-icon icon="star" />{{ myReview(c) ? ('Edit my review' | t) : ('Rate coach' | t) }}</button>
       }
-      <button pButton type="button" size="small" [outlined]="true" (click)="openReviews(c)"><span pButtonLabel>{{ 'Reviews' | t }}</span></button>
+      <button pButton type="button" size="small" [outlined]="true" (click)="openReviews(c)">{{ 'Reviews' | t }}</button>
       @if (canRate(c)) {
-        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="openReport(c)"><fa-icon pButtonIcon icon="flag" /><span pButtonLabel>{{ 'Report' | t }}</span></button>
+        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="openReport(c)"><fa-icon icon="flag" />{{ 'Report' | t }}</button>
       }
     </app-coach-card>
   } @empty {
@@ -22,18 +22,18 @@
   <div class="space-y-4">
     @if (rateGyms().length > 1) {
       <div class="field"><label>{{ 'At gym' | t }}</label>
-        <p-select [options]="rateGyms()" optionLabel="name" optionValue="id" [(ngModel)]="form.gymId" (ngModelChange)="prefill()" styleClass="w-full" appendTo="body" /></div>
+        <p-select [options]="rateGyms()" optionLabel="name" optionValue="id" [(ngModel)]="form.gymId" (ngModelChange)="prefill()" appendTo="body" class="w-full" /></div>
     }
     <div class="flex flex-col items-center gap-2 py-2">
-      <p-rating [(ngModel)]="form.rating" [stars]="5" styleClass="text-3xl" />
+      <p-rating [(ngModel)]="form.rating" [stars]="5" class="text-3xl" />
       <span class="text-sm muted">{{ labels[form.rating] ?? ('Tap a star' | t) }}</span>
     </div>
     <div class="field"><label>{{ 'Comment' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="form.comment" [placeholder]="'How was your experience?' | t"></textarea></div>
   </div>
   <ng-template #footer>
-    @if (existing()) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()"><span pButtonLabel>{{ 'Delete' | t }}</span></button> }
-    <button pButton type="button" [text]="true" severity="secondary" (click)="rateVisible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="submit()" [disabled]="!form.rating || !form.gymId"><span pButtonLabel>{{ 'Submit' | t }}</span></button>
+    @if (existing()) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()">{{ 'Delete' | t }}</button> }
+    <button pButton type="button" [text]="true" severity="secondary" (click)="rateVisible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="submit()" [disabled]="!form.rating || !form.gymId">{{ 'Submit' | t }}</button>
   </ng-template>
 </p-dialog>
 
@@ -57,12 +57,12 @@
       @if (reportGyms().length > 1) {
         <div class="field">
           <label>{{ 'At gym' | t }}</label>
-          <p-select [options]="reportGyms()" optionLabel="name" optionValue="id" [(ngModel)]="report.gymId" styleClass="w-full" appendTo="body" />
+          <p-select [options]="reportGyms()" optionLabel="name" optionValue="id" [(ngModel)]="report.gymId" appendTo="body" class="w-full" />
         </div>
       }
       <div class="field">
         <label>{{ 'What happened?' | t }}</label>
-        <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="report.category" styleClass="w-full" appendTo="body" />
+        <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="report.category" appendTo="body" class="w-full" />
       </div>
       <div class="field">
         <label for="report-desc">{{ 'Details' | t }}</label>
@@ -72,7 +72,7 @@
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="reporting.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" severity="danger" (click)="sendReport()" [disabled]="!reportValid()"><span pButtonLabel>{{ 'Send report' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="reporting.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" severity="danger" (click)="sendReport()" [disabled]="!reportValid()">{{ 'Send report' | t }}</button>
   </ng-template>
 </p-dialog>

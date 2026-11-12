@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
@@ -30,7 +30,7 @@ export const reportSeverity = (s: ReportStatus) => ({ OPEN: 'danger', RESOLVED: 
  */
 @Component({
   selector: 'app-reports',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonLabel, Dialog, SelectButton, Tag, Textarea, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, SelectButton, Tag, Textarea, PageHeader],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })

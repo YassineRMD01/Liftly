@@ -2,7 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { UIChart } from 'primeng/chart';
 import type { ChartData, ChartOptionsBase } from 'primeng/types/chart';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Tooltip } from 'primeng/tooltip';
 import { CURRENT_LANGUAGE, TranslatePipe } from '../../core/i18n/i18n';
 import { ThemeService } from '../../core/theme.service';
@@ -27,7 +27,7 @@ export interface ChartSeries {
 /** A titled card with a bar or line chart, a hover tooltip and an accessible table view. */
 @Component({
   selector: 'app-chart-card',
-  imports: [UIChart, FaIconComponent, ButtonDirective, ButtonIcon, Tooltip, TranslatePipe],
+  imports: [UIChart, FaIconComponent, ButtonDirective, Tooltip, TranslatePipe],
   templateUrl: './chart-card.html',
   styleUrl: './chart-card.css',
 })

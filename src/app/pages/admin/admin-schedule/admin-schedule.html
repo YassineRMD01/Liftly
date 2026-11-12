@@ -1,8 +1,8 @@
 @if (gym(); as g) {
   <app-page-header [title]="'Schedule' | t" [subtitle]="'Opening hours per day — mixed, men-only or women-only sessions, per sport or for the whole gym.' | t">
     <p-menu #tpl [model]="templates" [popup]="true" appendTo="body" />
-    <button pButton type="button" severity="secondary" [outlined]="true" (click)="tpl.toggle($event)"><fa-icon pButtonIcon icon="wand-magic-sparkles" /><span pButtonLabel>{{ 'Templates' | t }}</span></button>
-    <button pButton type="button" (click)="openSlot()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add time slot' | t }}</span></button>
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="tpl.toggle($event)"><fa-icon icon="wand-magic-sparkles" />{{ 'Templates' | t }}</button>
+    <button pButton type="button" (click)="openSlot()"><fa-icon icon="plus" />{{ 'Add time slot' | t }}</button>
   </app-page-header>
 
   <div class="card mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -36,10 +36,10 @@
           <div class="flex items-center gap-2 mb-2">
             <h3 class="font-semibold flex-1" [class.text-primary]="d.today">{{ d.label }} @if (d.today) { <span class="text-xs font-normal muted">{{ '· today' | t }}</span> }</h3>
             @if (d.slots.length) {
-              <button pButton type="button" iconOnly [text]="true" size="small" severity="secondary" [pTooltip]="'Copy this day to…' | t" (click)="openCopy(d.day)"><fa-icon pButtonIcon icon="copy" /></button>
-              <button pButton type="button" iconOnly [text]="true" size="small" severity="danger" [pTooltip]="'Clear day' | t" (click)="clearDay(d.day)"><fa-icon pButtonIcon icon="trash" /></button>
+              <button pButton type="button" iconOnly [text]="true" size="small" severity="secondary" [pTooltip]="'Copy this day to…' | t" (click)="openCopy(d.day)"><fa-icon icon="copy" /></button>
+              <button pButton type="button" iconOnly [text]="true" size="small" severity="danger" [pTooltip]="'Clear day' | t" (click)="clearDay(d.day)"><fa-icon icon="trash" /></button>
             }
-            <button pButton type="button" [text]="true" size="small" (click)="openSlot(d.day)"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add' | t }}</span></button>
+            <button pButton type="button" [text]="true" size="small" (click)="openSlot(d.day)"><fa-icon icon="plus" />{{ 'Add' | t }}</button>
           </div>
           @for (s of d.slots; track s.id) {
             <div class="flex flex-wrap items-center gap-2 py-2 border-t border-surface-100 dark:border-surface-800">
@@ -48,8 +48,8 @@
               <span class="text-sm">{{ s.sportId ? store.sportName(s.sportId) : ('Whole gym' | t) }}</span>
               @if (s.note) { <span class="text-xs muted italic">{{ s.note }}</span> }
               <span class="flex-1"></span>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="openSlot(d.day, s)" [pTooltip]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeSlot(s)" [pTooltip]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="openSlot(d.day, s)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeSlot(s)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></button>
             </div>
           } @empty {
             <div class="text-sm muted border-t border-surface-100 dark:border-surface-800 pt-2">{{ 'Closed all day' | t }}</div>
@@ -64,9 +64,9 @@
         <h2 class="font-semibold mb-1">{{ 'Closures & holidays' | t }}</h2>
         <p class="text-xs muted mb-3">{{ 'The gym is closed all day on these dates, whatever the weekly schedule says.' | t }}</p>
         <div class="flex flex-col sm:flex-row gap-2">
-          <p-datepicker [(ngModel)]="closureDate" [minDate]="today" [showIcon]="true" [placeholder]="'Date' | t" appendTo="body" styleClass="w-full sm:w-44" />
+          <p-datepicker [(ngModel)]="closureDate" [minDate]="today" [showIcon]="true" [placeholder]="'Date' | t" appendTo="body" class="w-full sm:w-44" />
           <input pInputText class="flex-1" [placeholder]="'Reason (e.g. National holiday)' | t" [(ngModel)]="closureReason" />
-          <button pButton type="button" (click)="addClosure()" [disabled]="!closureDate || !closureReason"><span pButtonLabel>{{ 'Add' | t }}</span></button>
+          <button pButton type="button" (click)="addClosure()" [disabled]="!closureDate || !closureReason">{{ 'Add' | t }}</button>
         </div>
         <div class="mt-3 space-y-1">
           @for (c of closures(); track c.id) {
@@ -74,7 +74,7 @@
               <fa-icon icon="calendar-xmark" class="text-red-500" />
               <span class="font-medium">{{ c.date | date: 'EEE, MMM d, y' }}</span>
               <span class="muted flex-1">{{ c.reason }}</span>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteClosure(c.id)"><fa-icon pButtonIcon icon="xmark" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteClosure(c.id)"><fa-icon icon="xmark" /></button>
             </div>
           } @empty { <p class="text-sm muted">{{ 'No closures planned.' | t }}</p> }
         </div>
@@ -121,15 +121,15 @@
       </div>
       <div class="field">
         <label>{{ 'Area / sport' | t }}</label>
-        <p-select [options]="sportOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.sportId" styleClass="w-full" appendTo="body" />
+        <p-select [options]="sportOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.sportId" appendTo="body" class="w-full" />
       </div>
       <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="draft.note" [placeholder]="'e.g. Ladies hours, Kids class' | t" /></div>
       @if (error()) { <p-message severity="error">{{ error() }}</p-message> }
       <p class="text-xs muted">{{ 'Men-only and women-only sessions may run at the same time (separate areas). Any other overlap on the same area is refused.' | t }}</p>
     </div>
     <ng-template #footer>
-      <button pButton type="button" [text]="true" severity="secondary" (click)="slotVisible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-      <button pButton type="button" (click)="saveSlot()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+      <button pButton type="button" [text]="true" severity="secondary" (click)="slotVisible = false">{{ 'Cancel' | t }}</button>
+      <button pButton type="button" (click)="saveSlot()">{{ 'Save' | t }}</button>
     </ng-template>
   </p-dialog>
 
@@ -145,8 +145,8 @@
     </div>
     <p class="text-xs muted mt-3">{{ 'The selected days\' current slots are replaced.' | t }}</p>
     <ng-template #footer>
-      <button pButton type="button" [text]="true" severity="secondary" (click)="copyVisible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-      <button pButton type="button" (click)="copy()" [disabled]="!copyTo.length"><span pButtonLabel>{{ 'Copy' | t }}</span></button>
+      <button pButton type="button" [text]="true" severity="secondary" (click)="copyVisible = false">{{ 'Cancel' | t }}</button>
+      <button pButton type="button" (click)="copy()" [disabled]="!copyTo.length">{{ 'Copy' | t }}</button>
     </ng-template>
   </p-dialog>
 }

@@ -10,7 +10,7 @@
         }
       </div>
       <div class="flex items-center gap-2">
-        <p-colorpicker [ngModel]="m.color.slice(1)" (ngModelChange)="set(m.mode, '#' + $event)" appendTo="body" />
+        <app-color-field [value]="m.color" (valueChange)="set(m.mode, $event)" />
         <span class="text-xs font-mono muted">{{ m.color }}</span>
       </div>
       <!-- preview of a page in this mode -->

@@ -12,9 +12,9 @@
     <app-language-switcher />
     <app-appearance-switcher />
     @if (auth.user()) {
-      <button pButton type="button" [routerLink]="home()"><span pButtonLabel>{{ 'Open dashboard' | t }}</span></button>
+      <button pButton type="button" [routerLink]="home()">{{ 'Open dashboard' | t }}</button>
     } @else {
-      <button pButton type="button" [text]="true" routerLink="/login"><span pButtonLabel>{{ 'Sign in' | t }}</span></button>
+      <button pButton type="button" [text]="true" routerLink="/login">{{ 'Sign in' | t }}</button>
     }
   </div>
 </header>

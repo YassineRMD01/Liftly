@@ -1,6 +1,6 @@
 <app-page-header [title]="'Platform settings' | t" [subtitle]="'Theme of the public site, default country and the shared sport catalog.' | t">
-  <button pButton type="button" severity="secondary" [outlined]="true" (click)="reset()" [disabled]="!dirty()"><span pButtonLabel>{{ 'Reset' | t }}</span></button>
-  <button pButton type="button" (click)="save()" [disabled]="!dirty()"><span pButtonLabel>{{ 'Save changes' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="reset()" [disabled]="!dirty()">{{ 'Reset' | t }}</button>
+  <button pButton type="button" (click)="save()" [disabled]="!dirty()">{{ 'Save changes' | t }}</button>
 </app-page-header>
 
 <div class="grid lg:grid-cols-5 gap-6">
@@ -27,7 +27,7 @@
         }
       </div>
       <div class="flex flex-wrap items-center gap-4">
-        <p-colorpicker [ngModel]="color().slice(1)" (ngModelChange)="setColor('#' + $event)" />
+        <app-color-field [value]="color()" (valueChange)="setColor($event)" />
         <input pInputText class="w-32 font-mono" [ngModel]="color()" (ngModelChange)="onHex($event)" [attr.aria-label]="'Brand color' | t" />
         <div class="field">
           <label for="logo-initials" class="!text-xs">{{ 'Logo initials' | t }}</label>
@@ -54,7 +54,7 @@
     <section class="card space-y-3">
       <h2 class="font-semibold">{{ 'Default country' | t }}</h2>
       <p class="text-sm muted">{{ 'Pre-selected on the pricing page and in gym sign-up.' | t }}</p>
-      <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="defaultCountry()" (ngModelChange)="defaultCountry.set($event)" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" />
+      <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="defaultCountry()" (ngModelChange)="defaultCountry.set($event)" [filter]="true" filterBy="label,code" class="w-full sm:w-80" />
     </section>
 
     <section class="card">
@@ -63,7 +63,7 @@
           <h2 class="font-semibold">{{ 'Sport catalog' | t }}</h2>
           <p class="text-sm muted">{{ 'Sports every gym can pick. Gyms can also create their own.' | t }}</p>
         </div>
-        <button pButton type="button" size="small" (click)="newSport()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New sport' | t }}</span></button>
+        <button pButton type="button" size="small" (click)="newSport()"><fa-icon icon="plus" />{{ 'New sport' | t }}</button>
       </div>
       <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
         @for (s of catalog(); track s.id) {
@@ -73,8 +73,8 @@
               <div class="text-sm font-medium truncate">{{ store.sportName(s.id) }}</div>
               <div class="text-xs muted">{{ usage(s) }} {{ 'gyms' | t }}</div>
             </div>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="editSport(s)" [attr.aria-label]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="deleteSport(s)" [attr.aria-label]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="editSport(s)" [attr.aria-label]="'Edit' | t"><fa-icon icon="pen" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="deleteSport(s)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
           </div>
         }
       </div>

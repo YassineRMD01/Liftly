@@ -36,12 +36,12 @@
                     @if (mine.status === 'WAITLIST') { <p-tag [value]="('Waitlist #' | t) + waitPosition(mine)" severity="warn" /> }
                     @else { <p-tag [value]="'Booked' | t" severity="success" /> }
                     <span class="flex-1"></span>
-                    <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(mine)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+                    <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(mine)">{{ 'Cancel' | t }}</button>
                   </div>
                 } @else {
                   @let ok = check(o.cls, o.date);
                   @if (ok.ok) {
-                    <button pButton type="button" size="small" [severity]="oc.taken >= o.cls.capacity ? 'warn' : undefined" (click)="book(o.cls, o.date)" class="w-full"><span pButtonLabel>{{ (oc.taken >= o.cls.capacity ? 'Join waitlist' : 'Book') | t }}</span></button>
+                    <button pButton type="button" size="small" [severity]="oc.taken >= o.cls.capacity ? 'warn' : undefined" (click)="book(o.cls, o.date)" class="w-full">{{ (oc.taken >= o.cls.capacity ? 'Join waitlist' : 'Book') | t }}</button>
                   } @else {
                     <div class="text-xs muted text-center">{{ ok.reason! | t }}</div>
                   }
@@ -68,7 +68,7 @@
         @else if (b.status === 'ATTENDED') { <p-tag [value]="'Attended' | t" severity="secondary" /> }
         @else { <p-tag [value]="'Booked' | t" severity="success" /> }
         @if (b.status === 'BOOKED' || b.status === 'WAITLIST') {
-          <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(b)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
+          <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(b)">{{ 'Cancel' | t }}</button>
         }
       </div>
     } @empty { <p class="text-center muted py-8">{{ 'No upcoming bookings.' | t }}</p> }

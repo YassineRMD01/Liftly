@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { AuthService, HOME_BY_ROLE } from '../../../core/auth.service';
@@ -20,7 +20,7 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-landing',
-  imports: [GymLogo, AppearanceSwitcher, Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, SelectButton, Tag],
+  imports: [GymLogo, AppearanceSwitcher, Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, ButtonDirective, SelectButton, Tag],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })

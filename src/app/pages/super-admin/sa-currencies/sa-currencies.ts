@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
@@ -17,7 +17,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Super-admin: currencies (with exchange rates for statistics) and countries (with their currency). */
 @Component({
   selector: 'app-sa-currencies',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputNumber, Select, TableModule, ToggleSwitch, Tooltip, PageHeader],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, InputNumber, Select, TableModule, ToggleSwitch, Tooltip, PageHeader],
   templateUrl: './sa-currencies.html',
   styleUrl: './sa-currencies.css',
 })

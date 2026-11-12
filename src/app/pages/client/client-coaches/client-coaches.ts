@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Rating } from 'primeng/rating';
 import { Select } from 'primeng/select';
@@ -20,7 +20,7 @@ import { Stars } from '../../../shared/stars/stars';
 
 @Component({
   selector: 'app-client-coaches',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
   templateUrl: './client-coaches.html',
   styleUrl: './client-coaches.css',
 })

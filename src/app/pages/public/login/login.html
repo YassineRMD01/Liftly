@@ -21,10 +21,10 @@
         </div>
         <div class="field">
           <label for="pwd">{{ 'Password' | t }}</label>
-          <p-password inputId="pwd" name="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+          <p-iconfield class="w-full"><input pInputPassword id="pwd" name="password" [(ngModel)]="password" [(mask)]="masked" class="w-full" autocomplete="current-password" /><p-inputicon><button type="button" class="cursor-pointer" (click)="masked = !masked" [attr.aria-label]="(masked ? 'Show password' : 'Hide password') | t"><fa-icon [icon]="masked ? 'eye' : 'eye-slash'" /></button></p-inputicon></p-iconfield>
         </div>
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ 'Sign in' | t }}</span></button>
+        <button pButton type="submit" class="w-full">{{ 'Sign in' | t }}</button>
       </form>
 
       <div class="mt-8">

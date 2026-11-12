@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -19,7 +19,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-coaches',
-  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars, InviteDialog],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars, InviteDialog],
   templateUrl: './admin-coaches.html',
   styleUrl: './admin-coaches.css',
 })

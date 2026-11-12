@@ -1,7 +1,7 @@
 @if (gym(); as g) {
   <app-page-header [title]="('Welcome back, ' | t) + auth.user()?.firstName" [subtitle]="g.name + ' · ' + store.sportNames(g) + ' · ' + g.city">
-    <button pButton type="button" [outlined]="true" routerLink="/admin/promos"><span pButtonLabel>{{ 'New promo code' | t }}</span></button>
-    <button pButton type="button" routerLink="/admin/clients"><span pButtonLabel>{{ 'Add client' | t }}</span></button>
+    <button pButton type="button" [outlined]="true" routerLink="/admin/promos">{{ 'New promo code' | t }}</button>
+    <button pButton type="button" routerLink="/admin/clients">{{ 'Add client' | t }}</button>
   </app-page-header>
 
   @if (g.status === 'TRIAL') {
@@ -9,7 +9,7 @@
       <div class="flex-1">
         <b>{{ 'You\'re on a free trial' | t }}</b> {{ '— ends' | t }} {{ g.renewsAt | date }}{{ '. Add billing to keep your gym running.' | t }}
       </div>
-      <button pButton type="button" size="small" routerLink="/admin/billing"><span pButtonLabel>{{ 'Manage billing' | t }}</span></button>
+      <button pButton type="button" size="small" routerLink="/admin/billing">{{ 'Manage billing' | t }}</button>
     </div>
   }
 
@@ -48,7 +48,7 @@
       <div class="card" data-testid="ending-soon">
         <div class="flex items-center justify-between gap-2 mb-3">
           <h2 class="font-semibold">{{ 'Ending this week' | t }}</h2>
-          <button pButton type="button" size="small" [outlined]="true" (click)="sendReminders()" [disabled]="!endingSoon().length"><span pButtonLabel>{{ 'Send reminders' | t }}</span></button>
+          <button pButton type="button" size="small" [outlined]="true" (click)="sendReminders()" [disabled]="!endingSoon().length">{{ 'Send reminders' | t }}</button>
         </div>
         <div class="space-y-2">
           @for (m of endingSoon(); track m.id) {
@@ -61,11 +61,11 @@
         <div class="space-y-4 text-sm">
           <div>
             <div class="flex justify-between mb-1"><span>{{ 'Coaches' | t }}</span><span class="muted">{{ coaches().length }} / {{ limit(saas()?.maxCoaches) }}</span></div>
-            <p-progressbar [value]="pct(coaches().length, saas()?.maxCoaches)" [showValue]="false" styleClass="!h-2" />
+            <p-progressbar [value]="pct(coaches().length, saas()?.maxCoaches)" [showValue]="false" class="!h-2" />
           </div>
           <div>
             <div class="flex justify-between mb-1"><span>{{ 'Clients' | t }}</span><span class="muted">{{ clientCount() }} / {{ limit(saas()?.maxClients) }}</span></div>
-            <p-progressbar [value]="pct(clientCount(), saas()?.maxClients)" [showValue]="false" styleClass="!h-2" />
+            <p-progressbar [value]="pct(clientCount(), saas()?.maxClients)" [showValue]="false" class="!h-2" />
           </div>
         </div>
       </div>

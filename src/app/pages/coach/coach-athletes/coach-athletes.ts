@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Avatar } from 'primeng/avatar';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -18,7 +18,7 @@ import { ProgressView } from '../../../shared/progress-view/progress-view';
 /** Coach: their athletes, with workout / nutrition plans and progress for each. */
 @Component({
   selector: 'app-coach-athletes',
-  imports: [TranslatePipe, FormsModule, RouterLink, FaIconComponent, Avatar, ButtonDirective, ButtonIcon, ButtonLabel, SelectButton, PageHeader, PlanEditor, PlanView, ProgressView],
+  imports: [TranslatePipe, FormsModule, RouterLink, FaIconComponent, Avatar, ButtonDirective, SelectButton, PageHeader, PlanEditor, PlanView, ProgressView],
   templateUrl: './coach-athletes.html',
   styleUrl: './coach-athletes.css',
 })

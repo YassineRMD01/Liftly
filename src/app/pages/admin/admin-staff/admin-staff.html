@@ -1,5 +1,5 @@
 <app-page-header [title]="'Staff' | t" [subtitle]="'Front-desk accounts can check members in, see members and manage class rosters. They cannot see billing or change settings.' | t">
-  <button pButton type="button" (click)="openAdd()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add staff member' | t }}</span></button>
+  <button pButton type="button" (click)="openAdd()"><fa-icon icon="plus" />{{ 'Add staff member' | t }}</button>
 </app-page-header>
 
 <div class="card !p-0 divide-y divide-surface-100 dark:divide-surface-800">
@@ -8,8 +8,8 @@
       <span class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="id-badge" /></span>
       <span class="flex-1"><span class="font-medium">{{ u.firstName }} {{ u.lastName }}</span><span class="block text-xs muted">{{ u.email }}</span></span>
       <span class="text-xs muted hidden sm:block">{{ 'Since' | t }} {{ since(u) | date: 'mediumDate' }}</span>
-      @if (u.invite) { <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Invitation link' | t" (click)="inviteDialog().open(u)"><fa-icon pButtonIcon icon="link" /></button> }
-      <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(u)"><fa-icon pButtonIcon icon="trash" /></button>
+      @if (u.invite) { <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Invitation link' | t" (click)="inviteDialog().open(u)"><fa-icon icon="link" /></button> }
+      <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(u)"><fa-icon icon="trash" /></button>
     </div>
   } @empty { <p class="text-center muted py-10">{{ 'No staff members yet.' | t }}</p> }
 </div>
@@ -23,8 +23,8 @@
     <div class="field"><label>{{ 'Email' | t }}</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="addVisible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="add()"><span pButtonLabel>{{ 'Add' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="addVisible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="add()">{{ 'Add' | t }}</button>
   </ng-template>
 </p-dialog>
 

@@ -4,13 +4,13 @@
   <aside class="border-e border-surface-200 dark:border-surface-800 flex flex-col min-h-0" [class.hidden]="!!other()" [class.md:flex]="true">
     <div class="p-3 border-b border-surface-200 dark:border-surface-800">
       <p-select [options]="contacts()" optionLabel="label" optionValue="id" [filter]="true" filterBy="label" [placeholder]="'New message…' | t"
-        [ngModel]="null" (ngModelChange)="start($event)" styleClass="w-full" appendTo="body" data-testid="new-message" />
+        [ngModel]="null" (ngModelChange)="start($event)" appendTo="body" data-testid="new-message" class="w-full" />
     </div>
     <div class="flex-1 overflow-y-auto">
       @for (c of conversations(); track c.otherId) {
         <button type="button" (click)="other.set(c.otherId)" class="w-full text-start px-3 py-3 flex items-center gap-3 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer"
           [class.bg-surface-100]="other() === c.otherId" [class.dark:bg-surface-800]="other() === c.otherId">
-          <p-avatar [label]="initials(c.otherId)" shape="circle" styleClass="!bg-primary-100 !text-primary-700 shrink-0" />
+          <p-avatar [label]="initials(c.otherId)" shape="circle" class="!bg-primary-100 !text-primary-700 shrink-0" />
           <span class="flex-1 min-w-0">
             <span class="flex justify-between gap-2"><span class="font-medium truncate">{{ store.fullName(c.otherId) }}</span><span class="text-[11px] muted shrink-0">{{ c.last.at | date: 'd MMM' }}</span></span>
             <span class="block text-xs muted truncate" [class.font-semibold]="c.unread">{{ c.last.fromId === me() ? ('You:' | t) + ' ' : '' }}{{ c.last.body }}</span>
@@ -24,8 +24,8 @@
   <section class="flex flex-col min-h-0" [class.hidden]="!other()" [class.md:flex]="true">
     @if (otherUser(); as u) {
       <header class="px-4 py-3 border-b border-surface-200 dark:border-surface-800 flex items-center gap-3">
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="other.set(null)" class="md:!hidden"><fa-icon pButtonIcon icon="arrow-left" class="rtl:rotate-180" /></button>
-        <p-avatar [label]="initials(u.id)" shape="circle" styleClass="!bg-primary-100 !text-primary-700" />
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="other.set(null)" class="md:!hidden"><fa-icon icon="arrow-left" class="rtl:rotate-180" /></button>
+        <p-avatar [label]="initials(u.id)" shape="circle" class="!bg-primary-100 !text-primary-700" />
         <div><div class="font-semibold">{{ u.firstName }} {{ u.lastName }}</div><div class="text-xs muted">{{ roleOf(u) | t }}</div></div>
       </header>
       <div #scroller class="flex-1 overflow-y-auto p-4 space-y-2 bg-surface-50 dark:bg-surface-950">
@@ -43,7 +43,7 @@
       @if (canWrite()) {
         <form class="p-3 border-t border-surface-200 dark:border-surface-800 flex gap-2" (ngSubmit)="send()">
           <input pInputText class="flex-1" name="draft" [ngModel]="draft()" (ngModelChange)="draft.set($event)" [placeholder]="'Write a message…' | t" autocomplete="off" data-testid="message-input" />
-          <button pButton iconOnly type="submit" [disabled]="!draft().trim()" [attr.aria-label]="'Send' | t"><fa-icon pButtonIcon icon="paper-plane" class="rtl:-scale-x-100" /></button>
+          <button pButton iconOnly type="submit" [disabled]="!draft().trim()" [attr.aria-label]="'Send' | t"><fa-icon icon="paper-plane" class="rtl:-scale-x-100" /></button>
         </form>
       } @else {
         <p class="p-3 text-center text-xs muted border-t border-surface-200 dark:border-surface-800">{{ 'You can no longer write to this person.' | t }}</p>

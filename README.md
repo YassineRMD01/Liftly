@@ -143,16 +143,17 @@ and replace `AuthService.login` with your JWT flow. Payment in sign-up/billing i
 `ThemeService` builds a 50–950 palette from the gym's hex color and calls PrimeNG `updatePrimaryPalette`.
 `tailwindcss-primeui` maps the palette to Tailwind classes (`bg-primary`, `text-primary-600`…), so PrimeNG components and Tailwind utilities change color together.
 
-### Buttons (PrimeNG 22)
-Buttons use the `pButton` directive on native elements, not the `<p-button>` component, and `(click)`, not `(onClick)`. The icon and label are content marked with `pButtonIcon` / `pButtonLabel`. Use `iconOnly` for icon-only buttons and `type="button"` unless it submits a form. Links and file-upload labels use the same directive (`<a pButton routerLink=…>`, `<label pButton>`).
-
-```html
-<button pButton type="button" severity="secondary" [outlined]="true" (click)="save()">
-  <fa-icon pButtonIcon icon="check" /><span pButtonLabel>{{ 'Save' | t }}</span>
-</button>
-<button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="remove()"><fa-icon pButtonIcon icon="trash" /></button>
-```
-Import `ButtonDirective` (plus `ButtonIcon` / `ButtonLabel` when used) from `primeng/button`.
+### PrimeNG 22 conventions
+- **Buttons:** use the `pButton` directive on native elements (not `<p-button>`) and `(click)` (not `(onClick)`). Put the icon and text **directly inside** the element; `pButtonIcon` / `pButtonLabel` are deprecated. Add `iconOnly` for icon-only buttons and `type="button"` unless it submits a form. Links and file-upload labels use it too (`<a pButton routerLink=…>`, `<label pButton>`). Import `ButtonDirective` from `primeng/button`.
+  ```html
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="save()"><fa-icon icon="check" />{{ 'Save' | t }}</button>
+  <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="remove()"><fa-icon icon="trash" /></button>
+  ```
+- **`class`, not `styleClass`:** Select, Tag, Message, ProgressBar, Avatar, InputNumber, DatePicker, Rating, Chip and others dropped `styleClass` and render on their host element, so a normal `class` applies. Only Dialog, Popover, Menu and SelectButton still take `styleClass`.
+- **Passwords:** `<input pInputPassword [(mask)]="masked">` in a `p-iconfield` with a show/hide toggle (`<p-password>` is deprecated).
+- **Multiple choice:** `<p-select [multiple]="true">` (`<p-multiselect>` is deprecated).
+- **Colours:** `shared/color-field` wraps the composable `p-inputcolor` (area, hue slider, swatch, hex input) in a popover (`<p-colorpicker>` is deprecated).
+- **Charts:** `p-chart` is deprecated in favour of the paid PrimeUI PRO Charts with no free replacement, so `shared/chart-card` keeps using it. It is the only place to change if it is removed.
 
 ### Icons
 Font Awesome icons are registered in `core/icons.ts` (tree-shaken). Add new ones there before using `<fa-icon icon="name" />`.

@@ -36,13 +36,13 @@
         </div>
         <div class="flex flex-wrap gap-2">
           @if (r.status === 'OPEN') {
-            <button pButton type="button" size="small" severity="success" (click)="handle(r, 'RESOLVED')"><span pButtonLabel>{{ 'Resolve' | t }}</span></button>
-            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="handle(r, 'DISMISSED')"><span pButtonLabel>{{ 'Dismiss' | t }}</span></button>
+            <button pButton type="button" size="small" severity="success" (click)="handle(r, 'RESOLVED')">{{ 'Resolve' | t }}</button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="handle(r, 'DISMISSED')">{{ 'Dismiss' | t }}</button>
             @if (coachWorksAt(r)) {
-              <button pButton type="button" size="small" severity="danger" [text]="true" (click)="removeCoach(r)"><span pButtonLabel>{{ 'Remove coach' | t }}</span></button>
+              <button pButton type="button" size="small" severity="danger" [text]="true" (click)="removeCoach(r)">{{ 'Remove coach' | t }}</button>
             }
           } @else {
-            <button pButton type="button" size="small" [text]="true" (click)="reopen(r)"><span pButtonLabel>{{ 'Reopen' | t }}</span></button>
+            <button pButton type="button" size="small" [text]="true" (click)="reopen(r)">{{ 'Reopen' | t }}</button>
           }
         </div>
       </div>
@@ -61,7 +61,7 @@
     <textarea pTextarea id="resolution-note" rows="4" [(ngModel)]="note" [placeholder]="'What was done? e.g. Talked with the coach' | t"></textarea>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="handling.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="confirmHandle()"><span pButtonLabel>{{ 'Confirm' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="handling.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmHandle()">{{ 'Confirm' | t }}</button>
   </ng-template>
 </p-dialog>

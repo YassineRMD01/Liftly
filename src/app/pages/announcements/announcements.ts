@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
@@ -19,7 +19,7 @@ import { PageHeader } from '../../shared/page-header/page-header';
 /** Gym announcements: admins post to everyone at their gym; members, coaches and staff read them. */
 @Component({
   selector: 'app-announcements',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputText, Tag, Textarea, ToggleSwitch, Tooltip, GymLogo, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Tag, Textarea, ToggleSwitch, Tooltip, GymLogo, PageHeader],
   templateUrl: './announcements.html',
   styleUrl: './announcements.css',
 })

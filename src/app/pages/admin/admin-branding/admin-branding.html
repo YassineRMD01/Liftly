@@ -1,10 +1,10 @@
 <app-page-header [title]="'Branding' | t" [subtitle]="'Make the app look like your gym — your members and coaches will see it too.' | t">
-  <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()"><span pButtonLabel>{{ 'Reset' | t }}</span></button>
-  <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save changes' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">{{ 'Reset' | t }}</button>
+  <button pButton type="button" (click)="save()">{{ 'Save changes' | t }}</button>
 </app-page-header>
 
 @if (!allowed()) {
-  <p-message severity="warn" styleClass="mb-6">
+  <p-message severity="warn" class="mb-6">
     <span>{{ 'Custom colors are part of the' | t }} <b>{{ 'Pro' | t }}</b> {{ 'plan. You can preview them here, then' | t }} <a routerLink="/admin/billing" class="underline font-semibold">{{ 'upgrade' | t }}</a> {{ 'to save.' | t }}</span>
   </p-message>
 }
@@ -31,7 +31,7 @@
         }
       </div>
       <div class="flex items-center gap-4">
-        <p-colorpicker [ngModel]="color().slice(1)" (ngModelChange)="setColor('#' + $event)" />
+        <app-color-field [value]="color()" (valueChange)="setColor($event)" />
         <input pInputText class="w-32 font-mono" [ngModel]="color()" (ngModelChange)="onHex($event)" />
         <span class="text-sm muted">{{ 'Any hex color' | t }}</span>
       </div>
@@ -61,7 +61,7 @@
         <div class="field"><label>{{ 'City' | t }}</label><input pInputText [(ngModel)]="draft.city" /></div>
         <div class="field sm:col-span-2">
           <label>{{ 'Currency' | t }}</label>
-          <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" styleClass="w-full sm:w-80" appendTo="body">
+          <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft.currency" [filter]="true" filterBy="label,code" appendTo="body" class="w-full sm:w-80">
             <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
             <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
           </p-select>
@@ -108,8 +108,8 @@
             <div class="text-2xl font-bold text-primary">{{ 49 | money: draft.currency }}</div>
           </div>
           <div class="flex gap-2">
-            <button pButton type="button" class="flex-1 flex-1"><span pButtonLabel>{{ 'Join now' | t }}</span></button>
-            <button pButton type="button" iconOnly [outlined]="true"><fa-icon pButtonIcon icon="heart" /></button>
+            <button pButton type="button" class="flex-1 flex-1">{{ 'Join now' | t }}</button>
+            <button pButton type="button" iconOnly [outlined]="true"><fa-icon icon="heart" /></button>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
@@ -20,7 +20,7 @@ import { SESSION_SEV } from '../../coach/coach-sessions/coach-sessions';
 /** Member: book a one-to-one session with a coach of their gyms, from the coach's free slots. */
 @Component({
   selector: 'app-client-sessions',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputText, Select, Tag, PageHeader, Stars],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Select, Tag, PageHeader, Stars],
   templateUrl: './client-sessions.html',
   styleUrl: './client-sessions.css',
 })

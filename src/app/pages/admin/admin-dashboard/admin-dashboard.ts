@@ -8,7 +8,7 @@ import { MessageService } from 'primeng/api';
 import { MoneyPipe } from '../../../core/currency';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { ProgressBar } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -21,7 +21,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CohortTable, ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, ButtonDirective, ButtonLabel, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
+  imports: [CohortTable, ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, ButtonDirective, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })

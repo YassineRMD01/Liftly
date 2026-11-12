@@ -1,5 +1,5 @@
 <app-page-header [title]="'Activity log' | t" [subtitle]="'Every important change on the platform: who did it, when, and in which gym.' | t">
-  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
 </app-page-header>
 
 <div class="card">
@@ -8,8 +8,8 @@
       <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
       <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Search user, action or details' | t" />
     </p-iconfield>
-    <p-select [options]="store.gyms()" optionLabel="name" optionValue="id" [ngModel]="gymId()" (ngModelChange)="gymId.set($event)" [showClear]="true" [placeholder]="'All gyms' | t" styleClass="w-48" />
-    <p-select [options]="actions()" optionLabel="label" optionValue="value" [ngModel]="action()" (ngModelChange)="action.set($event)" [showClear]="true" [placeholder]="'All actions' | t" styleClass="w-56" />
+    <p-select [options]="store.gyms()" optionLabel="name" optionValue="id" [ngModel]="gymId()" (ngModelChange)="gymId.set($event)" [showClear]="true" [placeholder]="'All gyms' | t" class="w-48" />
+    <p-select [options]="actions()" optionLabel="label" optionValue="value" [ngModel]="action()" (ngModelChange)="action.set($event)" [showClear]="true" [placeholder]="'All actions' | t" class="w-56" />
   </div>
   <div class="divide-y divide-surface-100 dark:divide-surface-800">
     @for (e of shown(); track e.id) {
@@ -24,6 +24,6 @@
     } @empty { <p class="text-center muted py-10">{{ 'No activity found.' | t }}</p> }
   </div>
   @if (filtered().length > shown().length) {
-    <div class="text-center mt-3"><button pButton type="button" [text]="true" (click)="limit.set(limit() + 50)"><span pButtonLabel>{{ 'Show more' | t }}</span></button></div>
+    <div class="text-center mt-3"><button pButton type="button" [text]="true" (click)="limit.set(limit() + 50)">{{ 'Show more' | t }}</button></div>
   }
 </div>

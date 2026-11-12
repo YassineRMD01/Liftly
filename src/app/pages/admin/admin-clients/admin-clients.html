@@ -1,6 +1,6 @@
 <app-page-header [title]="'Clients' | t" [subtitle]="'Only you can register members — create their account and membership here.' | t">
-<button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
-  @if (isAdmin()) { <button pButton type="button" (click)="open()"><fa-icon pButtonIcon icon="user-plus" /><span pButtonLabel>{{ 'Add client' | t }}</span></button> }
+<button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
+  @if (isAdmin()) { <button pButton type="button" (click)="open()"><fa-icon icon="user-plus" />{{ 'Add client' | t }}</button> }
 </app-page-header>
 
 <div class="card">
@@ -30,11 +30,11 @@
         <td>{{ r.planName }}</td>
         <td>
           <p-select [options]="coaches()" [optionLabel]="'label'" optionValue="id" [ngModel]="r.m.coachId" (ngModelChange)="setCoach(r.m, $event)" [disabled]="!isAdmin()"
-            [placeholder]="'Assign' | t" [showClear]="true" size="small" appendTo="body" styleClass="w-40" />
+            [placeholder]="'Assign' | t" [showClear]="true" size="small" appendTo="body" class="w-40" />
         </td>
         <td>
           {{ r.m.pricePaid | money: store.membershipCurrency(r.m) }}
-          @if (r.promo) { <p-tag [value]="r.promo" severity="info" styleClass="ms-1 !text-[10px]" /> }
+          @if (r.promo) { <p-tag [value]="r.promo" severity="info" class="ms-1 !text-[10px]" /> }
         </td>
         <td class="text-sm">{{ r.m.startDate | date: 'mediumDate' }} → {{ r.m.endDate | date: 'mediumDate' }}</td>
         <td><p-tag [value]="r.m.status | t" [severity]="sev(r.m.status)" /></td>
@@ -46,23 +46,23 @@
           @if (isAdmin()) {
           @if (r.m.status === 'ACTIVE') {
             @if (hasFreeze(r.m)) {
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (click)="unfreeze(r.m)"><fa-icon pButtonIcon icon="play" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (click)="unfreeze(r.m)"><fa-icon icon="play" /></button>
             } @else {
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (click)="freeze(r.m)"><fa-icon pButtonIcon icon="snowflake" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (click)="freeze(r.m)"><fa-icon icon="snowflake" /></button>
             }
           }
           @if (store.user(r.m.clientId)?.invite) {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (click)="invite().open(store.user(r.m.clientId)!)"><fa-icon pButtonIcon icon="link" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (click)="invite().open(store.user(r.m.clientId)!)"><fa-icon icon="link" /></button>
           }
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (click)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon pButtonIcon icon="calendar-days" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (click)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon pButtonIcon icon="rotate" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (click)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (click)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></button>
           @if (r.m.status === 'ACTIVE') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="cancel(r.m)"><fa-icon pButtonIcon icon="ban" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="cancel(r.m)"><fa-icon icon="ban" /></button>
           }
           @if (r.clientStatus === 'BANNED') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (click)="unban(r.m.clientId)"><fa-icon pButtonIcon icon="user-check" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (click)="unban(r.m.clientId)"><fa-icon icon="user-check" /></button>
           } @else {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (click)="ban(r.m.clientId)"><fa-icon pButtonIcon icon="user-slash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (click)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></button>
           }
           }
         </td>
@@ -81,7 +81,7 @@
     @if (mode === 'existing') {
       <div class="field">
         <label>{{ 'Client' | t }}</label>
-        <p-select [options]="allClients()" optionLabel="label" optionValue="id" [(ngModel)]="form.clientId" [filter]="true" filterBy="label" [placeholder]="'Search a member' | t" styleClass="w-full" appendTo="body" />
+        <p-select [options]="allClients()" optionLabel="label" optionValue="id" [(ngModel)]="form.clientId" [filter]="true" filterBy="label" [placeholder]="'Search a member' | t" appendTo="body" class="w-full" />
       </div>
     } @else {
       <div class="grid grid-cols-2 gap-3">
@@ -94,19 +94,19 @@
     }
     <div class="field">
       <label>{{ 'Membership plan' | t }}</label>
-      <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="form.planId" (ngModelChange)="promoResult.set(null)" [placeholder]="'Choose a plan' | t" styleClass="w-full" appendTo="body">
+      <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="form.planId" (ngModelChange)="promoResult.set(null)" [placeholder]="'Choose a plan' | t" appendTo="body" class="w-full">
         <ng-template #item let-p><div class="flex justify-between w-full gap-4"><span>{{ p.name }}</span><span class="muted">{{ p.price | money: store.planCurrency(p) }}</span></div></ng-template>
       </p-select>
     </div>
     <div class="field">
       <label>{{ 'Coach (optional)' | t }}</label>
-      <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="form.coachId" [showClear]="true" [placeholder]="'No coach' | t" styleClass="w-full" appendTo="body" />
+      <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="form.coachId" [showClear]="true" [placeholder]="'No coach' | t" appendTo="body" class="w-full" />
     </div>
     <div class="field">
       <label>{{ 'Promo code' | t }}</label>
       <div class="flex gap-2">
         <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="form.promo" [disabled]="!form.planId" />
-        <button pButton type="button" [outlined]="true" (click)="applyPromo()" [disabled]="!form.planId || !form.promo"><span pButtonLabel>{{ 'Apply' | t }}</span></button>
+        <button pButton type="button" [outlined]="true" (click)="applyPromo()" [disabled]="!form.planId || !form.promo">{{ 'Apply' | t }}</button>
       </div>
       @if (promoResult(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
     </div>
@@ -123,8 +123,8 @@
     @if (limitReached()) { <p-message severity="warn">{{ 'Client limit of your plan reached — upgrade in Billing.' | t }}</p-message> }
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="submit()" [disabled]="!form.planId || limitReached() || pickedBanned()"><span pButtonLabel>{{ 'Subscribe' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="submit()" [disabled]="!form.planId || limitReached() || pickedBanned()">{{ 'Subscribe' | t }}</button>
   </ng-template>
 </p-dialog>
 
@@ -138,7 +138,7 @@
       </div>
       <div class="field">
         <label>{{ 'New plan' | t }}</label>
-        <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="renewForm.planId" (ngModelChange)="renewPromo.set(null)" styleClass="w-full" appendTo="body">
+        <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="renewForm.planId" (ngModelChange)="renewPromo.set(null)" appendTo="body" class="w-full">
           <ng-template #item let-p>
             <div class="flex justify-between w-full gap-4">
               <span>{{ p.name }} @if (p.id === m.planId) { <span class="text-xs muted">({{ 'current' | t }})</span> }</span>
@@ -149,7 +149,7 @@
       </div>
       <div class="field">
         <label>{{ 'Coach (optional)' | t }}</label>
-        <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="renewForm.coachId" [showClear]="true" [placeholder]="'No coach' | t" styleClass="w-full" appendTo="body" />
+        <p-select [options]="coaches()" optionLabel="label" optionValue="id" [(ngModel)]="renewForm.coachId" [showClear]="true" [placeholder]="'No coach' | t" appendTo="body" class="w-full" />
       </div>
       @if (stillRunning(m)) {
         <div class="field">
@@ -161,7 +161,7 @@
         <label>{{ 'Promo code' | t }}</label>
         <div class="flex gap-2">
           <input pInputText class="flex-1 uppercase font-mono" [(ngModel)]="renewForm.promo" />
-          <button pButton type="button" [outlined]="true" (click)="applyRenewPromo()" [disabled]="!renewForm.promo"><span pButtonLabel>{{ 'Apply' | t }}</span></button>
+          <button pButton type="button" [outlined]="true" (click)="applyRenewPromo()" [disabled]="!renewForm.promo">{{ 'Apply' | t }}</button>
         </div>
         @if (renewPromo(); as r) { <p-message [severity]="r.ok ? 'success' : 'error'" size="small">{{ r.message }}</p-message> }
       </div>
@@ -179,8 +179,8 @@
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="renewing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="confirmRenew()" [disabled]="!renewForm.planId"><span pButtonLabel>{{ 'Renew' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="renewing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmRenew()" [disabled]="!renewForm.planId">{{ 'Renew' | t }}</button>
   </ng-template>
 </p-dialog>
 
@@ -196,8 +196,8 @@
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="banning.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" severity="danger" (click)="confirmBan()" [disabled]="!banReason.trim()"><span pButtonLabel>{{ 'Ban client' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="banning.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" severity="danger" (click)="confirmBan()" [disabled]="!banReason.trim()">{{ 'Ban client' | t }}</button>
   </ng-template>
 </p-dialog>
 
@@ -213,7 +213,7 @@
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="confirmFreeze()"><span pButtonLabel>{{ 'Freeze' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmFreeze()">{{ 'Freeze' | t }}</button>
   </ng-template>
 </p-dialog>

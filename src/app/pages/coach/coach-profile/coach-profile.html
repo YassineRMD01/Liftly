@@ -1,5 +1,5 @@
 <app-page-header [title]="'My profile' | t" [subtitle]="'This is what gym admins and members see.' | t">
-  <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+  <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
 </app-page-header>
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 card space-y-4">
@@ -15,7 +15,7 @@
       <div class="field"><label>{{ 'Hourly rate' | t }}</label><p-inputnumber [(ngModel)]="profile.hourlyRate" mode="currency" [currency]="profile.currency" [min]="0" /></div>
       <div class="field">
         <label>{{ 'Currency' | t }}</label>
-        <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+        <p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="profile.currency" [filter]="true" filterBy="label,code" appendTo="body" class="w-full">
           <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
           <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
         </p-select>

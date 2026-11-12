@@ -7,7 +7,7 @@
       @for (b of breakdown(); track b.stars) {
         <div class="flex items-center gap-3 text-sm">
           <span class="w-10">{{ b.stars }} ★</span>
-          <p-progressbar [value]="b.pct" [showValue]="false" styleClass="!h-2 flex-1" class="flex-1" />
+          <p-progressbar [value]="b.pct" [showValue]="false" class="!h-2 flex-1 flex-1" />
           <span class="w-6 text-end muted">{{ b.count }}</span>
         </div>
       }

@@ -1,3 +1,4 @@
+import { ColorField } from '../../../shared/color-field/color-field';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -5,8 +6,7 @@ import { RouterLink } from '@angular/router';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
-import { ColorPicker } from 'primeng/colorpicker';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
@@ -29,7 +29,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, ColorPicker, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton, LogoUpload, SurfacePicker, ToggleSwitch],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ColorField, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton, LogoUpload, SurfacePicker, ToggleSwitch],
   templateUrl: './admin-branding.html',
   styleUrl: './admin-branding.css',
 })

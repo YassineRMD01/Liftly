@@ -16,17 +16,17 @@
             <input pInputText [(ngModel)]="i.name" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Back squat' : 'e.g. Oats and banana') | t" />
             <input pInputText [(ngModel)]="i.detail" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. 5 × 5 @ 75%' : 'e.g. 80 g') | t" />
             <span class="flex">
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="addItem(i)"><fa-icon pButtonIcon icon="plus" /></button>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeItem(i)"><fa-icon pButtonIcon icon="trash" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="addItem(i)"><fa-icon icon="plus" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeItem(i)"><fa-icon icon="trash" /></button>
             </span>
           </div>
         }
-        <button pButton type="button" [text]="true" size="small" (click)="addGroup()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ (p.kind === 'WORKOUT' ? 'Add a day' : 'Add a meal') | t }}</span></button>
+        <button pButton type="button" [text]="true" size="small" (click)="addGroup()"><fa-icon icon="plus" />{{ (p.kind === 'WORKOUT' ? 'Add a day' : 'Add a meal') | t }}</button>
       </div>
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="plan.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save and notify' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="plan.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save and notify' | t }}</button>
   </ng-template>
 </p-dialog>

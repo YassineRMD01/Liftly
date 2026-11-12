@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { AuthService, HOME_BY_ROLE } from '../../core/auth.service';
 import { TranslatePipe } from '../../core/i18n/i18n';
 import { StoreService } from '../../core/store.service';
@@ -12,7 +12,7 @@ import { LanguageSwitcher } from '../language-switcher/language-switcher';
 /** Top bar of the public pages outside the landing page (gym directory, gym pages). */
 @Component({
   selector: 'app-public-header',
-  imports: [TranslatePipe, RouterLink, RouterLinkActive, FaIconComponent, ButtonDirective, ButtonLabel, AppearanceSwitcher, GymLogo, LanguageSwitcher],
+  imports: [TranslatePipe, RouterLink, RouterLinkActive, FaIconComponent, ButtonDirective, AppearanceSwitcher, GymLogo, LanguageSwitcher],
   templateUrl: './public-header.html',
   styleUrl: './public-header.css',
 })

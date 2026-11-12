@@ -1,6 +1,6 @@
 <app-page-header [title]="'Sports' | t" [subtitle]="'The sports and activities your gym offers. They appear on your gym page and in the schedule.' | t">
-  <button pButton type="button" severity="secondary" [outlined]="true" (click)="newCustom()"><fa-icon pButtonIcon icon="wand-magic-sparkles" /><span pButtonLabel>{{ 'Create custom sport' | t }}</span></button>
-  <button pButton type="button" (click)="openCatalog()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add from catalog' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="newCustom()"><fa-icon icon="wand-magic-sparkles" />{{ 'Create custom sport' | t }}</button>
+  <button pButton type="button" (click)="openCatalog()"><fa-icon icon="plus" />{{ 'Add from catalog' | t }}</button>
 </app-page-header>
 
 <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -15,9 +15,9 @@
         <div class="text-xs muted">{{ slots(s) }} {{ 'schedule sessions' | t }}</div>
       </div>
       @if (s.gymId) {
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="editCustom(s)" [attr.aria-label]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="editCustom(s)" [attr.aria-label]="'Edit' | t"><fa-icon icon="pen" /></button>
       }
-      <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(s)" [attr.aria-label]="'Remove' | t"><fa-icon pButtonIcon icon="trash" /></button>
+      <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(s)" [attr.aria-label]="'Remove' | t"><fa-icon icon="trash" /></button>
     </div>
   } @empty {
     <div class="card sm:col-span-2 xl:col-span-3 text-center py-12">
@@ -41,8 +41,8 @@
     } @empty { <p class="muted text-sm col-span-3 text-center py-6">{{ 'Your gym already offers every catalog sport.' | t }}</p> }
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="catalogVisible.set(false)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="addPicked()" [disabled]="!picked().length"><span pButtonLabel>{{ 'Add' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="catalogVisible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="addPicked()" [disabled]="!picked().length">{{ 'Add' | t }}</button>
   </ng-template>
 </p-dialog>
 

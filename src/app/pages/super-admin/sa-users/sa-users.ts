@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { downloadCsv } from '../../../core/csv';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -21,7 +21,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-sa-users',
-  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, IconField, InputIcon, InputText, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, IconField, InputIcon, InputText, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
   templateUrl: './sa-users.html',
   styleUrl: './sa-users.css',
 })

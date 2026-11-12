@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { SelectButton } from 'primeng/selectbutton';
@@ -21,7 +21,7 @@ type Metric = 'weight' | 'bodyFat' | 'waist';
 /** Body measurements over time (chart + history + photos). Members and their coach can add entries. */
 @Component({
   selector: 'app-progress-view',
-  imports: [TranslatePipe, DatePipe, DecimalPipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputNumber, InputText, SelectButton, Tooltip, ChartCard],
+  imports: [TranslatePipe, DatePipe, DecimalPipe, FormsModule, FaIconComponent, ButtonDirective, InputNumber, InputText, SelectButton, Tooltip, ChartCard],
   templateUrl: './progress-view.html',
   styleUrl: './progress-view.css',
 })

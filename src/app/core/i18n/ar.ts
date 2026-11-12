@@ -1156,4 +1156,10 @@ export const AR: Record<string, string> = {
   "The camera is used by another app. Close it and try again.": "الكاميرا مستخدمة من تطبيق آخر. أغلقه وأعد المحاولة.",
   "No QR code found in the photo. Try again closer and without glare.": "لم يُعثر على رمز QR في الصورة. أعد المحاولة عن قرب ودون انعكاس.",
   "Scan a photo": "مسح صورة",
+  "Show password": "إظهار كلمة المرور",
+  "Hide password": "إخفاء كلمة المرور",
+  "Weak": "ضعيفة",
+  "Strong": "قوية",
+  "Pick a color": "اختر لونًا",
+  "Hex color": "اللون بصيغة hex",
 };

@@ -43,16 +43,16 @@
           <h2 class="font-semibold text-lg pt-2">{{ 'Your gym' | t }}</h2>
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="field"><label>{{ 'Gym name' | t }}</label><input pInputText name="gn" [(ngModel)]="form.gymName" required /></div>
-            <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-multiselect name="sp" [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="form.sportIds" [filter]="true" display="chip" [placeholder]="'Pick one or more' | t" styleClass="w-full" /></div>
+            <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-select [multiple]="true" name="sp" [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="form.sportIds" [filter]="true" [placeholder]="'Pick one or more' | t" class="w-full" /></div>
             <div class="field">
               <label>{{ 'Country' | t }}</label>
-              <p-select name="country" [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="form.country" (ngModelChange)="onCountry($event)" [filter]="true" filterBy="label,code" styleClass="w-full" />
+              <p-select name="country" [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="form.country" (ngModelChange)="onCountry($event)" [filter]="true" filterBy="label,code" class="w-full" />
               <small class="muted">{{ 'Liftly prices are shown for this country.' | t }}</small>
             </div>
             <div class="field"><label>{{ 'City' | t }}</label><input pInputText name="ci" [(ngModel)]="form.city" /></div>
             <div class="field">
               <label>{{ 'Currency' | t }} <span class="muted font-normal">{{ '(for your members)' | t }}</span></label>
-              <p-select name="cur" [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" styleClass="w-full">
+              <p-select name="cur" [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="form.currency" [filter]="true" filterBy="label,code" class="w-full">
                 <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
                 <ng-template #selectedItem let-c><span class="font-mono font-semibold me-2">{{ c.code }}</span>{{ c.label }}</ng-template>
               </p-select>
@@ -60,7 +60,7 @@
             <div class="field">
               <label>{{ 'Brand color' | t }}</label>
               <div class="flex items-center gap-3">
-                <p-colorpicker name="col" [(ngModel)]="form.color" (ngModelChange)="previewColor($event)" />
+                <app-color-field [value]="form.color" (valueChange)="form.color = $event; previewColor($event)" />
                 <span class="text-sm muted">#{{ form.color }}</span>
               </div>
             </div>
@@ -88,7 +88,7 @@
         }
 
         @if (error()) { <p-message severity="error">{{ error()! }}</p-message> }
-        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ role() === 'ADMIN' ? ('Start 14-day free trial' | t) : ('Create account' | t) }}</span></button>
+        <button pButton type="submit" class="w-full">{{ role() === 'ADMIN' ? ('Start 14-day free trial' | t) : ('Create account' | t) }}</button>
       </form>
 
       @if (role() === 'ADMIN' && selectedPlan(); as p) {

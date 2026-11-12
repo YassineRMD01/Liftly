@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import QRCode from 'qrcode';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
@@ -13,7 +13,7 @@ import { StoreService } from '../../core/store.service';
 /** Shows the activation link of a new account (copy, QR, e-mail draft). Sending it needs a backend. */
 @Component({
   selector: 'app-invite-dialog',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputText],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, Dialog, InputText],
   templateUrl: './invite-dialog.html',
   styleUrl: './invite-dialog.css',
 })

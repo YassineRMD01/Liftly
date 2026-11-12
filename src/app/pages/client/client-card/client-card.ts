@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { Tag } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { memberQrPayload } from '../../../core/qr';
@@ -15,7 +15,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** The member's check-in QR code, with their status at each gym and recent visits. */
 @Component({
   selector: 'app-client-card',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Tag, GymLogo, PageHeader],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, Tag, GymLogo, PageHeader],
   templateUrl: './client-card.html',
   styleUrl: './client-card.css',
 })

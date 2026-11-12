@@ -1,5 +1,5 @@
 <app-page-header [title]="'Pricing plans' | t" [subtitle]="'What gym owners pay to use Liftly.' | t">
-  <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New plan' | t }}</span></button>
+  <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'New plan' | t }}</button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -34,8 +34,8 @@
       }
       <div class="text-xs muted mt-3">{{ gymCount(p.id) }} {{ 'gyms on this plan' | t }}</div>
       <div class="flex gap-2 mt-4">
-        <button pButton type="button" [outlined]="true" size="small" (click)="edit(p)"><span pButtonLabel>{{ 'Edit' | t }}</span></button>
-        <button pButton type="button" severity="danger" [text]="true" size="small" (click)="remove(p)"><span pButtonLabel>{{ 'Delete' | t }}</span></button>
+        <button pButton type="button" [outlined]="true" size="small" (click)="edit(p)">{{ 'Edit' | t }}</button>
+        <button pButton type="button" severity="danger" [text]="true" size="small" (click)="remove(p)">{{ 'Delete' | t }}</button>
       </div>
     </div>
   }
@@ -55,23 +55,23 @@
           <div class="text-sm font-semibold">{{ 'Local prices by country' | t }}</div>
           <div class="text-xs muted">{{ 'Gyms in these countries pay this price in their currency; others pay the USD price.' | t }}</div>
         </div>
-        <button pButton type="button" size="small" [outlined]="true" (click)="addCountryPrice()"><span pButtonLabel>{{ 'Add country' | t }}</span></button>
+        <button pButton type="button" size="small" [outlined]="true" (click)="addCountryPrice()">{{ 'Add country' | t }}</button>
       </div>
       @for (cp of draft().countryPrices; track $index; let i = $index) {
         <div class="grid grid-cols-[1fr_8rem_8rem_auto] gap-2 items-end">
           <div class="field">
             @if (i === 0) { <label class="!text-xs">{{ 'Country' | t }}</label> }
-            <p-select [options]="countriesFor(cp.country)" optionLabel="label" optionValue="code" [(ngModel)]="cp.country" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body" />
+            <p-select [options]="countriesFor(cp.country)" optionLabel="label" optionValue="code" [(ngModel)]="cp.country" [filter]="true" filterBy="label,code" appendTo="body" class="w-full" />
           </div>
           <div class="field">
             @if (i === 0) { <label class="!text-xs">{{ 'Monthly' | t }}</label> }
-            <p-inputnumber [(ngModel)]="cp.monthly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" styleClass="w-full" inputStyleClass="w-full" />
+            <p-inputnumber [(ngModel)]="cp.monthly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" inputStyleClass="w-full" class="w-full" />
           </div>
           <div class="field">
             @if (i === 0) { <label class="!text-xs">{{ 'Yearly' | t }}</label> }
-            <p-inputnumber [(ngModel)]="cp.yearly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" styleClass="w-full" inputStyleClass="w-full" />
+            <p-inputnumber [(ngModel)]="cp.yearly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" inputStyleClass="w-full" class="w-full" />
           </div>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="removeCountryPrice(i)" [attr.aria-label]="'Remove' | t"><fa-icon pButtonIcon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="removeCountryPrice(i)" [attr.aria-label]="'Remove' | t"><fa-icon icon="trash" /></button>
         </div>
       } @empty {
         <div class="text-xs muted">{{ 'No local prices — every country pays the USD price.' | t }}</div>
@@ -83,7 +83,7 @@
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'Visible on pricing page' | t }}</label>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()" [disabled]="!draft().name"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().name">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Tooltip } from 'primeng/tooltip';
@@ -17,7 +17,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 /** Front-desk staff (receptionists): check members in and manage class rosters, no billing or settings. */
 @Component({
   selector: 'app-admin-staff',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputText, Tooltip, PageHeader, InviteDialog],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputText, Tooltip, PageHeader, InviteDialog],
   templateUrl: './admin-staff.html',
   styleUrl: './admin-staff.css',
 })

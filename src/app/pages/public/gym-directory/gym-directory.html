@@ -8,8 +8,8 @@
       <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
       <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Gym name or city' | t" data-testid="dir-search" />
     </p-iconfield>
-    <p-select [options]="sports()" optionLabel="label" optionValue="value" [ngModel]="sport()" (ngModelChange)="sport.set($event)" [showClear]="true" [placeholder]="'All sports' | t" styleClass="w-48" />
-    <p-select [options]="countries()" optionLabel="label" optionValue="value" [ngModel]="country()" (ngModelChange)="country.set($event)" [showClear]="true" [placeholder]="'All countries' | t" styleClass="w-48" />
+    <p-select [options]="sports()" optionLabel="label" optionValue="value" [ngModel]="sport()" (ngModelChange)="sport.set($event)" [showClear]="true" [placeholder]="'All sports' | t" class="w-48" />
+    <p-select [options]="countries()" optionLabel="label" optionValue="value" [ngModel]="country()" (ngModelChange)="country.set($event)" [showClear]="true" [placeholder]="'All countries' | t" class="w-48" />
   </div>
 
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-8">

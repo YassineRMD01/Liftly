@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import jsQR from 'jsqr';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
@@ -17,7 +17,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Front-desk check-in: scan a member's QR card with the camera, or search by name. */
 @Component({
   selector: 'app-admin-checkin',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputText, Select, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Select, Tag, PageHeader],
   templateUrl: './admin-checkin.html',
   styleUrl: './admin-checkin.css',
 })

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
@@ -22,7 +22,7 @@ export const SESSION_SEV: Record<SessionStatus, 'warn' | 'success' | 'danger' | 
 /** Coach: weekly availability for private sessions per gym, and the session requests to handle. */
 @Component({
   selector: 'app-coach-sessions',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, InputText, Select, SelectButton, Tag, Tooltip, PageHeader],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Select, SelectButton, Tag, Tooltip, PageHeader],
   templateUrl: './coach-sessions.html',
   styleUrl: './coach-sessions.css',
 })

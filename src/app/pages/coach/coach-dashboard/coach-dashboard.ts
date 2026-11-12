@@ -3,7 +3,7 @@ import { TranslatePipe } from '../../../core/i18n/i18n';
 import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { AuthService } from '../../../core/auth.service';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
@@ -13,7 +13,7 @@ import { OpenStatusBadge } from '../../../shared/open-status/open-status';
 
 @Component({
   selector: 'app-coach-dashboard',
-  imports: [GymLogo, TranslatePipe, DatePipe, RouterLink, ButtonDirective, ButtonLabel, PageHeader, StatCard, Stars, OpenStatusBadge],
+  imports: [GymLogo, TranslatePipe, DatePipe, RouterLink, ButtonDirective, PageHeader, StatCard, Stars, OpenStatusBadge],
   templateUrl: './coach-dashboard.html',
   styleUrl: './coach-dashboard.css',
 })

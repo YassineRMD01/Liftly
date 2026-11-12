@@ -1,6 +1,6 @@
+import { ColorField } from '../color-field/color-field';
 import { Component, computed, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ColorPicker } from 'primeng/colorpicker';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
 import { DEFAULT_SURFACE, SURFACE_PRESETS, buildSurface } from '../../core/theme.service';
 
@@ -10,7 +10,7 @@ import { DEFAULT_SURFACE, SURFACE_PRESETS, buildSurface } from '../../core/theme
  */
 @Component({
   selector: 'app-surface-picker',
-  imports: [TranslatePipe, FormsModule, ColorPicker],
+  imports: [TranslatePipe, FormsModule, ColorField],
   templateUrl: './surface-picker.html',
   styleUrl: './surface-picker.css',
 })

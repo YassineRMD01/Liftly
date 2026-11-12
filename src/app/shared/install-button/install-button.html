@@ -1,5 +1,5 @@
 @if (pwa.updateReady()) {
-  <button pButton type="button" size="small" severity="success" [pTooltip]="'A new version is ready. Reload to use it.' | t" tooltipPosition="bottom" (click)="pwa.reload()"><fa-icon pButtonIcon icon="rotate" /><span pButtonLabel>{{ 'Update' | t }}</span></button>
+  <button pButton type="button" size="small" severity="success" [pTooltip]="'A new version is ready. Reload to use it.' | t" tooltipPosition="bottom" (click)="pwa.reload()"><fa-icon icon="rotate" />{{ 'Update' | t }}</button>
 } @else if (pwa.canInstall()) {
-  <button pButton type="button" size="small" [outlined]="true" [pTooltip]="'Add Liftly to your home screen. Works offline.' | t" tooltipPosition="bottom" (click)="pwa.install()" class="hidden sm:inline-flex"><fa-icon pButtonIcon icon="download" /><span pButtonLabel>{{ 'Install app' | t }}</span></button>
+  <button pButton type="button" size="small" [outlined]="true" [pTooltip]="'Add Liftly to your home screen. Works offline.' | t" tooltipPosition="bottom" (click)="pwa.install()" class="hidden sm:inline-flex"><fa-icon icon="download" />{{ 'Install app' | t }}</button>
 }

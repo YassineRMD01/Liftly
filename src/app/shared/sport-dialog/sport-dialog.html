@@ -19,7 +19,7 @@
     </div>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()" [disabled]="!valid()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!valid()">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>

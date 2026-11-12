@@ -1,3 +1,4 @@
+import { ColorField } from '../../../shared/color-field/color-field';
 import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -7,12 +8,10 @@ import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
-import { ColorPicker } from 'primeng/colorpicker';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectButton } from 'primeng/selectbutton';
-import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { formatMoney } from '../../../core/currency';
 import { AuthService } from '../../../core/auth.service';
@@ -22,7 +21,7 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-signup',
-  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ButtonLabel, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
+  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, ColorField, InputText, Message, SelectButton, Select],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })

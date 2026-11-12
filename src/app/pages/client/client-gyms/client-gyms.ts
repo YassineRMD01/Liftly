@@ -4,7 +4,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -29,7 +29,7 @@ import { Stars } from '../../../shared/stars/stars';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [GymLogo, TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
+  imports: [GymLogo, TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   templateUrl: './client-gyms.html',
   styleUrl: './client-gyms.css',
 })

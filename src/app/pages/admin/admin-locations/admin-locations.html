@@ -1,5 +1,5 @@
 <app-page-header [title]="'Locations' | t" [subtitle]="'Several sites under one gym: members use any of them, classes and check-ins say where they happen.' | t">
-  <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'Add location' | t }}</span></button>
+  <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'Add location' | t }}</button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -8,8 +8,8 @@
       <div class="flex items-start gap-3">
         <span class="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="location-dot" /></span>
         <div class="flex-1 min-w-0"><div class="font-semibold">{{ l.name }}</div><div class="text-sm muted">{{ l.address }}, {{ l.city }}</div></div>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(l)"><fa-icon pButtonIcon icon="pen" /></button>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(l)"><fa-icon pButtonIcon icon="trash" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(l)"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(l)"><fa-icon icon="trash" /></button>
       </div>
       <div class="flex gap-6 mt-4 text-sm">
         <div><div class="text-xl font-bold">{{ classCount(l.id) }}</div><div class="muted">{{ 'weekly classes' | t }}</div></div>
@@ -30,7 +30,7 @@
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>

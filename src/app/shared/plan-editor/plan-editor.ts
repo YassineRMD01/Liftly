@@ -2,7 +2,7 @@ import { Component, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { SelectButton } from 'primeng/selectbutton';
@@ -14,7 +14,7 @@ import { StoreService } from '../../core/store.service';
 /** Dialog for a coach to write or edit a workout / nutrition plan. */
 @Component({
   selector: 'app-plan-editor',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, Dialog, InputText, SelectButton, Textarea],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputText, SelectButton, Textarea],
   templateUrl: './plan-editor.html',
   styleUrl: './plan-editor.css',
 })

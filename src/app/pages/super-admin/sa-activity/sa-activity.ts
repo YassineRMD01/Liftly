@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
@@ -15,7 +15,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Platform activity log: who did what, in which gym. */
 @Component({
   selector: 'app-sa-activity',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, IconField, InputIcon, InputText, Select, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, IconField, InputIcon, InputText, Select, PageHeader],
   templateUrl: './sa-activity.html',
   styleUrl: './sa-activity.css',
 })

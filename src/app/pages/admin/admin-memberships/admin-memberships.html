@@ -1,5 +1,5 @@
 <app-page-header [title]="'Membership plans' | t" [subtitle]="'Subscriptions your clients can buy.' | t">
-  <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New plan' | t }}</span></button>
+  <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'New plan' | t }}</button>
 </app-page-header>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -18,8 +18,8 @@
         <span><fa-icon icon="users" class="text-primary" /> {{ subscribers(p.id) }} {{ 'subscribers' | t }}</span>
       </div>
       <div class="flex gap-2 mt-5">
-        <button pButton type="button" size="small" [outlined]="true" (click)="edit(p)"><span pButtonLabel>{{ 'Edit' | t }}</span></button>
-        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="remove(p)"><span pButtonLabel>{{ 'Delete' | t }}</span></button>
+        <button pButton type="button" size="small" [outlined]="true" (click)="edit(p)">{{ 'Edit' | t }}</button>
+        <button pButton type="button" size="small" severity="danger" [text]="true" (click)="remove(p)">{{ 'Delete' | t }}</button>
       </div>
     </div>
   } @empty {
@@ -38,8 +38,8 @@
     <div class="field">
       <label>{{ 'Price' | t }}</label>
       <div class="flex gap-2">
-        <p-inputnumber [(ngModel)]="draft().price" mode="currency" [currency]="draft().currency || cur()" [min]="0" class="flex-1" styleClass="w-full" inputStyleClass="w-full" />
-        <div class="w-28"><p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft().currency" [filter]="true" filterBy="label,code" styleClass="w-full" appendTo="body">
+        <p-inputnumber [(ngModel)]="draft().price" mode="currency" [currency]="draft().currency || cur()" [min]="0" inputStyleClass="w-full" class="flex-1 w-full" />
+        <div class="w-28"><p-select [options]="currencies()" optionLabel="label" optionValue="code" [(ngModel)]="draft().currency" [filter]="true" filterBy="label,code" appendTo="body" class="w-full">
   <ng-template #item let-c><span class="font-mono font-semibold w-12 inline-block">{{ c.code }}</span>{{ c.label }}</ng-template>
   <ng-template #selectedItem let-c><span class="font-mono font-semibold">{{ c.code }}</span></ng-template>
 </p-select></div>
@@ -53,7 +53,7 @@
     </div>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()" [disabled]="!draft().name || !draft().durationDays"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().name || !draft().durationDays">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>

@@ -1156,4 +1156,10 @@ export const FR: Record<string, string> = {
   "The camera is used by another app. Close it and try again.": "La caméra est utilisée par une autre application. Fermez-la et réessayez.",
   "No QR code found in the photo. Try again closer and without glare.": "Aucun code QR trouvé sur la photo. Réessayez plus près et sans reflet.",
   "Scan a photo": "Scanner une photo",
+  "Show password": "Afficher le mot de passe",
+  "Hide password": "Masquer le mot de passe",
+  "Weak": "Faible",
+  "Strong": "Fort",
+  "Pick a color": "Choisir une couleur",
+  "Hex color": "Couleur hexadécimale",
 };

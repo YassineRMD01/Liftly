@@ -1,10 +1,10 @@
+import { ColorField } from '../../../shared/color-field/color-field';
 import { Component, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
-import { ColorPicker } from 'primeng/colorpicker';
+import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -24,7 +24,7 @@ const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6
 /** Platform settings: theme of the public site, default country and the shared sport catalog. */
 @Component({
   selector: 'app-sa-settings',
-  imports: [LogoUpload, SurfacePicker, GymLogo, SelectButton, TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ButtonIcon, ButtonLabel, ColorPicker, InputText, Select, PageHeader, SportDialog],
+  imports: [LogoUpload, SurfacePicker, GymLogo, SelectButton, TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, ColorField, InputText, Select, PageHeader, SportDialog],
   templateUrl: './sa-settings.html',
   styleUrl: './sa-settings.css',
 })

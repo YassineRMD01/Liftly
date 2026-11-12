@@ -1,5 +1,5 @@
 <app-page-header [title]="'Promo codes' | t" [subtitle]="'Discounts clients can apply when subscribing.' | t">
-  <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New promo code' | t }}</span></button>
+  <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'New promo code' | t }}</button>
 </app-page-header>
 
 <div class="card">
@@ -11,19 +11,19 @@
       <tr>
         <td>
           <span class="font-mono font-bold tracking-wider px-2 py-1 rounded-md bg-primary-50 dark:bg-primary-950 text-primary">{{ p.code }}</span>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Copy' | t" (click)="copy(p.code)"><fa-icon pButtonIcon icon="copy" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Copy' | t" (click)="copy(p.code)"><fa-icon icon="copy" /></button>
         </td>
         <td class="font-semibold">{{ p.discountType === 'PERCENT' ? p.value + '%' : (p.value | money: cur()) }}</td>
         <td class="text-sm">{{ p.validFrom | date: 'mediumDate' }} → {{ p.validUntil | date: 'mediumDate' }}</td>
         <td class="text-sm muted">{{ planNames(p) }}</td>
         <td>
           <div class="text-xs muted mb-1">{{ p.uses }} / {{ p.maxUses === -1 ? '∞' : p.maxUses }}</div>
-          <p-progressbar [value]="p.maxUses === -1 ? 0 : (p.uses / p.maxUses) * 100" [showValue]="false" styleClass="!h-1.5" />
+          <p-progressbar [value]="p.maxUses === -1 ? 0 : (p.uses / p.maxUses) * 100" [showValue]="false" class="!h-1.5" />
         </td>
         <td><p-tag [value]="state(p).label" [severity]="state(p).sev" /></td>
         <td class="whitespace-nowrap">
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(p)" [pTooltip]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(p)" [pTooltip]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(p)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(p)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></button>
         </td>
       </tr>
     </ng-template>
@@ -38,7 +38,7 @@
       <p-inputgroup>
         <input pInputText class="font-mono uppercase" [(ngModel)]="draft().code" [placeholder]="'SUMMER25' | t" />
         <p-inputgroup-addon>
-          <button pButton type="button" iconOnly [text]="true" (click)="generate()" [pTooltip]="'Generate' | t"><fa-icon pButtonIcon icon="wand-magic-sparkles" /></button>
+          <button pButton type="button" iconOnly [text]="true" (click)="generate()" [pTooltip]="'Generate' | t"><fa-icon icon="wand-magic-sparkles" /></button>
         </p-inputgroup-addon>
       </p-inputgroup>
     </div>
@@ -56,17 +56,17 @@
     </div>
     <div class="field sm:col-span-2">
       <label>{{ 'Valid period' | t }}</label>
-      <p-datepicker [(ngModel)]="range" selectionMode="range" [readonlyInput]="true" [showIcon]="true" styleClass="w-full" appendTo="body" />
+      <p-datepicker [(ngModel)]="range" selectionMode="range" [readonlyInput]="true" [showIcon]="true" appendTo="body" class="w-full" />
     </div>
     <div class="field"><label>{{ 'Max uses (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxUses" [min]="-1" [showButtons]="true" /></div>
     <div class="field">
       <label>{{ 'Restrict to plans' | t }}</label>
-      <p-multiselect [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="draft().planIds" [placeholder]="'All plans' | t" display="chip" styleClass="w-full" appendTo="body" />
+      <p-select [multiple]="true" [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="draft().planIds" [placeholder]="'All plans' | t" appendTo="body" class="w-full" />
     </div>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'Active' | t }}</label>
   </div>
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()" [disabled]="!draft().code || !draft().value"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().code || !draft().value">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>

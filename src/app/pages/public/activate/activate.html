@@ -9,10 +9,16 @@
         <p class="muted text-sm mt-1">{{ 'Choose a password to activate your account.' | t }} <span class="font-medium">{{ u.email }}</span></p>
       </div>
       <form class="space-y-4" (ngSubmit)="submit()">
-        <div class="field"><label for="p1">{{ 'Password' | t }}</label><p-password inputId="p1" name="p1" [(ngModel)]="password" [toggleMask]="true" [feedback]="true" styleClass="w-full" inputStyleClass="w-full" /></div>
-        <div class="field"><label for="p2">{{ 'Confirm password' | t }}</label><p-password inputId="p2" name="p2" [(ngModel)]="confirm" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
+        <div class="field"><label for="p1">{{ 'Password' | t }}</label><p-iconfield class="w-full"><input pInputPassword id="p1" name="p1" [(ngModel)]="password" [(mask)]="masked" class="w-full" autocomplete="new-password" /><p-inputicon><button type="button" class="cursor-pointer" (click)="masked = !masked" [attr.aria-label]="(masked ? 'Show password' : 'Hide password') | t"><fa-icon [icon]="masked ? 'eye' : 'eye-slash'" /></button></p-inputicon></p-iconfield>
+          @if (password) {
+            <div class="mt-2 flex items-center gap-2 text-xs" data-testid="strength">
+              <div class="flex-1 flex gap-1">@for (i of [1, 2, 3, 4]; track i) { <span class="h-1.5 flex-1 rounded-full" [class]="i <= strength() ? strengthColor() : 'bg-surface-200 dark:bg-surface-700'"></span> }</div>
+              <span class="muted w-16 text-end">{{ strengthLabel() | t }}</span>
+            </div>
+          }</div>
+        <div class="field"><label for="p2">{{ 'Confirm password' | t }}</label><p-iconfield class="w-full"><input pInputPassword id="p2" name="p2" [(ngModel)]="confirm" [(mask)]="masked" class="w-full" autocomplete="new-password" /><p-inputicon><button type="button" class="cursor-pointer" (click)="masked = !masked" [attr.aria-label]="(masked ? 'Show password' : 'Hide password') | t"><fa-icon [icon]="masked ? 'eye' : 'eye-slash'" /></button></p-inputicon></p-iconfield></div>
         @if (error) { <p-message severity="error">{{ error }}</p-message> }
-        <button pButton type="submit" class="w-full"><span pButtonLabel>{{ 'Activate my account' | t }}</span></button>
+        <button pButton type="submit" class="w-full">{{ 'Activate my account' | t }}</button>
       </form>
     } @else {
       <div class="text-center space-y-3 py-6">

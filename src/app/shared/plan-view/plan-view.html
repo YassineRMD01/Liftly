@@ -7,7 +7,7 @@
     <h3 class="font-semibold">{{ p.title }}</h3>
     <div class="text-xs muted">{{ p.kind | t }} · {{ store.fullName(p.coachId) }} · {{ 'Updated' | t }} {{ p.updatedAt | date: 'mediumDate' }}</div>
   </div>
-  <div class="w-32 text-xs text-end"><span class="font-semibold">{{ pct() }}%</span> {{ 'done' | t }}<p-progressbar [value]="pct()" [showValue]="false" styleClass="!h-1.5 mt-1" /></div>
+  <div class="w-32 text-xs text-end"><span class="font-semibold">{{ pct() }}%</span> {{ 'done' | t }}<p-progressbar [value]="pct()" [showValue]="false" class="!h-1.5 mt-1" /></div>
 </div>
 @if (p.notes) { <p class="text-sm muted mb-3 whitespace-pre-line">{{ p.notes }}</p> }
 <div class="grid md:grid-cols-2 gap-3">

@@ -32,7 +32,7 @@
         <div class="flex items-center gap-3 text-sm">
           <app-gym-logo [theme]="x.g.theme" [name]="x.g.name" [size]="28" />
           <span class="flex-1 min-w-0"><span class="font-medium">{{ x.g.name }}</span>@if (x.g.referralReward) { <span class="block text-xs muted truncate">{{ x.g.referralReward }}</span> }</span>
-          <button pButton type="button" size="small" [outlined]="true" (click)="share(x.g.id, x.g.name)"><fa-icon pButtonIcon icon="share-nodes" /><span pButtonLabel>{{ 'Share link' | t }}</span></button>
+          <button pButton type="button" size="small" [outlined]="true" (click)="share(x.g.id, x.g.name)"><fa-icon icon="share-nodes" />{{ 'Share link' | t }}</button>
         </div>
       }
     </div>

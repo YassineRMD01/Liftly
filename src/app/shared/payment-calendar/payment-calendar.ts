@@ -3,7 +3,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ButtonDirective, ButtonLabel } from 'primeng/button';
+import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
@@ -44,7 +44,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: t('Cash'), CARD: t('
  */
 @Component({
   selector: 'app-payment-calendar',
-  imports: [MoneyPipe, TranslatePipe, DatePipe, NgClass, FormsModule, FaIconComponent, ButtonDirective, ButtonLabel, Dialog, InputNumber, InputText, Select, SelectButton, Tooltip],
+  imports: [MoneyPipe, TranslatePipe, DatePipe, NgClass, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputNumber, InputText, Select, SelectButton, Tooltip],
   templateUrl: './payment-calendar.html',
   styleUrl: './payment-calendar.css',
 })

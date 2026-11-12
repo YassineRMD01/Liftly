@@ -1,8 +1,8 @@
 <app-page-header [title]="'Attendance' | t" [subtitle]="'Check-ins and class attendance over the last 30 days.' | t">
   @if (locations().length) {
-    <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="locationId.set($event)" [showClear]="true" [placeholder]="'All locations' | t" styleClass="w-48" />
+    <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="locationId.set($event)" [showClear]="true" [placeholder]="'All locations' | t" class="w-48" />
   }
-  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon pButtonIcon icon="file-csv" /><span pButtonLabel>{{ 'Export CSV' | t }}</span></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="export()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
 </app-page-header>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

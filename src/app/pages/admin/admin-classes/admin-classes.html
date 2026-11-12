@@ -1,7 +1,7 @@
 <app-page-header [title]="'Classes' | t" [subtitle]="'Classes members book in advance. Full classes have a waitlist that fills freed places automatically.' | t">
   @if (canEdit()) {
     <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false" />
-    <button pButton type="button" (click)="edit()"><fa-icon pButtonIcon icon="plus" /><span pButtonLabel>{{ 'New class' | t }}</span></button>
+    <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'New class' | t }}</button>
   }
 </app-page-header>
 
@@ -47,8 +47,8 @@
           <td><app-audience-tag [audience]="c.audience" [short]="true" /></td>
           <td>{{ (c.active ? 'Yes' : 'No') | t }}</td>
           <td class="whitespace-nowrap">
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon pButtonIcon icon="pen" /></button>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon pButtonIcon icon="trash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></button>
           </td>
         </tr>
       </ng-template>
@@ -63,26 +63,26 @@
   @if (editing(); as c) {
     <div class="grid sm:grid-cols-2 gap-4">
       <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="c.name" [placeholder]="'e.g. Morning HIIT' | t" /></div>
-      <div class="field"><label>{{ 'Day' | t }}</label><p-select [options]="days" optionLabel="label" optionValue="value" [(ngModel)]="c.day" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Day' | t }}</label><p-select [options]="days" optionLabel="label" optionValue="value" [(ngModel)]="c.day" appendTo="body" class="w-full" /></div>
       <div class="grid grid-cols-2 gap-2">
         <div class="field"><label>{{ 'Starts' | t }}</label><input pInputText type="time" [(ngModel)]="c.start" /></div>
         <div class="field"><label>{{ 'Ends' | t }}</label><input pInputText type="time" [(ngModel)]="c.end" /></div>
       </div>
-      <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-select [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="c.sportId" [showClear]="true" styleClass="w-full" appendTo="body" /></div>
-      <div class="field"><label>{{ 'Coach (optional)' | t }}</label><p-select [options]="coaches()" optionLabel="label" optionValue="value" [(ngModel)]="c.coachId" [showClear]="true" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Sports / activities' | t }}</label><p-select [options]="sports()" optionLabel="label" optionValue="value" [(ngModel)]="c.sportId" [showClear]="true" appendTo="body" class="w-full" /></div>
+      <div class="field"><label>{{ 'Coach (optional)' | t }}</label><p-select [options]="coaches()" optionLabel="label" optionValue="value" [(ngModel)]="c.coachId" [showClear]="true" appendTo="body" class="w-full" /></div>
       <div class="field"><label>{{ 'Capacity' | t }}</label><p-inputnumber [(ngModel)]="c.capacity" [min]="1" [showButtons]="true" /></div>
-      <div class="field"><label>{{ 'Level' | t }}</label><p-select [options]="levels" optionLabel="label" optionValue="value" [(ngModel)]="c.level" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Level' | t }}</label><p-select [options]="levels" optionLabel="label" optionValue="value" [(ngModel)]="c.level" appendTo="body" class="w-full" /></div>
       <div class="field sm:col-span-2"><label>{{ 'Who can attend' | t }}</label><p-selectbutton [options]="audiences" optionLabel="label" optionValue="value" [(ngModel)]="c.audience" [allowEmpty]="false" /></div>
       @if (locations().length) {
-        <div class="field"><label>{{ 'Location' | t }}</label><p-select [options]="locations()" optionLabel="label" optionValue="value" [(ngModel)]="c.locationId" [showClear]="true" styleClass="w-full" appendTo="body" /></div>
+        <div class="field"><label>{{ 'Location' | t }}</label><p-select [options]="locations()" optionLabel="label" optionValue="value" [(ngModel)]="c.locationId" [showClear]="true" appendTo="body" class="w-full" /></div>
       }
       <div class="field"><label>{{ 'Room' | t }}</label><input pInputText [(ngModel)]="c.room" [placeholder]="'e.g. Studio A' | t" /></div>
       <label class="flex items-center gap-3 self-end pb-2"><p-toggleswitch [(ngModel)]="c.active" /> {{ 'Open for booking' | t }}</label>
-      @if (error) { <p-message severity="error" styleClass="sm:col-span-2">{{ error }}</p-message> }
+      @if (error) { <p-message severity="error" class="sm:col-span-2">{{ error }}</p-message> }
     </div>
   }
   <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)"><span pButtonLabel>{{ 'Cancel' | t }}</span></button>
-    <button pButton type="button" (click)="save()"><span pButtonLabel>{{ 'Save' | t }}</span></button>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
   </ng-template>
 </p-dialog>
