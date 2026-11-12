@@ -4,4 +4,4 @@
  * Get a key at https://primeui.dev/licenses and paste it here
  * (or inject it at build time from an environment file / CI secret).
  */
-export const PRIMEUI_LICENSE_KEY = 'eyJpZCI6IjVmOWNlOGFmLWE3ZTItNDI2MC05YzMwLWQ3YjFkODM5MmZlYiIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3OTExMjcxNzMsImV4cCI6MTgyMjY2MzE3M30';
+export const PRIMEUI_LICENSE_KEY = 'eyJpZCI6IjVmOWNlOGFmLWE3ZTItNDI2MC05YzMwLWQ3YjFkODM5MmZlYiIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3OTExMjcxNzMsImV4cCI6MTgyMjY2MzE3M30.c9yV7KG4H1GxHS0rPucdt2I-t9t3aXu4MnO06TFOmzDjsq73Qa0kSkgSBxPBY4-CsdWYK-TVQFq1ALEr55z-Cw';
