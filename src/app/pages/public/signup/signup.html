@@ -1,7 +1,7 @@
 <div class="min-h-screen flex flex-col">
   <header class="h-16 px-4 flex items-center max-w-5xl w-full mx-auto">
     <a routerLink="/" class="flex items-center gap-2 font-extrabold text-lg">
-      <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center"><fa-icon icon="dumbbell" /></span> Liftly
+      @if (store.platform().theme.logoUrl) { <app-gym-logo [theme]="store.platform().theme" name="Liftly" [size]="36" /> } @else { <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center"><fa-icon icon="dumbbell" /></span> } Liftly
     </a>
     <div class="flex-1"></div>
     <app-language-switcher />

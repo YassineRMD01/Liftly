@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -15,13 +16,13 @@ import { StoreService } from '../../../core/store.service';
 
 @Component({
   selector: 'app-login',
-  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, InputText, Message, Password, Tag],
+  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, InputText, Message, Password, Tag],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login {
   protected readonly auth = inject(AuthService);
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   protected email = '';
   protected password = '';
   protected readonly error = signal<string | null>(null);

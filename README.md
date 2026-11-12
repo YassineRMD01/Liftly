@@ -16,6 +16,8 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 - The super-admin manages **currencies** (active, rate to USD) and **countries** (default currency, active).
 - **Themes:** each gym has its own theme (Branding); the public site (home, pricing, login) and users outside a gym use the **platform theme** set by the super-admin in Settings.
 - **Logos:** gym admins upload a logo (PNG, JPG, SVG, WebP), resized in the browser to 256 px and stored with the theme. Its main colors are extracted (`core/logo.ts`): the strongest becomes the theme color and the others are offered as swatches; any color can still be picked. Gyms without a logo show their initials (`shared/gym-logo`).
+- **Platform logo:** the super-admin uploads a logo in Settings (same uploader and logo-color matching as gyms); it is shown on the home, pricing, login and sign-up pages and in the app for users outside a gym.
+- **Secondary color:** every theme (gym or platform) has a secondary / surface color — one for light mode and one for dark mode (presets or any color, `shared/surface-picker`). It tints backgrounds, cards, borders and muted text; the palette for the active mode is used automatically (`buildSurface` in `core/theme.service.ts`, applied with one PrimeNG `updatePreset` together with the primary palette).
 - **Light / dark:** every theme has an appearance — *Auto (system)*, *Light* or *Dark* — chosen by the gym admin (Branding) or the super-admin (public site). Auto follows the visitor's OS setting and updates live. Each user can override it from the header menu (Auto / Light / Dark), stored in `localStorage` (`liftly-appearance`).
 
 ### Sports, bans, reports & reviews
@@ -89,6 +91,7 @@ src/app/
     page-header/  stat-card/  stars/  coach-card/
     audience-tag/  open-status/  week-schedule/  week-calendar/
     payment-calendar/  language-switcher/  chart-card/  sport-dialog/
+    gym-logo/  logo-upload/  surface-picker/  appearance-switcher/
   pages/
     public/       landing/  login/  signup/
     super-admin/  sa-dashboard/  sa-gyms/  sa-plans/  sa-users/  sa-currencies/  sa-settings/

@@ -91,6 +91,11 @@ export interface GymTheme {
   logoUrl?: string;
   /** Default light/dark mode of this theme (system when unset). Users can override it for themselves. */
   appearance?: Appearance;
+  /**
+   * Secondary (surface) color: tints backgrounds, cards, borders and muted text.
+   * One base color per mode — the light one is used in light mode, the dark one in dark mode.
+   */
+  surface?: { light: string; dark: string };
 }
 
 export interface Gym {

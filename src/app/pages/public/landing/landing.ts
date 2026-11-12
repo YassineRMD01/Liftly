@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { AppearanceSwitcher } from '../../../shared/appearance-switcher/appearance-switcher';
 import { formatMoney } from '../../../core/currency';
 import { Select } from 'primeng/select';
@@ -19,7 +20,7 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-landing',
-  imports: [AppearanceSwitcher, Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, Button, SelectButton, Tag],
+  imports: [GymLogo, AppearanceSwitcher, Select, LanguageSwitcher, TranslatePipe, RouterLink, FormsModule, FaIconComponent, Button, SelectButton, Tag],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })

@@ -19,14 +19,16 @@ import { ThemeService } from '../../../core/theme.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
 import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { SelectButton } from 'primeng/selectbutton';
-import { extractLogoColors, resizeImage } from '../../../core/logo';
+import { LogoUpload } from '../../../shared/logo-upload/logo-upload';
+import { SurfacePicker } from '../../../shared/surface-picker/surface-picker';
+import { DEFAULT_SURFACE } from '../../../core/theme.service';
 import { Appearance } from '../../../core/models';
 
 const PRESETS = ['#6366f1', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#14b8a6', '#0ea5e9', '#3b82f6', '#8b5cf6', '#ec4899', '#111827', '#84cc16'];
 
 @Component({
   selector: 'app-admin-branding',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, Select, Tag, Textarea, PageHeader, GymLogo, SelectButton, LogoUpload, SurfacePicker],
   templateUrl: './admin-branding.html',
   styleUrl: './admin-branding.css',
 })
@@ -42,17 +44,16 @@ export class AdminBranding implements OnDestroy {
   protected readonly logo = signal('');
   /** Uploaded logo (data URL). */
   protected readonly logoUrl = signal<string | undefined>(undefined);
-  /** Brand colors found in the logo, strongest first. */
-  protected readonly logoColors = signal<string[]>([]);
   protected readonly appearance = signal<Appearance>('system');
   protected readonly appearances = [
     { value: 'system', label: t('Auto (system)'), icon: 'circle-half-stroke' },
     { value: 'light', label: t('Light'), icon: 'sun' },
     { value: 'dark', label: t('Dark'), icon: 'moon' },
   ];
-  protected readonly uploading = signal(false);
+  /** Secondary (surface) color for light and dark mode. */
+  protected readonly surface = signal({ ...DEFAULT_SURFACE });
   /** Theme being edited, for the logo component and the live preview. */
-  protected readonly draftTheme = computed(() => ({ primary: this.color(), logoText: this.logo(), logoUrl: this.logoUrl(), appearance: this.appearance() }));
+  protected readonly draftTheme = computed(() => ({ primary: this.color(), logoText: this.logo(), logoUrl: this.logoUrl(), appearance: this.appearance(), surface: this.surface() }));
   protected draft: Gym = this.auth.activeGym()!;
   protected readonly allowed = computed(() => !!this.store.saasPlan(this.auth.activeGym()?.saasPlanId)?.customTheme);
 
@@ -71,44 +72,12 @@ export class AdminBranding implements OnDestroy {
     this.logo.set(g.theme.logoText);
     this.logoUrl.set(g.theme.logoUrl);
     this.appearance.set(g.theme.appearance ?? 'system');
-    this.logoColors.set([]);
-    if (g.theme.logoUrl) extractLogoColors(g.theme.logoUrl).then((c) => this.logoColors.set(c));
+    this.surface.set({ ...(g.theme.surface ?? DEFAULT_SURFACE) });
   }
 
-  /** Upload a logo: it is resized in the browser and its main color becomes the theme color. */
-  async onLogoFile(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.add({ severity: 'error', summary: t('Not an image'), detail: t('Choose a PNG, JPG, SVG or WebP file.') });
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      this.toast.add({ severity: 'error', summary: t('File too large'), detail: t('The logo must be under 5 MB.') });
-      return;
-    }
-    this.uploading.set(true);
-    try {
-      const url = await resizeImage(file);
-      this.logoUrl.set(url);
-      const colors = await extractLogoColors(url);
-      this.logoColors.set(colors);
-      if (colors[0]) {
-        this.setColor(colors[0]);
-        this.toast.add({ severity: 'info', summary: t('Theme matched to your logo'), detail: t('You can pick another color from the logo or any other color.') });
-      }
-    } catch {
-      this.toast.add({ severity: 'error', summary: t('Could not read this image') });
-    } finally {
-      this.uploading.set(false);
-    }
-  }
-
-  removeLogo() {
-    this.logoUrl.set(undefined);
-    this.logoColors.set([]);
+  /** A new logo was uploaded: match the theme color to its strongest color. */
+  onLogoColors(colors: string[]) {
+    if (colors[0]) this.setColor(colors[0]);
   }
 
   setColor(c: string) { this.color.set(c.toLowerCase()); }
@@ -119,7 +88,7 @@ export class AdminBranding implements OnDestroy {
     const current = this.auth.activeGym();
     if (!current) return;
     const keepColor = this.allowed() ? this.color() : current.theme.primary;
-    this.store.updateGym({ ...this.draft, theme: { primary: keepColor, logoText: this.logo(), logoUrl: this.logoUrl(), appearance: this.appearance() } });
+    this.store.updateGym({ ...this.draft, theme: { primary: keepColor, logoText: this.logo(), logoUrl: this.logoUrl(), appearance: this.appearance(), surface: this.surface() } });
     if (!this.allowed()) {
       this.color.set(current.theme.primary);
       this.toast.add({ severity: 'warn', summary: t('Saved without color'), detail: t('Upgrade to Pro to use a custom color.') });

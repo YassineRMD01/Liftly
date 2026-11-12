@@ -5,6 +5,15 @@
 
 <div class="grid lg:grid-cols-5 gap-6">
   <div class="lg:col-span-3 space-y-6">
+    <section class="card space-y-4">
+      <div>
+        <h2 class="font-semibold">{{ 'Platform logo' | t }}</h2>
+        <p class="text-sm muted">{{ 'Shown on the home page, pricing, login and sign-up, and in the app for users outside a gym.' | t }}</p>
+      </div>
+      <app-logo-upload [(logoUrl)]="logoUrl" [theme]="draftTheme()" name="Liftly" [selectedColor]="color()"
+        (detected)="onLogoColors($event)" (pickColor)="setColor($event)" />
+    </section>
+
     <section class="card space-y-5">
       <div>
         <h2 class="font-semibold">{{ 'Home theme' | t }}</h2>
@@ -32,6 +41,14 @@
         </p-selectbutton>
         <small class="muted">{{ 'Default for the public site. Auto follows each visitor\'s device setting; people can still switch for themselves.' | t }}</small>
       </div>
+    </section>
+
+    <section class="card space-y-3">
+      <div>
+        <h2 class="font-semibold">{{ 'Secondary color' | t }}</h2>
+        <p class="text-sm muted">{{ 'Tints backgrounds, cards, borders and secondary text. Pick one for light mode and one for dark mode — the right one is used automatically.' | t }}</p>
+      </div>
+      <app-surface-picker [(value)]="surface" />
     </section>
 
     <section class="card space-y-3">
@@ -70,7 +87,7 @@
       <div class="text-sm font-semibold mb-2">{{ 'Live preview — home page' | t }}</div>
       <div class="card !p-0 overflow-hidden">
         <div class="flex items-center gap-2 px-4 h-12 border-b border-surface-200 dark:border-surface-800">
-          <span class="w-7 h-7 rounded-lg bg-primary text-primary-contrast grid place-items-center text-xs font-extrabold">{{ logo() }}</span>
+          <app-gym-logo [theme]="draftTheme()" name="Liftly" [size]="28" />
           <span class="font-bold">Liftly</span>
           <span class="flex-1"></span>
           <span class="px-3 py-1 rounded-lg bg-primary text-primary-contrast text-xs font-medium">{{ 'Start free trial' | t }}</span>

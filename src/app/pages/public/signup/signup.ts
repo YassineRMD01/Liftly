@@ -1,3 +1,4 @@
+import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
@@ -21,12 +22,12 @@ import { ThemeService } from '../../../core/theme.service';
 
 @Component({
   selector: 'app-signup',
-  imports: [LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
+  imports: [GymLogo, LanguageSwitcher, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Button, ColorPicker, InputText, Message, SelectButton, MultiSelect, Select],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })
 export class Signup implements OnInit {
-  private readonly store = inject(StoreService);
+  protected readonly store = inject(StoreService);
   private readonly auth = inject(AuthService);
   private readonly theme = inject(ThemeService);
   private readonly toast = inject(MessageService);

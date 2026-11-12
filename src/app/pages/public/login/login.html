@@ -1,6 +1,6 @@
 <div class="min-h-screen grid lg:grid-cols-2">
   <div class="hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-contrast">
-    <a routerLink="/" class="flex items-center gap-2 font-extrabold text-xl"><fa-icon icon="dumbbell" /> Liftly</a>
+    <a routerLink="/" class="flex items-center gap-2 font-extrabold text-xl">@if (store.platform().theme.logoUrl) { <app-gym-logo [theme]="store.platform().theme" name="Liftly" [size]="32" /> } @else { <fa-icon icon="dumbbell" /> } Liftly</a>
     <div>
       <h2 class="text-4xl font-extrabold leading-tight">{{ 'Every sport.' | t }}<br />{{ 'Every role.' | t }}<br />{{ 'One app.' | t }}</h2>
       <p class="mt-4 opacity-80 max-w-md">{{ 'Sign in with your account or pick a demo profile to explore the platform as a super-admin, gym admin, coach or member.' | t }}</p>

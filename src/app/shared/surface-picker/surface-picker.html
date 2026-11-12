@@ -1,0 +1,27 @@
+<div class="grid sm:grid-cols-2 gap-4">
+  @for (m of modes(); track m.mode) {
+    <div class="space-y-3">
+      <div class="text-sm font-medium">{{ m.title }}</div>
+      <div class="flex flex-wrap gap-2">
+        @for (p of presets; track p.name) {
+          <button type="button" (click)="set(m.mode, p.color)" [attr.aria-label]="p.label" [attr.aria-pressed]="m.color === p.color" [title]="p.label"
+            class="w-8 h-8 rounded-lg cursor-pointer ring-offset-2 ring-offset-surface-0 dark:ring-offset-surface-900 border border-black/10"
+            [style.background]="p.color" [class.ring-2]="m.color === p.color" [class.ring-primary]="m.color === p.color"></button>
+        }
+      </div>
+      <div class="flex items-center gap-2">
+        <p-colorpicker [ngModel]="m.color.slice(1)" (ngModelChange)="set(m.mode, '#' + $event)" appendTo="body" />
+        <span class="text-xs font-mono muted">{{ m.color }}</span>
+      </div>
+      <!-- preview of a page in this mode -->
+      <div class="rounded-xl p-3 border" [style.background]="m.preview.page" [style.border-color]="m.preview.border">
+        <div class="rounded-lg p-3 border" [style.background]="m.preview.card" [style.border-color]="m.preview.border">
+          <div class="text-sm font-semibold" [style.color]="m.preview.text">{{ 'Card title' | t }}</div>
+          <div class="text-xs mt-0.5" [style.color]="m.preview.muted">{{ 'Secondary text and borders use this color.' | t }}</div>
+          <div class="mt-2 h-1.5 w-2/3 rounded-full bg-primary"></div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+<button type="button" class="text-xs text-primary cursor-pointer mt-2" (click)="reset()">{{ 'Reset to default' | t }}</button>

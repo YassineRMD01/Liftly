@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { updatePrimaryPalette } from '@primeuix/themes';
+import { updatePreset } from '@primeuix/themes';
 import { AuthService } from './auth.service';
 import { StoreService } from './store.service';
 import { Appearance, GymTheme } from './models';
@@ -24,6 +24,36 @@ export function buildPalette(hex: string): Record<string, string> {
     500: [white, 0], 600: [black, 0.12], 700: [black, 0.28], 800: [black, 0.42], 900: [black, 0.55], 950: [black, 0.7],
   };
   return Object.fromEntries(Object.entries(steps).map(([k, [target, w]]) => [k, rgbToHex(mix(base, target, w))]));
+}
+
+/** Default secondary colors (Aura-like): slate in light mode, zinc in dark mode. */
+export const DEFAULT_SURFACE = { light: '#64748b', dark: '#71717a' };
+
+/** Secondary color presets (neutral greys and soft tints). */
+export const SURFACE_PRESETS: { name: string; color: string }[] = [
+  { name: 'Slate', color: '#64748b' }, { name: 'Gray', color: '#6b7280' }, { name: 'Zinc', color: '#71717a' },
+  { name: 'Neutral', color: '#737373' }, { name: 'Stone', color: '#78716c' }, { name: 'Ocean', color: '#4f7391' },
+  { name: 'Forest', color: '#5f7d6a' }, { name: 'Sand', color: '#8a7b62' }, { name: 'Plum', color: '#7d6680' },
+];
+
+/**
+ * Surface palette (0 … 950) from a base color: its hue with a gentle saturation,
+ * on fixed lightness steps so text and backgrounds keep their contrast whatever the color.
+ */
+export function buildSurface(hex: string): Record<string, string> {
+  const [r, g, b] = hexToRgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  const l0 = (max + min) / 2;
+  let h = 0;
+  if (d) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  const sat = Math.min(d ? d / (1 - Math.abs(2 * l0 - 1)) : 0, 0.32);
+  const hsl = (l: number) => {
+    const c = (1 - Math.abs(2 * l - 1)) * sat, x = c * (1 - Math.abs((h % 2) - 1)), m = l - c / 2;
+    const [rr, gg, bb] = h < 1 ? [c, x, 0] : h < 2 ? [x, c, 0] : h < 3 ? [0, c, x] : h < 4 ? [0, x, c] : h < 5 ? [x, 0, c] : [c, 0, x];
+    return rgbToHex([(rr + m) * 255, (gg + m) * 255, (bb + m) * 255]);
+  };
+  const L: Record<string, number> = { 50: 0.975, 100: 0.95, 200: 0.9, 300: 0.83, 400: 0.65, 500: 0.47, 600: 0.37, 700: 0.28, 800: 0.18, 900: 0.12, 950: 0.075 };
+  return { 0: '#ffffff', ...Object.fromEntries(Object.entries(L).map(([k, l]) => [k, hsl(l)])) };
 }
 
 export type AppearanceChoice = 'auto' | 'light' | 'dark';
@@ -64,7 +94,17 @@ export class ThemeService {
 
   constructor() {
     this.media?.addEventListener('change', (e) => this.systemDark.set(e.matches));
-    effect(() => updatePrimaryPalette(buildPalette(this.current().primary)));
+    // one preset update per theme change: primary palette + surface palette for light and dark mode
+    effect(() => {
+      const theme = this.current();
+      const surface = theme.surface ?? DEFAULT_SURFACE;
+      updatePreset({
+        semantic: {
+          primary: buildPalette(theme.primary),
+          colorScheme: { light: { surface: buildSurface(surface.light) }, dark: { surface: buildSurface(surface.dark) } },
+        },
+      });
+    });
     effect(() => document.documentElement.classList.toggle('app-dark', this.dark()));
     effect(() => {
       try { localStorage.setItem(APPEARANCE_KEY, this.userAppearance()); } catch { /* ignore */ }
