@@ -29,6 +29,14 @@ export class NotificationBell {
     // members get their renewal reminders automatically (once per membership)
     effect(() => {
       const u = this.auth.user();
+      // gym owners are reminded when their free trial is about to end
+      if (u?.role === 'ADMIN') {
+        for (const g of this.store.gymsOfAdmin(u.id).filter((x) => x.status === 'TRIAL' && this.store.trialDaysLeft(x) <= 7)) {
+          this.store.notify(u.id, 'Your trial ends soon', 'The free trial of {gym} ends in {days} days. Choose a plan in Billing to keep your data and members.',
+            { gym: g.name, days: this.store.trialDaysLeft(g) }, '/admin/billing', `trial-${g.id}-${g.renewsAt.slice(0, 10)}`);
+        }
+        return;
+      }
       if (u?.role !== 'CLIENT') return;
       for (const g of this.store.gymsOfClient(u.id)) {
         for (const m of this.store.endingSoon(g.id).filter((x) => x.clientId === u.id)) {

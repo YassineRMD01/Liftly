@@ -41,7 +41,7 @@
       <div class="field"><label>{{ 'Last name' | t }}</label><input pInputText [(ngModel)]="invite.lastName" /></div>
       <div class="field col-span-2"><label>{{ 'Email' | t }}</label><input pInputText type="email" [(ngModel)]="invite.email" /></div>
     </div>
-    <p class="text-xs muted mt-2">{{ 'The coach gets an account with temporary password' | t }} <b>welcome</b>.</p>
+    <p class="text-xs muted mt-2">{{ 'The coach gets an invitation link to activate the account.' | t }}</p>
     <div class="flex justify-end mt-4"><p-button [label]="'Invite & link' | t" (onClick)="createAndLink()" [disabled]="limitReached()" /></div>
   }
 </p-dialog>
@@ -61,3 +61,5 @@
     } @empty { <p class="muted text-center py-6">{{ 'No reviews yet.' | t }}</p> }
   </div>
 </p-dialog>
+
+<app-invite-dialog />

@@ -1,16 +1,21 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth.service';
 import { CURRENT_LANGUAGE, TranslatePipe, t } from '../../../core/i18n/i18n';
 import { DAY_SHORT, WEEK, isoDate } from '../../../core/schedule';
 import { StoreService } from '../../../core/store.service';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { PageHeader } from '../../../shared/page-header/page-header';
+import { FormsModule } from '@angular/forms';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { Button } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { downloadCsv } from '../../../core/csv';
 import { StatCard } from '../../../shared/stat-card/stat-card';
 
 /** Attendance statistics from check-ins and class bookings, plus members at risk of leaving. */
 @Component({
   selector: 'app-admin-attendance',
-  imports: [TranslatePipe, ChartCard, PageHeader, StatCard],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, Button, Select, ChartCard, PageHeader, StatCard],
   templateUrl: './admin-attendance.html',
   styleUrl: './admin-attendance.css',
 })
@@ -19,10 +24,16 @@ export class AdminAttendance {
   protected readonly store = inject(StoreService);
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
   /** Successful check-ins of the last 30 days. */
+  protected readonly locations = computed(() => this.store.locationsOf(this.gymId()));
+  protected readonly locationId = signal<string | null>(null);
   private readonly visits = computed(() => {
     const since = new Date(Date.now() - 30 * 86400000).toISOString();
-    return this.store.checkInsOfGym(this.gymId()).filter((c) => c.ok && c.at >= since);
+    return this.store.checkInsOfGym(this.gymId()).filter((c) => c.ok && c.at >= since && (!this.locationId() || c.locationId === this.locationId()));
   });
+  export() {
+    downloadCsv('check-ins', ['Date', 'Time', 'Member', 'Email', 'Method', 'Allowed', 'Reason', 'Location'],
+      this.store.checkInsOfGym(this.gymId()).map((c) => [c.at.slice(0, 10), c.at.slice(11, 16), this.store.fullName(c.clientId), this.store.user(c.clientId)?.email, c.method, c.ok ? 'yes' : 'no', c.reason, this.store.location(this.gymId(), c.locationId)?.name]));
+  }
 
   protected readonly total = computed(() => this.visits().length);
   protected readonly uniqueMembers = computed(() => new Set(this.visits().map((v) => v.clientId)).size);

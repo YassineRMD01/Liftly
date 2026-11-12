@@ -2,8 +2,11 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import QRCode from 'qrcode';
 import { Tag } from 'primeng/tag';
+import { MessageService } from 'primeng/api';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { Button } from 'primeng/button';
 import { AuthService } from '../../../core/auth.service';
-import { TranslatePipe } from '../../../core/i18n/i18n';
+import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { memberQrPayload } from '../../../core/qr';
 import { StoreService } from '../../../core/store.service';
 import { GymLogo } from '../../../shared/gym-logo/gym-logo';
@@ -12,7 +15,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** The member's check-in QR code, with their status at each gym and recent visits. */
 @Component({
   selector: 'app-client-card',
-  imports: [TranslatePipe, DatePipe, Tag, GymLogo, PageHeader],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, Button, Tag, GymLogo, PageHeader],
   templateUrl: './client-card.html',
   styleUrl: './client-card.css',
 })
@@ -25,6 +28,18 @@ export class ClientCard {
     const id = this.user()?.id ?? '';
     return this.store.gymsOfClient(id).map((g) => ({ g, status: this.store.clientStatus(g.id, id) }));
   });
+  private readonly toast = inject(MessageService);
+  protected readonly code = computed(() => this.store.refCode(this.user()?.id ?? ''));
+  protected readonly referrals = computed(() => this.store.referralsOf(this.user()?.id ?? ''));
+  link(gymId: string) { return this.store.publicGymLink(gymId, this.code()); }
+  async share(gymId: string, gymName: string) {
+    const url = this.link(gymId);
+    const text = t('Join me at {gym} with my code {code}!', { gym: gymName, code: this.code() });
+    try {
+      if (navigator.share) await navigator.share({ title: gymName, text, url });
+      else { await navigator.clipboard.writeText(`${text} ${url}`); this.toast.add({ severity: 'success', summary: t('Link copied'), life: 1500 }); }
+    } catch { /* cancelled */ }
+  }
   protected readonly visits = computed(() => this.store.checkInsOfClient(this.user()?.id ?? '').slice(0, 8));
 
   constructor() {

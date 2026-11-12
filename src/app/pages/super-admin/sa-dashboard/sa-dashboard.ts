@@ -1,3 +1,6 @@
+import { CohortTable } from '../../../shared/cohort-table/cohort-table';
+import { MessageService } from 'primeng/api';
+import { Button } from 'primeng/button';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { lastMonths } from '../../../core/stats';
@@ -14,11 +17,18 @@ import { statusSeverity } from '../sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-sa-dashboard',
-  imports: [ChartCard, TranslatePipe, DatePipe, ProgressBar, TableModule, Tag, PageHeader, StatCard],
+  imports: [ChartCard, CohortTable, TranslatePipe, DatePipe, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard],
   templateUrl: './sa-dashboard.html',
   styleUrl: './sa-dashboard.css',
 })
 export class SaDashboard {
+  private readonly toast = inject(MessageService);
+  /** Trials ending in the next 7 days. */
+  protected readonly trialsSoon = computed(() => this.store.trialsEnding(7));
+  sendTrialReminders() {
+    const n = this.store.sendTrialReminders(7);
+    this.toast.add({ severity: n ? 'success' : 'info', summary: n ? t('{0} reminders sent', { 0: n }) : t('Everyone was already reminded') });
+  }
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
   /** Monthly recurring revenue in USD: each active gym's plan price for its country, converted with the super-admin's rates. */

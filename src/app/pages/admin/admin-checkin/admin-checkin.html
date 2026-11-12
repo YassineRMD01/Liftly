@@ -1,4 +1,7 @@
 <app-page-header [title]="'Check-in' | t" [subtitle]="'Scan the member QR card or search by name. Access is checked against memberships, freezes, bans and opening hours.' | t">
+  @if (locations().length) {
+    <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="setLocation($event)" [showClear]="true" [placeholder]="'Which location?' | t" styleClass="w-48" />
+  }
   <div class="text-sm"><span class="text-2xl font-bold tabular-nums">{{ todayOk() }}</span> {{ 'members in today' | t }}</div>
 </app-page-header>
 
@@ -56,7 +59,7 @@
         @for (c of today(); track c.id) {
           <div class="py-2 flex items-center gap-3 text-sm">
             <span class="tabular-nums w-12 muted">{{ c.at | date: 'HH:mm' }}</span>
-            <span class="flex-1">{{ store.user(c.clientId) ? store.fullName(c.clientId) : ('Unknown QR code' | t) }}</span>
+            <span class="flex-1">{{ store.user(c.clientId) ? store.fullName(c.clientId) : ('Unknown QR code' | t) }}@if (c.locationId) { <span class="text-xs muted"> · {{ store.location(c.gymId, c.locationId)?.name }}</span> }</span>
             <fa-icon [icon]="c.method === 'QR' ? 'qrcode' : 'keyboard'" class="muted" />
             <p-tag [value]="(c.ok ? 'In' : 'Denied') | t" [severity]="c.ok ? 'success' : 'danger'" />
           </div>

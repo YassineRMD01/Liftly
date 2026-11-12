@@ -6,6 +6,9 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
+import { Message } from 'primeng/message';
+import { RouterLink } from '@angular/router';
+import { MoneyPipe } from '../../../core/currency';
 import { AuthService } from '../../../core/auth.service';
 import { BillingCycle, SaasPlan } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
@@ -14,7 +17,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-billing',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, Button, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, RouterLink, FaIconComponent, Button, Message, Tag, PageHeader],
   templateUrl: './admin-billing.html',
   styleUrl: './admin-billing.css',
 })
@@ -27,17 +30,10 @@ export class AdminBilling {
   protected readonly gym = this.auth.activeGym;
   protected readonly current = computed(() => this.store.saasPlan(this.gym()?.saasPlanId));
   protected readonly plans = computed(() => this.store.saasPlans().filter((p) => p.active || p.id === this.gym()?.saasPlanId));
-  protected readonly invoices = computed(() => {
-    const g = this.gym();
-    const p = this.current();
-    if (!g || !p || g.status === 'TRIAL') return [];
-    const step = g.billingCycle === 'MONTHLY' ? 30 : 365;
-    return Array.from({ length: 4 }, (_, i) => ({
-      date: new Date(new Date(g.renewsAt).getTime() - (i + 1) * step * 86400000).toISOString(),
-      label: `${p.name} · ${g.billingCycle.toLowerCase()}`,
-      amount: this.priceLabel(p, g.billingCycle),
-    })).filter((i) => i.date >= g.subscribedAt);
-  });
+  /** Subscription invoices (newest first), each printable. */
+  protected readonly invoices = computed(() => this.store.saasInvoices(this.gym()?.id ?? '').slice(0, 24));
+  protected readonly vat = computed(() => this.store.vatRate(this.gym()?.country));
+  protected readonly trialDays = computed(() => (this.gym() ? this.store.trialDaysLeft(this.gym()!) : 0));
 
   /** Plan price for this gym's country (local price if set by the super-admin, otherwise USD). */
   price(p: SaasPlan | undefined, cycle: BillingCycle) { return this.store.saasPrice(p, this.gym()?.country, cycle); }

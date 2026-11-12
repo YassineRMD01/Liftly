@@ -8,6 +8,7 @@
       <span class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="id-badge" /></span>
       <span class="flex-1"><span class="font-medium">{{ u.firstName }} {{ u.lastName }}</span><span class="block text-xs muted">{{ u.email }}</span></span>
       <span class="text-xs muted hidden sm:block">{{ 'Since' | t }} {{ since(u) | date: 'mediumDate' }}</span>
+      @if (u.invite) { <p-button [text]="true" [rounded]="true" [pTooltip]="'Invitation link' | t" (onClick)="inviteDialog().open(u)"><fa-icon icon="link" /></p-button> }
       <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(u)"><fa-icon icon="trash" /></p-button>
     </div>
   } @empty { <p class="text-center muted py-10">{{ 'No staff members yet.' | t }}</p> }
@@ -26,3 +27,5 @@
     <p-button [label]="'Add' | t" (onClick)="add()" />
   </ng-template>
 </p-dialog>
+
+<app-invite-dialog />

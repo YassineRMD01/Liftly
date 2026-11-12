@@ -1,0 +1,36 @@
+<app-page-header [title]="'Locations' | t" [subtitle]="'Several sites under one gym: members use any of them, classes and check-ins say where they happen.' | t">
+  <p-button [label]="'Add location' | t" (onClick)="edit()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+</app-page-header>
+
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+  @for (l of list(); track l.id) {
+    <div class="card" data-testid="location">
+      <div class="flex items-start gap-3">
+        <span class="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="location-dot" /></span>
+        <div class="flex-1 min-w-0"><div class="font-semibold">{{ l.name }}</div><div class="text-sm muted">{{ l.address }}, {{ l.city }}</div></div>
+        <p-button [text]="true" [rounded]="true" (onClick)="edit(l)"><fa-icon icon="pen" /></p-button>
+        <p-button [text]="true" [rounded]="true" severity="danger" (onClick)="remove(l)"><fa-icon icon="trash" /></p-button>
+      </div>
+      <div class="flex gap-6 mt-4 text-sm">
+        <div><div class="text-xl font-bold">{{ classCount(l.id) }}</div><div class="muted">{{ 'weekly classes' | t }}</div></div>
+        <div><div class="text-xl font-bold">{{ checkIns(l.id) }}</div><div class="muted">{{ 'check-ins' | t }}</div></div>
+      </div>
+    </div>
+  } @empty {
+    <div class="card md:col-span-2 xl:col-span-3 text-center py-12 muted">{{ 'One site only. Add locations if your gym has several branches.' | t }}</div>
+  }
+</div>
+
+<p-dialog [header]="(editing()?.id ? 'Edit location' : 'Add location') | t" [visible]="!!editing()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (editing(); as l) {
+    <div class="space-y-3">
+      <div class="field"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="l.name" [placeholder]="'e.g. Downtown' | t" /></div>
+      <div class="field"><label>{{ 'Address' | t }}</label><input pInputText [(ngModel)]="l.address" /></div>
+      <div class="field"><label>{{ 'City' | t }}</label><input pInputText [(ngModel)]="l.city" /></div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="editing.set(null)" />
+    <p-button [label]="'Save' | t" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

@@ -72,6 +72,8 @@ export class PaymentCalendar {
   protected readonly action = signal<'add' | 'edit' | 'view'>('add');
   protected readonly selectedDate = signal(new Date());
   private editing: Payment | null = null;
+  /** Payment shown in the dialog (for its printable receipt). */
+  protected readonly receiptId = signal<string | null>(null);
   protected amount = 0;
   protected payCurrency = 'USD';
   protected method: PaymentMethod = 'CASH';
@@ -162,6 +164,7 @@ export class PaymentCalendar {
     if (this.readonly() && !day.payment) return;
     const plan = this.suggested();
     this.editing = day.payment;
+    this.receiptId.set(day.payment?.id ?? null);
     this.selectedDate.set(day.date);
     this.action.set(this.readonly() ? 'view' : day.payment ? 'edit' : 'add');
     this.amount = day.payment?.amount ?? plan?.price ?? 0;

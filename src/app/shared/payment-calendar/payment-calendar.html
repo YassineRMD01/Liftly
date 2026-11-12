@@ -117,6 +117,7 @@
             <div class="text-3xl font-extrabold text-green-600">{{ amount | money: payCurrency }}</div>
             <div class="text-sm muted">{{ methodLabel[method] }}@if (note) { · {{ note }} }</div>
           </div>
+          @if (receiptId()) { <a [href]="'/receipt/' + receiptId()" target="_blank" class="flex justify-center items-center gap-2 text-sm text-primary font-medium hover:underline" data-testid="receipt-link"><fa-icon icon="file-invoice" /> {{ 'Receipt (print / PDF)' | t }}</a> }
         } @else {
           <div class="grid grid-cols-[1fr_8rem] gap-3">
             <div class="field">
@@ -134,6 +135,7 @@
             <p-selectbutton [options]="methods" optionLabel="label" optionValue="value" [(ngModel)]="method" [allowEmpty]="false" />
           </div>
           <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="note" [placeholder]="'e.g. March membership' | t" /></div>
+          @if (receiptId()) { <a [href]="'/receipt/' + receiptId()" target="_blank" class="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline" data-testid="receipt-link"><fa-icon icon="file-invoice" /> {{ 'Receipt (print / PDF)' | t }}</a> }
           @if (suggested(); as s) {
             <button type="button" class="text-xs text-primary cursor-pointer text-start" (click)="usePlan(s)">
               {{ 'Use plan price:' | t }} {{ s.name }} ({{ s.price | money: planCurrency(s) }})

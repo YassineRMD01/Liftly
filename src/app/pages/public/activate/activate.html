@@ -1,0 +1,26 @@
+<div class="min-h-screen grid place-items-center p-4 bg-surface-50 dark:bg-surface-950">
+  <div class="card w-full max-w-md space-y-5">
+    <a routerLink="/" class="flex items-center gap-2 font-extrabold text-lg">
+      <app-gym-logo [theme]="store.platform().theme" name="Liftly" [size]="32" /> Liftly
+    </a>
+    @if (user(); as u) {
+      <div>
+        <h1 class="text-2xl font-bold">{{ 'Welcome, {name}!' | t: { name: u.firstName } }}</h1>
+        <p class="muted text-sm mt-1">{{ 'Choose a password to activate your account.' | t }} <span class="font-medium">{{ u.email }}</span></p>
+      </div>
+      <form class="space-y-4" (ngSubmit)="submit()">
+        <div class="field"><label for="p1">{{ 'Password' | t }}</label><p-password inputId="p1" name="p1" [(ngModel)]="password" [toggleMask]="true" [feedback]="true" styleClass="w-full" inputStyleClass="w-full" /></div>
+        <div class="field"><label for="p2">{{ 'Confirm password' | t }}</label><p-password inputId="p2" name="p2" [(ngModel)]="confirm" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
+        @if (error) { <p-message severity="error">{{ error }}</p-message> }
+        <p-button type="submit" [label]="'Activate my account' | t" styleClass="w-full" />
+      </form>
+    } @else {
+      <div class="text-center space-y-3 py-6">
+        <fa-icon icon="link-slash" class="text-4xl muted" />
+        <h1 class="text-xl font-bold">{{ 'This invitation is no longer valid' | t }}</h1>
+        <p class="text-sm muted">{{ 'It was already used or has expired. Ask your gym for a new link.' | t }}</p>
+        <a routerLink="/login" class="text-primary font-medium hover:underline">{{ 'Go to sign in' | t }}</a>
+      </div>
+    }
+  </div>
+</div>

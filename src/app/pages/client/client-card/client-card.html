@@ -20,6 +20,22 @@
         } @empty { <p class="text-sm muted">{{ 'Once a gym registers you, its coaches appear here.' | t }}</p> }
       </div>
     </div>
+    <div class="card space-y-3" data-testid="referral-card">
+      <h2 class="font-semibold flex items-center gap-2"><fa-icon icon="gift" class="text-primary" /> {{ 'Invite friends' | t }}</h2>
+      <div class="flex items-center gap-3">
+        <span class="muted text-sm">{{ 'Your code' | t }}</span>
+        <span class="font-mono text-xl font-extrabold tracking-wider px-3 py-1 rounded-lg bg-primary-50 dark:bg-primary-950 text-primary" data-testid="ref-code">{{ code() }}</span>
+        <span class="flex-1"></span>
+        <span class="text-sm"><b>{{ referrals().length }}</b> {{ 'friends joined' | t }}</span>
+      </div>
+      @for (x of gyms(); track x.g.id) {
+        <div class="flex items-center gap-3 text-sm">
+          <app-gym-logo [theme]="x.g.theme" [name]="x.g.name" [size]="28" />
+          <span class="flex-1 min-w-0"><span class="font-medium">{{ x.g.name }}</span>@if (x.g.referralReward) { <span class="block text-xs muted truncate">{{ x.g.referralReward }}</span> }</span>
+          <p-button size="small" [outlined]="true" [label]="'Share link' | t" (onClick)="share(x.g.id, x.g.name)"><ng-template #icon><fa-icon icon="share-nodes" /></ng-template></p-button>
+        </div>
+      }
+    </div>
     <div class="card">
       <h2 class="font-semibold mb-3">{{ 'Recent visits' | t }}</h2>
       <div class="divide-y divide-surface-100 dark:divide-surface-800">

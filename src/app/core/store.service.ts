@@ -1,14 +1,14 @@
-import { t } from './i18n/i18n';
+import { CURRENT_LANGUAGE, t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  Announcement, AppNotification, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, AuditEntry, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v12';
+const STORAGE_KEY = 'liftly-db-v13';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -57,6 +57,10 @@ export class StoreService {
   readonly progress = computed(() => this.state().progress);
   readonly messages = computed(() => this.state().messages);
   readonly announcements = computed(() => this.state().announcements);
+  readonly joinRequests = computed(() => this.state().joinRequests);
+  readonly audit = computed(() => this.state().audit);
+  /** Signed-in user, set by AuthService: recorded as the actor of audit entries. */
+  readonly actorId = signal<string | null>(null);
 
   /** Platform catalog of sports (shared by all gyms). */
   readonly catalogSports = computed(() => this.sports().filter((s) => !s.gymId));
@@ -158,8 +162,11 @@ export class StoreService {
   }
 
   // ---------- users ----------
-  addUser(u: Omit<User, 'id' | 'createdAt' | 'active'>): User {
-    const user: User = { ...u, id: uid('u'), createdAt: new Date().toISOString(), active: true };
+  /** Create an account. Without a password the user gets an invitation link to activate it (7 days). */
+  addUser(u: Omit<User, 'id' | 'createdAt' | 'active' | 'password'> & { password?: string }): User {
+    const invite = u.password ? undefined : { token: uid('inv') + Math.random().toString(36).slice(2, 10), expiresAt: new Date(Date.now() + 7 * 86400000).toISOString() };
+    const user: User = { ...u, password: u.password ?? '', ...(invite ? { invite } : {}), id: uid('u'), createdAt: new Date().toISOString(), active: true };
+    this.log(invite ? 'User invited' : 'User created', `${user.firstName} ${user.lastName} · ${user.role}`);
     this.patch((s) => ({ users: [...s.users, user] }));
     if (user.role === 'COACH') {
       this.upsertCoachProfile({ userId: user.id, bio: '', specialties: [], yearsExperience: 0, hourlyRate: 0, currency: DEFAULT_CURRENCY });
@@ -177,6 +184,7 @@ export class StoreService {
 
   // ---------- SaaS plans (super-admin) ----------
   saveSaasPlan(p: SaasPlan) {
+    this.log('SaaS plan saved', p.name);
     this.patch((s) => ({
       saasPlans: s.saasPlans.some((x) => x.id === p.id)
         ? s.saasPlans.map((x) => (x.id === p.id ? p : x))
@@ -189,21 +197,30 @@ export class StoreService {
   addGym(g: Omit<Gym, 'id'>): Gym {
     const gym = { ...g, id: uid('g') };
     this.patch((s) => ({ gyms: [...s.gyms, gym] }));
+    this.log('Gym created', gym.name, gym.id);
     return gym;
   }
-  updateGym(g: Gym) { this.patch((s) => ({ gyms: s.gyms.map((x) => (x.id === g.id ? g : x)) })); }
+  updateGym(g: Gym) {
+    const before = this.gym(g.id);
+    if (before && before.status !== g.status) this.log('Gym status changed', `${g.name}: ${before.status} → ${g.status}`, g.id);
+    if (before && before.saasPlanId !== g.saasPlanId) this.log('Gym plan changed', `${g.name}: ${this.saasPlan(g.saasPlanId)?.name ?? ''}`, g.id);
+    this.patch((s) => ({ gyms: s.gyms.map((x) => (x.id === g.id ? g : x)) }));
+  }
 
   // ---------- gym <-> coach ----------
   linkCoach(gymId: string, coachId: string) {
+    this.log('Coach linked', this.fullName(coachId), gymId);
     if (this.gymCoaches().some((l) => l.gymId === gymId && l.coachId === coachId)) return;
     this.patch((s) => ({ gymCoaches: [...s.gymCoaches, { gymId, coachId, since: new Date().toISOString() }] }));
   }
   unlinkCoach(gymId: string, coachId: string) {
+    this.log('Coach removed', this.fullName(coachId), gymId);
     this.patch((s) => ({ gymCoaches: s.gymCoaches.filter((l) => !(l.gymId === gymId && l.coachId === coachId)) }));
   }
 
   // ---------- membership plans ----------
   saveMembershipPlan(p: MembershipPlan) {
+    this.log('Membership plan saved', p.name, p.gymId);
     this.patch((s) => ({
       membershipPlans: s.membershipPlans.some((x) => x.id === p.id)
         ? s.membershipPlans.map((x) => (x.id === p.id ? p : x))
@@ -216,6 +233,7 @@ export class StoreService {
 
   // ---------- promo codes ----------
   savePromo(p: PromoCode) {
+    this.log('Promo code saved', p.code.toUpperCase(), p.gymId);
     const code = p.code.trim().toUpperCase();
     this.patch((s) => ({
       promoCodes: s.promoCodes.some((x) => x.id === p.id)
@@ -270,6 +288,7 @@ export class StoreService {
         ? s.promoCodes.map((p) => (p.id === check.promo!.id ? { ...p, uses: p.uses + 1 } : p))
         : s.promoCodes,
     }));
+    this.log('Membership created', `${this.fullName(m.clientId)} · ${plan.name}`, m.gymId);
     return m;
   }
   updateMembership(m: ClientMembership) {
@@ -323,6 +342,7 @@ export class StoreService {
     return this.payments().filter((p) => p.gymId === gymId && p.clientId === clientId).sort((a, b) => a.date.localeCompare(b.date));
   }
   savePayment(p: Payment) {
+    this.log(this.payments().some((x) => x.id === p.id) ? 'Payment edited' : 'Payment recorded', `${this.fullName(p.clientId)} · ${formatMoney(p.amount, p.currency ?? this.currencyOf(p.gymId))}`, p.gymId);
     this.patch((s) => ({
       payments: s.payments.some((x) => x.id === p.id)
         ? s.payments.map((x) => (x.id === p.id ? p : x))
@@ -354,6 +374,7 @@ export class StoreService {
     return { gyms: this.gyms().filter((g) => g.sportIds.includes(id)).length, slots: this.schedule().filter((x) => x.sportId === id).length };
   }
   deleteSport(id: string) {
+    this.log('Sport deleted', this.sportName(id));
     this.patch((s) => ({
       sports: s.sports.filter((x) => x.id !== id),
       gyms: s.gyms.map((g) => ({ ...g, sportIds: g.sportIds.filter((x) => x !== id) })),
@@ -378,11 +399,13 @@ export class StoreService {
   updatePlatform(p: PlatformSettings) { this.patch(() => ({ platform: p })); }
   country(code: string | undefined) { return this.countries().find((c) => c.code === code); }
   saveCountry(c: Country) {
+    this.log('Country saved', `${c.code} · ${c.currency}${c.vatRate != null ? ' · VAT ' + c.vatRate + '%' : ''}`);
     this.patch((s) => ({ countries: s.countries.some((x) => x.code === c.code) ? s.countries.map((x) => (x.code === c.code ? c : x)) : [...s.countries, c] }));
   }
   deleteCountry(code: string) { this.patch((s) => ({ countries: s.countries.filter((c) => c.code !== code) })); }
   currencySetting(code: string | undefined) { return this.currencies().find((c) => c.code === code); }
   saveCurrency(c: CurrencySetting) {
+    this.log('Currency saved', `${c.code} = ${c.rateToUsd} USD`);
     this.patch((s) => ({ currencies: s.currencies.some((x) => x.code === c.code) ? s.currencies.map((x) => (x.code === c.code ? c : x)) : [...s.currencies, c] }));
   }
   deleteCurrency(code: string) { this.patch((s) => ({ currencies: s.currencies.filter((c) => c.code !== code) })); }
@@ -436,6 +459,8 @@ export class StoreService {
   }
   /** Pause a membership for `days` days from `start`: the end date moves back by the same length. */
   freezeMembership(id: string, start: string, days: number, reason: string) {
+    const fm = this.memberships().find((x) => x.id === id);
+    if (fm) this.log('Membership frozen', `${this.fullName(fm.clientId)} · ${days} d`, fm.gymId);
     this.patch((s) => ({
       memberships: s.memberships.map((m) => {
         if (m.id !== id) return m;
@@ -466,6 +491,7 @@ export class StoreService {
   }
   /** Ban a client from a gym: their active memberships are cancelled. */
   banClient(gymId: string, clientId: string, reason: string) {
+    this.log('Client banned', `${this.fullName(clientId)} · ${reason}`, gymId);
     if (this.isBanned(gymId, clientId)) return;
     this.patch((s) => ({
       bans: [...s.bans, { gymId, clientId, reason, date: new Date().toISOString() }],
@@ -473,6 +499,7 @@ export class StoreService {
     }));
   }
   unbanClient(gymId: string, clientId: string) {
+    this.log('Client unbanned', this.fullName(clientId), gymId);
     this.patch((s) => ({ bans: s.bans.filter((b) => !(b.gymId === gymId && b.clientId === clientId)) }));
   }
 
@@ -508,6 +535,7 @@ export class StoreService {
     return this.gyms().filter((g) => ids.includes(g.id));
   }
   linkStaff(gymId: string, userId: string) {
+    this.log('Staff added', this.fullName(userId), gymId);
     if (this.staff().some((x) => x.gymId === gymId && x.userId === userId)) return;
     this.patch((s) => ({ staff: [...s.staff, { gymId, userId, since: new Date().toISOString() }] }));
   }
@@ -523,6 +551,7 @@ export class StoreService {
   }
   /** Delete a class: future bookings are cancelled and their members notified. */
   deleteClass(id: string) {
+    this.log('Class deleted', this.gymClass(id)?.name ?? id, this.gymClass(id)?.gymId);
     const c = this.gymClass(id);
     const today = isoDate();
     const affected = this.bookings().filter((b) => b.classId === id && b.date >= today && (b.status === 'BOOKED' || b.status === 'WAITLIST'));
@@ -606,7 +635,7 @@ export class StoreService {
    * Check a member in at a gym. Refused when unknown, banned, frozen or without an active membership;
    * allowed with a warning outside the sessions open to them. Today's booked class is marked attended.
    */
-  checkIn(gymId: string, clientId: string, method: CheckIn['method'], staffId?: string): CheckIn {
+  checkIn(gymId: string, clientId: string, method: CheckIn['method'], staffId?: string, locationId?: string): CheckIn {
     const user = this.user(clientId);
     let ok = true;
     let reason: string | undefined;
@@ -618,7 +647,7 @@ export class StoreService {
       else if (status === 'EXPIRED') { ok = false; reason = 'No active membership'; }
       else if (!this.gymOpenStatus(gymId, user.gender).open) reason = 'Outside the sessions open to this member';
     }
-    const entry: CheckIn = { id: uid('ci'), gymId, clientId, at: new Date().toISOString(), method, ok, ...(reason ? { reason } : {}), ...(staffId ? { staffId } : {}) };
+    const entry: CheckIn = { id: uid('ci'), gymId, clientId, at: new Date().toISOString(), method, ok, ...(reason ? { reason } : {}), ...(staffId ? { staffId } : {}), ...(locationId ? { locationId } : {}) };
     const today = isoDate();
     this.patch((s) => ({
       checkIns: [...s.checkIns, entry],
@@ -817,6 +846,7 @@ export class StoreService {
   }
   /** Post to everyone at the gym (members, coaches, staff); each gets a notification. */
   postAnnouncement(a: Omit<Announcement, 'id' | 'at'>) {
+    this.log('Announcement posted', a.title, a.gymId);
     const ann: Announcement = { ...a, id: uid('an'), at: new Date().toISOString() };
     this.patch((s) => ({ announcements: [...s.announcements, ann] }));
     const people = [...this.clientsOfGym(a.gymId), ...this.coachesOfGym(a.gymId), ...this.staffOfGym(a.gymId)];
@@ -827,4 +857,176 @@ export class StoreService {
   }
   togglePin(id: string) { this.patch((s) => ({ announcements: s.announcements.map((a) => (a.id === id ? { ...a, pinned: !a.pinned } : a)) })); }
   deleteAnnouncement(id: string) { this.patch((s) => ({ announcements: s.announcements.filter((a) => a.id !== id) })); }
+  // ---------- audit log ----------
+  /** Record an action in the platform activity log (newest kept, capped at 500). */
+  log(action: string, target?: string, gymId?: string) {
+    const e: AuditEntry = { id: uid('au'), at: new Date().toISOString(), action, ...(this.actorId() ? { actorId: this.actorId()! } : {}), ...(target ? { target } : {}), ...(gymId ? { gymId } : {}) };
+    this.patch((s) => ({ audit: [...(s.audit ?? []), e].slice(-500) }));
+  }
+  auditLog() { return [...this.audit()].sort((a, b) => b.at.localeCompare(a.at)); }
+
+  // ---------- invitations ----------
+  userByInvite(token: string) {
+    const u = this.users().find((x) => x.invite?.token === token);
+    return u && u.invite!.expiresAt > new Date().toISOString() ? u : undefined;
+  }
+  inviteLink(u: User) { return u.invite ? `${location.origin}/activate/${u.invite.token}` : ''; }
+  /** New invitation link (e.g. the first one expired). */
+  reinvite(userId: string) {
+    const invite = { token: uid('inv') + Math.random().toString(36).slice(2, 10), expiresAt: new Date(Date.now() + 7 * 86400000).toISOString() };
+    this.patch((s) => ({ users: s.users.map((u) => (u.id === userId ? { ...u, invite } : u)) }));
+    return this.user(userId)!;
+  }
+  /** The invited user chooses a password: the account becomes usable. */
+  activate(token: string, password: string) {
+    const u = this.userByInvite(token);
+    if (!u) return null;
+    this.patch((s) => ({ users: s.users.map((x) => (x.id === u.id ? { ...x, password, invite: undefined } : x)) }));
+    const prev = this.actorId();
+    this.actorId.set(u.id);
+    this.log('Account activated', `${u.firstName} ${u.lastName}`);
+    this.actorId.set(prev);
+    return this.user(u.id)!;
+  }
+
+  // ---------- referrals ----------
+  /** A member's referral code: their first name, made unique when needed. */
+  refCode(userId: string) {
+    const u = this.user(userId);
+    if (!u) return '';
+    const base = u.firstName.normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 8) || 'LIFTLY';
+    const clash = this.users().some((x) => x.id !== u.id && x.role === 'CLIENT' && x.firstName.normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 8) === base);
+    return clash ? base + u.id.replace(/[^a-z0-9]/gi, '').slice(-3).toUpperCase() : base;
+  }
+  userByRefCode(code: string | undefined) {
+    const c = (code ?? '').trim().toUpperCase();
+    return c ? this.clients().find((u) => this.refCode(u.id) === c) : undefined;
+  }
+  referralsOf(userId: string) { return this.users().filter((u) => u.referredBy === userId); }
+  /** Members of a gym ranked by how many people they brought to it. */
+  topReferrers(gymId: string) {
+    const members = new Set(this.clientsOfGym(gymId).map((c) => c.id));
+    const counts = new Map<string, number>();
+    for (const u of this.users()) if (u.referredBy && members.has(u.id)) counts.set(u.referredBy, (counts.get(u.referredBy) ?? 0) + 1);
+    return [...counts.entries()].map(([id, count]) => ({ user: this.user(id)!, count })).filter((x) => x.user).sort((a, b) => b.count - a.count);
+  }
+  publicGymLink(gymId: string, ref?: string) { return `${location.origin}/gyms/${gymId}${ref ? '?ref=' + encodeURIComponent(ref) : ''}`; }
+
+  // ---------- public directory & join requests ----------
+  publishedGyms() { return this.gyms().filter((g) => g.published !== false && g.status !== 'SUSPENDED'); }
+  joinRequestsOf(gymId: string) { return this.joinRequests().filter((r) => r.gymId === gymId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  addJoinRequest(r: Omit<JoinRequest, 'id' | 'status' | 'createdAt'>) {
+    const req: JoinRequest = { ...r, id: uid('jr'), status: 'NEW', createdAt: new Date().toISOString() };
+    this.patch((s) => ({ joinRequests: [...s.joinRequests, req] }));
+    const gym = this.gym(r.gymId);
+    if (gym) this.notify(gym.ownerId, 'New join request', '{name} wants to join {gym}.', { name: `${r.firstName} ${r.lastName}`, gym: gym.name }, '/admin/requests');
+    this.log('Join request', `${r.firstName} ${r.lastName}`, r.gymId);
+    return req;
+  }
+  setJoinRequestStatus(id: string, status: JoinRequestStatus) { this.patch((s) => ({ joinRequests: s.joinRequests.map((r) => (r.id === id ? { ...r, status } : r)) })); }
+  /** Create (or reuse) the member account for a request; new accounts get an invitation link. */
+  convertJoinRequest(id: string) {
+    const r = this.joinRequests().find((x) => x.id === id);
+    if (!r) return null;
+    let user = this.users().find((u) => u.email.toLowerCase() === r.email.toLowerCase());
+    if (user && user.role !== 'CLIENT') return null;
+    const referrer = this.userByRefCode(r.ref);
+    if (!user) user = this.addUser({ role: 'CLIENT', firstName: r.firstName, lastName: r.lastName, email: r.email, ...(r.phone ? { phone: r.phone } : {}), ...(referrer ? { referredBy: referrer.id } : {}) });
+    this.patch((s) => ({ joinRequests: s.joinRequests.map((x) => (x.id === id ? { ...x, status: 'CONVERTED' as const, clientId: user!.id } : x)) }));
+    return user;
+  }
+
+  // ---------- locations ----------
+  locationsOf(gymId: string) { return this.gym(gymId)?.locations ?? []; }
+  location(gymId: string, id: string | undefined) { return this.locationsOf(gymId).find((l) => l.id === id); }
+  saveLocation(gymId: string, loc: GymLocation) {
+    const g = this.gym(gymId);
+    if (!g) return;
+    const saved = loc.id ? loc : { ...loc, id: uid('loc') };
+    const list = g.locations ?? [];
+    this.updateGym({ ...g, locations: list.some((l) => l.id === saved.id) ? list.map((l) => (l.id === saved.id ? saved : l)) : [...list, saved] });
+    this.log('Location saved', `${g.name} · ${saved.name}`, gymId);
+  }
+  deleteLocation(gymId: string, id: string) {
+    const g = this.gym(gymId);
+    if (!g) return;
+    this.updateGym({ ...g, locations: (g.locations ?? []).filter((l) => l.id !== id) });
+    this.patch((s) => ({ classes: s.classes.map((c) => (c.gymId === gymId && c.locationId === id ? { ...c, locationId: undefined } : c)) }));
+  }
+
+  // ---------- receipts & invoices (VAT) ----------
+  vatRate(country: string | undefined) { return this.countries().find((c) => c.code === country)?.vatRate ?? 0; }
+  /** Split a VAT-inclusive amount. */
+  vatSplit(gross: number, rate: number) {
+    const net = Math.round((gross / (1 + rate / 100)) * 100) / 100;
+    return { gross, net, vat: Math.round((gross - net) * 100) / 100, rate };
+  }
+  /** Sequential-looking receipt number for a member payment. */
+  receiptNumber(p: Payment) { return `R-${p.date.slice(0, 4)}-${p.id.replace(/[^a-z0-9]/gi, '').slice(-6).toUpperCase()}`; }
+  /** Liftly subscription invoices of a gym: one per billing period since it subscribed (newest first). */
+  saasInvoices(gymId: string) {
+    const g = this.gym(gymId);
+    if (!g) return [];
+    const plan = this.saasPlan(g.saasPlanId);
+    const price = this.saasPrice(plan, g.country, g.billingCycle);
+    const out: { index: number; number: string; date: string; periodEnd: string; amount: number; currency: string; plan: string; paid: boolean }[] = [];
+    const start = new Date(g.subscribedAt);
+    const step = g.billingCycle === 'YEARLY' ? 12 : 1;
+    for (let i = 0; ; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth() + i * step, start.getDate());
+      if (d > new Date() || i > 60) break;
+      const end = new Date(d.getFullYear(), d.getMonth() + step, d.getDate() - 1);
+      if (g.status === 'TRIAL') break;
+      out.push({ index: i, number: `LF-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}-${g.id.replace(/[^a-z0-9]/gi, '').slice(-4).toUpperCase()}`, date: isoDate(d), periodEnd: isoDate(end), amount: price.amount, currency: price.currency, plan: plan?.name ?? '', paid: true });
+    }
+    return out.reverse();
+  }
+
+  // ---------- trials ----------
+  /** Gyms on trial whose trial ends within `days` days. */
+  trialsEnding(days = 7) {
+    const limit = new Date(Date.now() + days * 86400000).toISOString();
+    return this.gyms().filter((g) => g.status === 'TRIAL' && g.renewsAt <= limit);
+  }
+  trialDaysLeft(g: Gym) { return Math.max(0, Math.ceil((new Date(g.renewsAt).getTime() - Date.now()) / 86400000)); }
+  sendTrialReminders(days = 7) {
+    let n = 0;
+    for (const g of this.trialsEnding(days)) {
+      if (this.notify(g.ownerId, 'Your trial ends soon', 'The free trial of {gym} ends in {days} days. Choose a plan in Billing to keep your data and members.', { gym: g.name, days: this.trialDaysLeft(g) }, '/admin/billing', `trial-${g.id}-${g.renewsAt.slice(0, 10)}`)) n++;
+    }
+    return n;
+  }
+
+  // ---------- retention cohorts ----------
+  /**
+   * Members grouped by the month of their first membership (at one gym, or anywhere);
+   * pct[k] = share still holding a membership k months later.
+   */
+  retentionCohorts(gymId?: string, months = 6) {
+    const list = this.memberships().filter((m) => !gymId || m.gymId === gymId);
+    const byClient = new Map<string, ClientMembership[]>();
+    for (const m of list) byClient.set(m.clientId, [...(byClient.get(m.clientId) ?? []), m]);
+    const now = new Date();
+    const monthKey = (d: Date) => d.getFullYear() * 12 + d.getMonth();
+    const nowKey = monthKey(now);
+    const cohorts = new Map<number, string[]>();
+    for (const [client, ms] of byClient) {
+      const first = Math.min(...ms.map((m) => monthKey(new Date(m.startDate))));
+      if (nowKey - first > months - 1) continue;
+      cohorts.set(first, [...(cohorts.get(first) ?? []), client]);
+    }
+    const activeIn = (ms: ClientMembership[], key: number) => {
+      const from = new Date(Math.floor(key / 12), key % 12, 1).toISOString();
+      const to = new Date(Math.floor(key / 12), key % 12 + 1, 0, 23, 59).toISOString();
+      return ms.some((m) => m.startDate <= to && m.endDate >= from);
+    };
+    const f = new Intl.DateTimeFormat(CURRENT_LANGUAGE.locale, { month: 'short', year: 'numeric' });
+    return [...cohorts.entries()].sort((a, b) => a[0] - b[0]).map(([key, clients]) => ({
+      key,
+      label: f.format(new Date(Math.floor(key / 12), key % 12, 1)),
+      size: clients.length,
+      pct: Array.from({ length: Math.min(months, nowKey - key + 1) }, (_, k) =>
+        Math.round((clients.filter((c) => activeIn(byClient.get(c)!, key + k)).length / clients.length) * 100)),
+    }));
+  }
 }

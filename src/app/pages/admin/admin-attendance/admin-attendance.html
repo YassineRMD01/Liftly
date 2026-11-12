@@ -1,4 +1,9 @@
-<app-page-header [title]="'Attendance' | t" [subtitle]="'Check-ins and class attendance over the last 30 days.' | t" />
+<app-page-header [title]="'Attendance' | t" [subtitle]="'Check-ins and class attendance over the last 30 days.' | t">
+  @if (locations().length) {
+    <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="locationId.set($event)" [showClear]="true" [placeholder]="'All locations' | t" styleClass="w-48" />
+  }
+  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="export()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+</app-page-header>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <app-stat-card icon="door-open" [label]="'Check-ins (30 days)' | t" [value]="total()" />

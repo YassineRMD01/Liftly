@@ -1,9 +1,14 @@
 import { Routes } from '@angular/router';
-import { guestGuard, roleGuard } from './core/guards';
+import { authGuard, guestGuard, roleGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/public/landing/landing').then((m) => m.Landing) },
   { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./pages/public/login/login').then((m) => m.Login) },
+  { path: 'gyms', loadComponent: () => import('./pages/public/gym-directory/gym-directory').then((m) => m.GymDirectory) },
+  { path: 'gyms/:id', loadComponent: () => import('./pages/public/gym-page/gym-page').then((m) => m.GymPage) },
+  { path: 'receipt/:id', canActivate: [authGuard], loadComponent: () => import('./pages/documents/receipt/receipt').then((m) => m.Receipt) },
+  { path: 'invoice/:gymId/:number', canActivate: [authGuard], loadComponent: () => import('./pages/documents/invoice/invoice').then((m) => m.Invoice) },
+  { path: 'activate/:token', loadComponent: () => import('./pages/public/activate/activate').then((m) => m.Activate) },
   { path: 'signup', loadComponent: () => import('./pages/public/signup/signup').then((m) => m.Signup) },
   {
     path: 'super-admin',
@@ -16,6 +21,7 @@ export const routes: Routes = [
       { path: 'users', loadComponent: () => import('./pages/super-admin/sa-users/sa-users').then((m) => m.SaUsers) },
       { path: 'currencies', loadComponent: () => import('./pages/super-admin/sa-currencies/sa-currencies').then((m) => m.SaCurrencies) },
       { path: 'reports', loadComponent: () => import('./pages/reports/reports').then((m) => m.Reports) },
+      { path: 'activity', loadComponent: () => import('./pages/super-admin/sa-activity/sa-activity').then((m) => m.SaActivity) },
       { path: 'settings', loadComponent: () => import('./pages/super-admin/sa-settings/sa-settings').then((m) => m.SaSettings) },
     ],
   },
@@ -38,6 +44,8 @@ export const routes: Routes = [
       { path: 'checkin', loadComponent: () => import('./pages/admin/admin-checkin/admin-checkin').then((m) => m.AdminCheckin) },
       { path: 'attendance', loadComponent: () => import('./pages/admin/admin-attendance/admin-attendance').then((m) => m.AdminAttendance) },
       { path: 'staff', loadComponent: () => import('./pages/admin/admin-staff/admin-staff').then((m) => m.AdminStaff) },
+      { path: 'requests', loadComponent: () => import('./pages/admin/admin-requests/admin-requests').then((m) => m.AdminRequests) },
+      { path: 'locations', loadComponent: () => import('./pages/admin/admin-locations/admin-locations').then((m) => m.AdminLocations) },
       { path: 'messages', loadComponent: () => import('./pages/messages/messages').then((m) => m.Messages) },
       { path: 'announcements', loadComponent: () => import('./pages/announcements/announcements').then((m) => m.Announcements) },
     ],

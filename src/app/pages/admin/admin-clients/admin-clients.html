@@ -1,4 +1,5 @@
 <app-page-header [title]="'Clients' | t" [subtitle]="'Only you can register members — create their account and membership here.' | t">
+<p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="exportCsv()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
   @if (isAdmin()) { <p-button [label]="'Add client' | t" (onClick)="open()"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button> }
 </app-page-header>
 
@@ -50,6 +51,9 @@
               <p-button [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (onClick)="freeze(r.m)"><fa-icon icon="snowflake" /></p-button>
             }
           }
+          @if (store.user(r.m.clientId)?.invite) {
+            <p-button [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (onClick)="invite().open(store.user(r.m.clientId)!)"><fa-icon icon="link" /></p-button>
+          }
           <p-button [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (onClick)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></p-button>
           <p-button [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (onClick)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></p-button>
           @if (r.m.status === 'ACTIVE') {
@@ -69,6 +73,7 @@
 </div>
 
 <app-payment-calendar />
+<app-invite-dialog />
 
 <p-dialog [header]="'Add client subscription' | t" [(visible)]="visible" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
   <div class="space-y-4">
@@ -85,7 +90,7 @@
         <div class="field col-span-2"><label>{{ 'Email' | t }}</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
         <div class="field col-span-2"><label>{{ 'Gender' | t }}</label><p-selectbutton [options]="genders" optionLabel="label" optionValue="value" [(ngModel)]="form.gender" /></div>
       </div>
-      <p class="text-xs muted">{{ 'A member account is created with the temporary password' | t }} <b>welcome</b>.</p>
+      <p class="text-xs muted">{{ 'The member gets an invitation link to activate the account and choose a password.' | t }}</p>
     }
     <div class="field">
       <label>{{ 'Membership plan' | t }}</label>

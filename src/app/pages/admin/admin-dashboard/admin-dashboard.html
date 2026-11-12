@@ -70,6 +70,14 @@
         </div>
       </div>
       <div class="card">
+        <h2 class="font-semibold mb-3">{{ 'Top referrers' | t }}</h2>
+        <div class="space-y-2">
+          @for (r of referrers(); track r.user.id) {
+            <div class="flex justify-between text-sm"><span class="font-medium">{{ r.user.firstName }} {{ r.user.lastName }}</span><span class="muted">{{ r.count }} {{ 'friends joined' | t }}</span></div>
+          } @empty { <p class="text-sm muted">{{ 'No referrals yet. Members find their code on their QR card page.' | t }}</p> }
+        </div>
+      </div>
+      <div class="card">
         <h2 class="font-semibold mb-4">{{ 'Top coaches' | t }}</h2>
         <div class="space-y-3">
           @for (c of topCoaches(); track c.id) {
@@ -82,6 +90,7 @@
       </div>
     </div>
   </div>
+  <div class="mt-6"><app-cohort-table [gymId]="g.id" /></div>
 } @else {
   <p class="muted">{{ 'No gym found for this account.' | t }}</p>
 }

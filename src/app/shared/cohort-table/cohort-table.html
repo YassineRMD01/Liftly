@@ -1,0 +1,27 @@
+<div class="card">
+  <h2 class="font-semibold">{{ 'Retention by cohort' | t }}</h2>
+  <p class="text-sm muted mb-3">{{ 'Members grouped by the month they first joined: share still holding a membership each following month.' | t }}</p>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm border-separate border-spacing-1" data-testid="cohort-table">
+      <thead>
+        <tr class="text-xs muted">
+          <th class="text-start font-medium">{{ 'Cohort' | t }}</th><th class="text-end font-medium">{{ 'Members' | t }}</th>
+          @for (k of cols(); track k) { <th class="font-medium w-14">{{ 'M{n}' | t: { n: k } }}</th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of rows(); track r.key) {
+          <tr>
+            <td class="whitespace-nowrap">{{ r.label }}</td>
+            <td class="text-end tabular-nums muted">{{ r.size }}</td>
+            @for (k of cols(); track k) {
+              @if (k < r.pct.length) {
+                <td class="text-center tabular-nums rounded-md py-1.5" [style.background]="bg(r.pct[k])" [style.color]="fg(r.pct[k])" [title]="r.pct[k] + '%'">{{ r.pct[k] }}%</td>
+              } @else { <td></td> }
+            }
+          </tr>
+        } @empty { <tr><td [attr.colspan]="cols().length + 2" class="text-center muted py-6">{{ 'Not enough history yet.' | t }}</td></tr> }
+      </tbody>
+    </table>
+  </div>
+</div>

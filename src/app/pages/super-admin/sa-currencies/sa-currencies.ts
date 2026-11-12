@@ -98,6 +98,7 @@ export class SaCurrencies {
 
   // ---------- countries ----------
   setCountryCurrency(c: Country, currency: string) { this.store.saveCountry({ ...c, currency }); }
+  setVat(c: Country, vatRate: number | null) { this.store.saveCountry({ ...c, vatRate: vatRate ?? 0 }); }
   toggleCountry(c: Country, active: boolean) { this.store.saveCountry({ ...c, active }); }
 
   addCountry() {

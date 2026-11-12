@@ -1,0 +1,35 @@
+<app-public-header />
+<main class="max-w-7xl mx-auto px-4 py-10">
+  <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight">{{ 'Find your gym' | t }}</h1>
+  <p class="muted mt-2">{{ 'Gyms, pools, dojos and studios on Liftly. Open a gym to see its plans, hours and coaches, and ask to join.' | t }}</p>
+
+  <div class="flex flex-wrap gap-3 mt-6">
+    <p-iconfield class="flex-1 min-w-60">
+      <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
+      <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Gym name or city' | t" data-testid="dir-search" />
+    </p-iconfield>
+    <p-select [options]="sports()" optionLabel="label" optionValue="value" [ngModel]="sport()" (ngModelChange)="sport.set($event)" [showClear]="true" [placeholder]="'All sports' | t" styleClass="w-48" />
+    <p-select [options]="countries()" optionLabel="label" optionValue="value" [ngModel]="country()" (ngModelChange)="country.set($event)" [showClear]="true" [placeholder]="'All countries' | t" styleClass="w-48" />
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-8">
+    @for (g of gyms(); track g.id) {
+      <a [routerLink]="['/gyms', g.id]" class="card !p-0 overflow-hidden hover:shadow-lg transition-shadow block" data-testid="dir-gym">
+        <div class="h-24" [style.background]="'linear-gradient(135deg, ' + g.theme.primary + ', ' + g.theme.primary + '55)'"></div>
+        <div class="p-5 -mt-10">
+          <app-gym-logo [theme]="g.theme" [name]="g.name" [size]="56" class="ring-4 ring-surface-0 dark:ring-surface-900 rounded-2xl inline-block" />
+          <h2 class="text-lg font-bold mt-2">{{ g.name }}</h2>
+          <div class="text-sm muted"><fa-icon icon="location-dot" /> {{ g.city }}@if ((g.locations ?? []).length > 1) { · {{ (g.locations ?? []).length }} {{ 'locations' | t }} }</div>
+          <div class="flex items-center justify-between mt-2">
+            <app-stars [value]="rating(g.id).avg" [count]="rating(g.id).count" />
+            <span class="text-sm font-semibold">{{ minPrice(g.id) }}</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            @for (s of g.sportIds.slice(0, 4); track s) { <span class="text-xs px-2 py-1 rounded-full bg-surface-100 dark:bg-surface-800"><fa-icon [icon]="sportIcon(s)" class="me-1" />{{ store.sportName(s) }}</span> }
+          </div>
+          <div class="mt-3"><app-open-status [gymId]="g.id" /></div>
+        </div>
+      </a>
+    } @empty { <p class="muted col-span-full text-center py-12">{{ 'No gym matches your search.' | t }}</p> }
+  </div>
+</main>

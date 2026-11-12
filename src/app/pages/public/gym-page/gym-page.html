@@ -1,0 +1,124 @@
+<app-public-header />
+@if (gym(); as g) {
+  <section class="relative">
+    <div class="h-40 md:h-56" [style.background]="g.coverUrl ? 'url(' + g.coverUrl + ') center/cover' : 'linear-gradient(135deg, ' + g.theme.primary + ', ' + g.theme.primary + '44)'"></div>
+    <div class="max-w-6xl mx-auto px-4 -mt-14 flex flex-wrap items-end gap-4">
+      <app-gym-logo [theme]="g.theme" [name]="g.name" [size]="104" class="ring-4 ring-surface-0 dark:ring-surface-900 rounded-3xl inline-block bg-surface-0" />
+      <div class="flex-1 min-w-60 pb-1">
+        <h1 class="text-3xl font-extrabold">{{ g.name }}</h1>
+        <div class="flex flex-wrap items-center gap-3 text-sm muted mt-1">
+          <span><fa-icon icon="location-dot" /> {{ g.address }}, {{ g.city }}</span>
+          <app-stars [value]="rating().avg" [count]="rating().count" />
+          <app-open-status [gymId]="g.id" />
+        </div>
+      </div>
+      <p-button [label]="'Join this gym' | t" (onClick)="pick(plans()[0]?.id ?? '')" styleClass="mb-1"><ng-template #icon><fa-icon icon="user-plus" /></ng-template></p-button>
+    </div>
+  </section>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-8">
+    <div class="space-y-8 min-w-0">
+      <section>
+        <p class="text-lg">{{ g.description }}</p>
+        <div class="flex flex-wrap gap-2 mt-3">
+          @for (s of g.sportIds; track s) { <span class="text-sm px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300"><fa-icon [icon]="sportIcon(s)" class="me-1" />{{ store.sportName(s) }}</span> }
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold mb-3">{{ 'Memberships' | t }}</h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          @for (p of plans(); track p.id) {
+            <div class="card flex flex-col">
+              <div class="font-semibold">{{ p.name }}</div>
+              <div class="text-2xl font-extrabold mt-1">{{ p.price | money: store.planCurrency(p) }} <span class="text-sm font-normal muted">/ {{ p.durationDays }} {{ 'days' | t }}</span></div>
+              <p class="text-sm muted mt-2 flex-1">{{ p.description }}</p>
+              <p-button [label]="'Choose' | t" [outlined]="true" size="small" styleClass="w-full mt-3" (onClick)="pick(p.id)" />
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (classes().length) {
+        <section>
+          <h2 class="text-xl font-bold mb-3">{{ 'Classes' | t }}</h2>
+          <div class="card !p-0 divide-y divide-surface-100 dark:divide-surface-800">
+            @for (c of classes(); track c.id) {
+              <div class="px-4 py-2.5 flex items-center gap-3 text-sm">
+                <span class="w-12 font-semibold">{{ dayLabel(c.day) }}</span>
+                <span class="w-24 tabular-nums" dir="ltr">{{ c.start }}–{{ c.end }}</span>
+                <span class="flex-1 font-medium">{{ c.name }}</span>
+                @if (c.locationId) { <span class="muted hidden sm:inline">{{ store.location(g.id, c.locationId)?.name }}</span> }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <section>
+        <h2 class="text-xl font-bold mb-3">{{ 'Opening hours' | t }}</h2>
+        <div class="card"><app-week-schedule [gymId]="g.id" /></div>
+      </section>
+
+      @if (coaches().length) {
+        <section>
+          <h2 class="text-xl font-bold mb-3">{{ 'Coaches' | t }}</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            @for (c of coaches(); track c.id) {
+              <div class="card flex items-center gap-3">
+                <span class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center font-bold">{{ c.firstName[0] }}{{ c.lastName[0] }}</span>
+                <div class="min-w-0"><div class="font-semibold">{{ c.firstName }} {{ c.lastName }}</div><div class="text-xs muted truncate">{{ store.coachProfile(c.id)?.specialties?.join(' · ') }}</div>
+                  <app-stars [value]="store.coachRating(c.id).avg" [count]="store.coachRating(c.id).count" /></div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (reviews().length) {
+        <section>
+          <h2 class="text-xl font-bold mb-3">{{ 'Reviews' | t }}</h2>
+          <div class="space-y-3">
+            @for (r of reviews(); track r.id) {
+              <div class="card"><div class="flex justify-between"><app-stars [value]="r.rating" /><span class="text-xs muted">{{ r.createdAt | date: 'mediumDate' }}</span></div><p class="text-sm mt-2">{{ r.comment }}</p><div class="text-xs muted mt-1">— {{ store.user(r.clientId)?.firstName }}</div></div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+
+    <aside class="space-y-6">
+      @if ((g.locations ?? []).length) {
+        <div class="card">
+          <h2 class="font-semibold mb-2">{{ 'Locations' | t }}</h2>
+          @for (l of g.locations; track l.id) { <div class="py-1.5 text-sm"><div class="font-medium">{{ l.name }}</div><div class="muted">{{ l.address }}, {{ l.city }}</div></div> }
+        </div>
+      }
+      <div id="join" class="card space-y-3 lg:sticky lg:top-20">
+        <h2 class="font-semibold text-lg">{{ 'Ask to join' | t }}</h2>
+        @if (sent) {
+          <p-message severity="success">{{ 'Thanks! {gym} will contact you to finish your registration.' | t: { gym: g.name } }}</p-message>
+        } @else {
+          @if (referrer(); as r) { <p class="text-sm p-3 rounded-xl bg-primary-50 dark:bg-primary-950"><fa-icon icon="gift" class="text-primary me-1" /> {{ 'Invited by {name}.' | t: { name: r.firstName } }} @if (g.referralReward) { {{ g.referralReward }} } </p> }
+          <div class="grid grid-cols-2 gap-2">
+            <input pInputText [(ngModel)]="form.firstName" [placeholder]="'First name' | t" data-testid="join-first" />
+            <input pInputText [(ngModel)]="form.lastName" [placeholder]="'Last name' | t" data-testid="join-last" />
+          </div>
+          <input pInputText class="w-full" type="email" [(ngModel)]="form.email" [placeholder]="'Email' | t" data-testid="join-email" />
+          <input pInputText class="w-full" type="tel" [(ngModel)]="form.phone" [placeholder]="'Phone (optional)' | t" />
+          <p-select [options]="plans()" optionLabel="name" optionValue="id" [(ngModel)]="form.planId" [showClear]="true" [placeholder]="'Membership I am interested in' | t" styleClass="w-full" appendTo="body" />
+          <textarea pTextarea class="w-full" rows="3" [(ngModel)]="form.message" [placeholder]="'Message (optional)' | t"></textarea>
+          <input pInputText class="w-full uppercase" [(ngModel)]="form.ref" [placeholder]="'Referral code (optional)' | t" />
+          @if (error) { <p-message severity="error" size="small">{{ error }}</p-message> }
+          <p-button [label]="'Send request' | t" styleClass="w-full" (onClick)="submit()" />
+          <p class="text-xs muted">{{ 'No payment online: the gym registers you and you pay at the desk.' | t }}</p>
+        }
+      </div>
+    </aside>
+  </main>
+} @else {
+  <main class="max-w-xl mx-auto px-4 py-20 text-center">
+    <h1 class="text-2xl font-bold">{{ 'Gym not found' | t }}</h1>
+    <a routerLink="/gyms" class="text-primary hover:underline">{{ 'See all gyms' | t }}</a>
+  </main>
+}

@@ -1,5 +1,6 @@
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
+import { CohortTable } from '../../../shared/cohort-table/cohort-table';
 import { lastMonths } from '../../../core/stats';
 import { formatMoney } from '../../../core/currency';
 import { Component, computed, inject } from '@angular/core';
@@ -20,7 +21,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
+  imports: [CohortTable, ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, Button, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
@@ -30,6 +31,7 @@ export class AdminDashboard {
   protected readonly sev = statusSeverity;
   private readonly toast = inject(MessageService);
   /** Memberships ending in the next 7 days (renewal reminders). */
+  protected readonly referrers = computed(() => (this.gym() ? this.store.topReferrers(this.gym()!.id).slice(0, 5) : []));
   protected readonly endingSoon = computed(() => (this.gym() ? this.store.endingSoon(this.gym()!.id, 7) : []));
   sendReminders() {
     const n = this.store.sendRenewalReminders(this.gym()!.id, 7);

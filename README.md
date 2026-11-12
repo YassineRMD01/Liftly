@@ -28,6 +28,22 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 - **Announcements:** admins post news to their gym (optionally pinned). Every member, coach and staff member gets an in-app notification.
 - **PWA:** web app manifest, icons and an Angular service worker in production builds. The app can be installed (an *Install app* button appears when the browser offers it) and works offline; demo data lives in `localStorage`. An *Update* button appears when a new version has been downloaded.
 
+### Growth, billing documents & admin tools
+- **Public gym directory** (`/gyms`): search by name or city, filter by sport and country. Each gym has a **public page** (`/gyms/:id`) in its own theme with plans, classes, opening hours, coaches, reviews and locations, plus an **Ask to join** form. Admins can hide the page (Branding → *Public page & referrals*).
+- **Join requests** (`/admin/requests`, with a badge for new ones): mark as contacted, decline, or *Create member*. That makes an invited account; the admin then adds the membership.
+- **Invitations instead of shared passwords:** members, coaches and staff created by an admin get an **activation link** (`/activate/:token`, valid 7 days) to choose their own password. The admin can copy it, show it as a QR code or open a pre-filled e-mail. Invited users cannot sign in until they activate.
+- **Referrals:** every member has a code (their first name, made unique) and a share link per gym (`/gyms/:id?ref=CODE`) on their QR card page. The gym's reward text is shown there and on the join form. Converted requests credit the referrer, and the admin dashboard lists *Top referrers*.
+- **Multi-location gyms** (`/admin/locations`): branches with addresses. Classes can be tied to a location, the check-in desk remembers its location, and attendance can be filtered by location.
+- **Receipts & invoices with VAT:** each country has a VAT rate (super-admin → Currencies & countries). Member payments get a printable **receipt** (`/receipt/:id`, linked from the payment calendar for admins and members). Gyms get printable **Liftly invoices** per billing period (`/invoice/:gymId/:number`, from Billing). Prices include VAT and the net/VAT split is shown; *Print / save as PDF* uses an A4 print stylesheet.
+- **Activity log** (`/super-admin/activity`): users created or invited, memberships, payments, bans, freezes, plan and status changes, announcements, locations and more. Each entry records who, when and which gym, with search, filters and CSV export.
+- **Trial reminders:** the super-admin dashboard lists trials ending within 7 days and can send reminders. Gym owners are also reminded automatically, and Billing shows a countdown banner.
+- **Retention cohorts:** members grouped by the month of their first membership, with the share still subscribed each following month. Shown platform-wide on the super-admin dashboard and per gym on the admin dashboard.
+- **CSV export:** clients, check-ins, join requests, gyms, users and the activity log (`core/csv.ts`, UTF-8 with BOM so Excel keeps accents).
+
+### Tests & CI
+- Unit tests run on Vitest through Angular's unit-test builder: `npm test` (watch mode) or `npm run test:ci`. They cover booking/waitlist promotion, booking rules, check-in rules, freeze, private-session slots, invitations, referrals, join requests, VAT, invoices, audit, messages, CSV and QR codes (`src/app/core/*.spec.ts`).
+- GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, the unit tests and a production build on every push to `main` and on pull requests, and uploads the built app as an artifact. `.npmrc` sets `legacy-peer-deps` because of an optional Vitest peer range.
+
 ### Country pricing, currencies & themes
 - Gyms have a **country**. Each SaaS plan has a USD price plus optional **local prices per country** (in that country's currency); the pricing page, sign-up and billing show the price for the gym's country. MRR is converted to USD with the super-admin's exchange rates.
 - The super-admin manages **currencies** (active, rate to USD) and **countries** (default currency, active).
@@ -83,7 +99,7 @@ npm run build
 ```
 
 Demo accounts (password `demo`, or use the one-click buttons on /login):
-`super@liftly.io`, `admin@irontemple.io`, `admin@bluewave.io`, `coach@liftly.io`, `staff@liftly.io` (front desk at Iron Temple), `client@liftly.io`, `amine@liftly.io` (on the waitlist for *Powerlifting basics*).
+`super@liftly.io`, `admin@irontemple.io`, `admin@bluewave.io`, `admin@kumite.io` (gym on a trial ending soon), `coach@liftly.io`, `staff@liftly.io` (front desk at Iron Temple), `client@liftly.io`, `amine@liftly.io` (on the waitlist for *Powerlifting basics*).
 Super-admin → Users → "Reset demo data" restores the seed.
 
 ## PrimeNG license

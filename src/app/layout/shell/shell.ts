@@ -19,7 +19,7 @@ import { Role } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
 
-interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; /** Heading shown above this item. */ section?: string; badge?: 'messages'; }
+interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; /** Heading shown above this item. */ section?: string; badge?: 'messages' | 'requests'; }
 
 const NAV: Record<Role, NavItem[]> = {
   SUPER_ADMIN: [
@@ -29,11 +29,13 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Users'), icon: 'users', link: '/super-admin/users' },
     { label: t('Currencies & countries'), icon: 'coins', link: '/super-admin/currencies' },
     { label: t('Reports'), icon: 'flag', link: '/super-admin/reports' },
+    { label: t('Activity log'), icon: 'clock-rotate-left', link: '/super-admin/activity' },
     { label: t('Settings'), icon: 'gear', link: '/super-admin/settings' },
   ],
   ADMIN: [
     { label: t('Dashboard'), icon: 'gauge-high', link: '/admin', exact: true },
     { label: t('Clients'), icon: 'users', link: '/admin/clients', section: t('Members') },
+    { label: t('Join requests'), icon: 'user-clock', link: '/admin/requests', badge: 'requests' },
     { label: t('Memberships'), icon: 'id-card', link: '/admin/memberships' },
     { label: t('Promo codes'), icon: 'ticket', link: '/admin/promos' },
     { label: t('Check-in'), icon: 'qrcode', link: '/admin/checkin' },
@@ -46,6 +48,7 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Announcements'), icon: 'bullhorn', link: '/admin/announcements' },
     { label: t('Reports'), icon: 'flag', link: '/admin/reports' },
     { label: t('Staff'), icon: 'id-badge', link: '/admin/staff', section: t('Gym') },
+    { label: t('Locations'), icon: 'location-dot', link: '/admin/locations' },
     { label: t('Branding'), icon: 'palette', link: '/admin/branding' },
     { label: t('Billing'), icon: 'credit-card', link: '/admin/billing' },
   ],
@@ -105,5 +108,6 @@ export class Shell {
     return u ? (u.firstName[0] + u.lastName[0]).toUpperCase() : '?';
   });
   protected readonly unread = computed(() => this.store.unreadMessages(this.auth.user()?.id ?? ''));
+  protected readonly newRequests = computed(() => this.store.joinRequestsOf(this.auth.activeGym()?.id ?? '').filter((r) => r.status === 'NEW').length);
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
 }

@@ -35,7 +35,7 @@ export class Login {
   submit() {
     const u = this.auth.login(this.email, this.password);
     if (!u) {
-      this.error.set(t('Invalid email or password.'));
+      this.error.set(this.auth.pendingInvite(this.email) ? t('This account is not activated yet. Open the invitation link your gym gave you.') : t('Invalid email or password.'));
       return;
     }
     this.auth.loginAs(u);

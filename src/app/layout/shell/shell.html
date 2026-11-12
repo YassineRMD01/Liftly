@@ -38,6 +38,7 @@
         >
           <fa-icon [icon]="item.icon" class="w-5 text-center" />
           <span class="flex-1">{{ item.label }}</span>
+          @if (item.badge === 'requests' && newRequests()) { <span class="min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-contrast text-[11px] font-bold grid place-items-center">{{ newRequests() }}</span> }
           @if (item.badge === 'messages' && unread()) { <span class="min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold grid place-items-center" data-testid="unread-badge">{{ unread() }}</span> }
         </a>
       }

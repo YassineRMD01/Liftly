@@ -5,6 +5,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import jsQR from 'jsqr';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -16,7 +17,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Front-desk check-in: scan a member's QR card with the camera, or search by name. */
 @Component({
   selector: 'app-admin-checkin',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, InputText, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, InputText, Select, Tag, PageHeader],
   templateUrl: './admin-checkin.html',
   styleUrl: './admin-checkin.css',
 })
@@ -33,6 +34,10 @@ export class AdminCheckin implements OnDestroy {
   protected readonly cameraError = signal('');
   protected readonly q = signal('');
   protected readonly result = signal<CheckIn | null>(null);
+  protected readonly locations = computed(() => this.store.locationsOf(this.gym()?.id ?? ''));
+  /** Site of this front desk (remembered on this device). */
+  protected readonly locationId = signal<string | null>((() => { try { return localStorage.getItem('liftly-desk-location'); } catch { return null; } })());
+  setLocation(id: string | null) { this.locationId.set(id); try { if (id) localStorage.setItem('liftly-desk-location', id); else localStorage.removeItem('liftly-desk-location'); } catch { /* ignore */ } }
 
   protected readonly matches = computed(() => {
     const q = this.q().trim().toLowerCase();
@@ -109,7 +114,8 @@ export class AdminCheckin implements OnDestroy {
   private doCheckIn(clientId: string, method: CheckIn['method']) {
     const g = this.gym();
     if (!g) return;
-    this.result.set(this.store.checkIn(g.id, clientId, method, this.auth.user()?.id));
+    const loc = this.locations().some((l) => l.id === this.locationId()) ? this.locationId()! : undefined;
+    this.result.set(this.store.checkIn(g.id, clientId, method, this.auth.user()?.id, loc));
   }
 
   ngOnDestroy() { this.stopCamera(); }

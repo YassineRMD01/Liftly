@@ -43,7 +43,7 @@
     <p class="text-sm muted mb-4">{{ 'Gyms choose their country at sign-up. Its currency is suggested for the gym, and local Liftly prices can be set per country in Pricing plans.' | t }}</p>
     <p-table [value]="countries()" [tableStyle]="{ 'min-width': '30rem' }" [scrollable]="true" scrollHeight="28rem">
       <ng-template #header>
-        <tr><th>{{ 'Country' | t }}</th><th>{{ 'Currency' | t }}</th><th>{{ 'Gyms' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
+        <tr><th>{{ 'Country' | t }}</th><th>{{ 'Currency' | t }}</th><th>{{ 'VAT %' | t }}</th><th>{{ 'Gyms' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
       </ng-template>
       <ng-template #body let-c>
         <tr>
@@ -51,6 +51,7 @@
           <td>
             <p-select [options]="allCurrencyOptions()" optionLabel="code" optionValue="code" [ngModel]="c.currency" (ngModelChange)="setCountryCurrency(c, $event)" [filter]="true" filterBy="label,code" size="small" appendTo="body" styleClass="w-28" />
           </td>
+          <td><p-inputnumber [ngModel]="c.vatRate ?? 0" (ngModelChange)="setVat(c, $event)" [min]="0" [max]="40" [maxFractionDigits]="1" suffix=" %" size="small" inputStyleClass="w-20" [attr.data-testid]="'vat-' + c.code" /></td>
           <td>{{ gymsIn(c.code) }}</td>
           <td><p-toggleswitch [ngModel]="c.active" (ngModelChange)="toggleCountry(c, $event)" /></td>
           <td><p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="deleteCountry(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></p-button></td>

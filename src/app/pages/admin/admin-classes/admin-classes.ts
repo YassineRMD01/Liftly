@@ -56,6 +56,8 @@ export class AdminClasses {
     return [...byDate.entries()].map(([date, items]) => ({ date, items }));
   });
   protected readonly sports = computed(() => this.store.sportsOfGym(this.gym()).map((s) => ({ value: s.id, label: this.store.sportName(s.id) })));
+  protected readonly locations = computed(() => this.store.locationsOf(this.gym()?.id ?? '').map((l) => ({ value: l.id, label: l.name })));
+  locName(id?: string) { return id ? this.store.location(this.gym()?.id ?? '', id)?.name : undefined; }
   protected readonly coaches = computed(() => this.store.coachesOfGym(this.gym()?.id ?? '').map((c) => ({ value: c.id, label: `${c.firstName} ${c.lastName}` })));
 
   // editor

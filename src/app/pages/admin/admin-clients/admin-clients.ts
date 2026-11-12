@@ -16,6 +16,7 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { InputNumber } from 'primeng/inputnumber';
+import { downloadCsv } from '../../../core/csv';
 import { isoDate } from '../../../core/schedule';
 import { AuthService } from '../../../core/auth.service';
 import { ClientMembership, ClientStatus, Gender } from '../../../core/models';
@@ -25,10 +26,11 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 import { MoneyPipe } from '../../../core/currency';
 import { PaymentCalendar } from '../../../shared/payment-calendar/payment-calendar';
 import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
+import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })
@@ -42,6 +44,7 @@ export class AdminClients {
   protected readonly isAdmin = computed(() => this.auth.role() === 'ADMIN');
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly payments = viewChild(PaymentCalendar);
+  protected readonly invite = viewChild.required(InviteDialog);
   protected visible = false;
   protected mode: 'existing' | 'new' = 'existing';
   protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
@@ -98,7 +101,7 @@ export class AdminClients {
       const { firstName, lastName, email } = this.form;
       if (!firstName || !lastName || !email) return this.err(t('Fill in the new member details.'));
       if (this.store.users().some((u) => u.email.toLowerCase() === email.toLowerCase())) return this.err(t('Email already registered — use "Existing member".'));
-      clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, password: 'welcome', ...(this.form.gender ? { gender: this.form.gender } : {}) }).id;
+      clientId = this.store.addUser({ role: 'CLIENT', firstName, lastName, email, ...(this.form.gender ? { gender: this.form.gender } : {}) }).id;
       created = true;
     }
     if (!clientId) return this.err(t('Choose a client.'));
@@ -107,12 +110,7 @@ export class AdminClients {
     this.store.subscribeClient({ gymId: this.gymId(), clientId, planId: this.form.planId, coachId: this.form.coachId, promoCode: this.form.promo || undefined });
     this.visible = false;
     this.toast.add({ severity: 'success', summary: t('Subscription created'), detail: this.store.fullName(clientId) });
-    if (created) {
-      this.toast.add({
-        severity: 'info', sticky: true, summary: t('Member account created'),
-        detail: t('Give the member their login: {0} / temporary password "welcome".', { 0: this.form.email }),
-      });
-    }
+    if (created) this.invite().open(this.store.user(clientId)!);
   }
 
   private err(detail: string) { this.toast.add({ severity: 'error', summary: t('Cannot subscribe'), detail }); }
@@ -224,5 +222,11 @@ export class AdminClients {
       header: t('Cancel membership'), message: t('Cancel {0}\'s membership?', { 0: this.store.fullName(m.clientId) }), acceptButtonStyleClass: 'p-button-danger',
       accept: () => { this.store.updateMembership({ ...m, status: 'CANCELLED' }); this.toast.add({ severity: 'warn', summary: t('Membership cancelled') }); },
     });
+  }
+
+  exportCsv() {
+    downloadCsv(`clients-${this.auth.activeGym()?.name ?? ''}`, ['Client', 'Email', 'Phone', 'Plan', 'Coach', 'Paid', 'Currency', 'Start', 'End', 'Membership', 'Client status', 'Referral code'],
+      this.rows().map((r) => [r.clientName, r.email, this.store.user(r.m.clientId)?.phone, r.planName, r.m.coachId ? this.store.fullName(r.m.coachId) : '', r.m.pricePaid, this.store.membershipCurrency(r.m),
+        r.m.startDate.slice(0, 10), r.m.endDate.slice(0, 10), r.m.status, r.clientStatus, this.store.refCode(r.m.clientId)]));
   }
 }

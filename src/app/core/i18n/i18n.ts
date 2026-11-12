@@ -49,6 +49,7 @@ const ENUM_EN: Record<string, string> = {
   ACTIVE: 'Active', TRIAL: 'Trial', SUSPENDED: 'Suspended', EXPIRED: 'Expired', CANCELLED: 'Cancelled',
   SUPER_ADMIN: 'Super admin', ADMIN: 'Gym admin', COACH: 'Coach', CLIENT: 'Member',
   BANNED: 'Banned', OPEN: 'Open', RESOLVED: 'Resolved', DISMISSED: 'Dismissed',
+  NEW: 'New', CONTACTED: 'Contacted', CONVERTED: 'Converted',
   REQUESTED: 'Requested', CONFIRMED: 'Confirmed', DECLINED: 'Declined', DONE: 'Done', WORKOUT: 'Workout', NUTRITION: 'Nutrition',
   STAFF: 'Front desk', FROZEN: 'Frozen', WAITLIST: 'Waitlist', BOOKED: 'Booked', ATTENDED: 'Attended', NO_SHOW: 'No-show',
 };

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -6,16 +6,18 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
+import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { User } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
+import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 /** Front-desk staff (receptionists): check members in and manage class rosters, no billing or settings. */
 @Component({
   selector: 'app-admin-staff',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, Dialog, InputText, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, Button, Dialog, InputText, Tooltip, PageHeader, InviteDialog],
   templateUrl: './admin-staff.html',
   styleUrl: './admin-staff.css',
 })
@@ -27,6 +29,7 @@ export class AdminStaff {
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
   protected readonly staff = computed(() => this.store.staffOfGym(this.gymId()));
   protected addVisible = false;
+  protected readonly inviteDialog = viewChild.required(InviteDialog);
   protected form = { firstName: '', lastName: '', email: '' };
 
   since(u: User) { return this.store.staff().find((s) => s.gymId === this.gymId() && s.userId === u.id)?.since; }
@@ -41,10 +44,11 @@ export class AdminStaff {
       this.toast.add({ severity: 'error', summary: t('Email already registered'), detail: t('This email belongs to another kind of account.') });
       return;
     }
-    const u = existing ?? this.store.addUser({ role: 'STAFF', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password: 'welcome' });
+    const u = existing ?? this.store.addUser({ role: 'STAFF', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim() });
     this.store.linkStaff(this.gymId(), u.id);
     this.addVisible = false;
-    this.toast.add({ severity: 'success', summary: t('Staff member added'), detail: existing ? undefined : t('Temporary password: {0}', { 0: 'welcome' }) });
+    this.toast.add({ severity: 'success', summary: t('Staff member added') });
+    if (!existing) this.inviteDialog().open(u);
   }
 
   remove(u: User) {

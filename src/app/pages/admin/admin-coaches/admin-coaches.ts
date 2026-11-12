@@ -1,5 +1,5 @@
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -15,10 +15,11 @@ import { StoreService } from '../../../core/store.service';
 import { CoachCard } from '../../../shared/coach-card/coach-card';
 import { PageHeader } from '../../../shared/page-header/page-header';
 import { Stars } from '../../../shared/stars/stars';
+import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-coaches',
-  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars, InviteDialog],
   templateUrl: './admin-coaches.html',
   styleUrl: './admin-coaches.css',
 })
@@ -33,6 +34,7 @@ export class AdminCoaches {
   protected readonly modes = [{ label: t('From Liftly network'), value: 'network' }, { label: t('Invite new coach'), value: 'invite' }];
   protected invite = { firstName: '', lastName: '', email: '' };
   protected readonly q = signal('');
+  protected readonly inviteDialog = viewChild.required(InviteDialog);
   protected readonly reviewCoach = signal<User | null>(null);
 
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
@@ -63,9 +65,10 @@ export class AdminCoaches {
       this.toast.add({ severity: 'error', summary: t('Email already registered'), detail: t('Find this coach in the network tab.') });
       return;
     }
-    const c = this.store.addUser({ role: 'COACH', firstName, lastName, email, password: 'welcome' });
+    const c = this.store.addUser({ role: 'COACH', firstName, lastName, email });
     this.link(c);
     this.addVisible = false;
+    this.inviteDialog().open(c);
   }
 
   showReviews(c: User) { this.reviewCoach.set(c); this.reviewsVisible = true; }

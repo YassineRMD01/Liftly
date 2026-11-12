@@ -7,6 +7,8 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { Button } from 'primeng/button';
+import { downloadCsv } from '../../../core/csv';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
@@ -23,7 +25,7 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, Button, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })
@@ -37,5 +39,11 @@ export class SaGyms {
   update(g: Gym, patch: Partial<Gym>) {
     this.store.updateGym({ ...g, ...patch });
     this.toast.add({ severity: 'success', summary: t('Gym updated'), detail: g.name });
+  }
+
+  exportCsv() {
+    downloadCsv('liftly-gyms', ['Gym', 'Owner', 'Email', 'Country', 'City', 'Plan', 'Cycle', 'Status', 'Subscribed', 'Renews', 'Members', 'MRR (USD)'],
+      this.store.gyms().map((g) => [g.name, this.store.fullName(g.ownerId), this.store.user(g.ownerId)?.email, g.country, g.city, this.store.saasPlan(g.saasPlanId)?.name, g.billingCycle, g.status,
+        g.subscribedAt.slice(0, 10), g.renewsAt.slice(0, 10), this.store.clientsOfGym(g.id).length, Math.round(this.store.gymMrrUsd(g) * 100) / 100]));
   }
 }

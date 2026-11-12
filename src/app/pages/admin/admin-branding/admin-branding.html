@@ -71,6 +71,17 @@
         <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><textarea pTextarea rows="3" [(ngModel)]="draft.description"></textarea></div>
       </div>
     </div>
+
+    <div class="card space-y-4">
+      <div>
+        <h2 class="font-semibold">{{ 'Public page & referrals' | t }}</h2>
+        <p class="text-sm muted">{{ 'Your page in the Liftly gym directory, where people can ask to join.' | t }}</p>
+      </div>
+      <label class="flex items-center gap-3"><p-toggleswitch [ngModel]="draft.published !== false" (ngModelChange)="draft.published = $event" /> {{ 'Listed in the gym directory' | t }}</label>
+      <div class="flex flex-wrap items-center gap-2 text-sm"><span class="muted">{{ 'Page:' | t }}</span><a [routerLink]="['/gyms', draft.id]" class="font-mono text-primary hover:underline">/gyms/{{ draft.id }}</a></div>
+      <div class="field"><label>{{ 'Referral reward' | t }}</label><input pInputText [(ngModel)]="draft.referralReward" [placeholder]="'e.g. 1 free month for you and your friend' | t" />
+        <small class="muted">{{ 'Shown to members on their referral card and to people who open their link.' | t }}</small></div>
+    </div>
   </div>
 
   <!-- live preview -->

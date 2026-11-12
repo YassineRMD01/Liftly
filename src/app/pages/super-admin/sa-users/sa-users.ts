@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Button } from 'primeng/button';
+import { downloadCsv } from '../../../core/csv';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
@@ -58,5 +59,10 @@ export class SaUsers {
   reset() {
     this.store.resetDemo();
     this.toast.add({ severity: 'info', summary: t('Demo data restored') });
+  }
+
+  exportCsv() {
+    downloadCsv('liftly-users', ['First name', 'Last name', 'Email', 'Role', 'Phone', 'Created', 'Active', 'Activated'],
+      this.rows().map((u) => [u.firstName, u.lastName, u.email, u.role, u.phone, u.createdAt.slice(0, 10), u.active ? 'yes' : 'no', u.invite ? 'no' : 'yes']));
   }
 }

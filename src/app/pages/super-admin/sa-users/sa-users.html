@@ -1,4 +1,5 @@
 <app-page-header [title]="'Users' | t" [subtitle]="'Everyone on the platform.' | t">
+  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="exportCsv()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
   <p-button [label]="'Reset demo data' | t" severity="secondary" [outlined]="true" (onClick)="reset()" />
 </app-page-header>
 <div class="card">

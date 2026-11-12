@@ -16,3 +16,6 @@ export const guestGuard: CanActivateFn = () => {
   const role = auth.role();
   return role ? inject(Router).createUrlTree([HOME_BY_ROLE[role]]) : true;
 };
+
+/** Any signed-in user. */
+export const authGuard: CanActivateFn = () => (inject(AuthService).role() ? true : inject(Router).createUrlTree(['/login']));

@@ -13,6 +13,10 @@ export interface User {
   gender?: Gender;
   createdAt: string;
   active: boolean;
+  /** Pending invitation: the account is activated from a link and the user picks a password. */
+  invite?: { token: string; expiresAt: string };
+  /** Member who referred this user (referral program). */
+  referredBy?: string;
 }
 
 export interface CoachProfile {
@@ -53,6 +57,8 @@ export interface Country {
   code: string; // ISO 3166 alpha-2
   currency: string; // ISO 4217
   active: boolean;
+  /** VAT / sales tax rate in %, shown on receipts and invoices (prices include it). */
+  vatRate?: number;
 }
 
 /** A currency the platform supports. Managed by super-admin. */
@@ -117,6 +123,50 @@ export interface Gym {
   status: GymStatus;
   subscribedAt: string;
   renewsAt: string;
+  /** Branches of the gym. Empty = a single site at `address`. */
+  locations?: GymLocation[];
+  /** Listed in the public gym directory. */
+  published?: boolean;
+  /** What members get for bringing a friend (shown on their referral card). */
+  referralReward?: string;
+}
+
+/** A branch / site of a gym. */
+export interface GymLocation {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+}
+
+export type JoinRequestStatus = 'NEW' | 'CONTACTED' | 'CONVERTED' | 'DECLINED';
+
+/** Someone asking to join a gym from its public page. */
+export interface JoinRequest {
+  id: string;
+  gymId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  planId?: string;
+  message?: string;
+  /** Referral code typed in or carried by the link. */
+  ref?: string;
+  status: JoinRequestStatus;
+  createdAt: string;
+  clientId?: string;
+}
+
+/** One entry of the platform activity log (super-admin). */
+export interface AuditEntry {
+  id: string;
+  at: string;
+  actorId?: string;
+  action: string;
+  gymId?: string;
+  /** Short human summary (who / what). */
+  target?: string;
 }
 
 /** Many-to-many: a coach works at many gyms, a gym has many coaches. */
@@ -206,6 +256,7 @@ export interface GymClass {
   audience: Audience;
   level: ClassLevel;
   room?: string;
+  locationId?: string;
   active: boolean;
 }
 
@@ -232,6 +283,7 @@ export interface CheckIn {
   /** Why it was refused, or a warning (English key, translated for display). */
   reason?: string;
   staffId?: string;
+  locationId?: string;
 }
 
 /** In-app notification. Title/body are English keys translated for the reader, with params. */
@@ -455,4 +507,6 @@ export interface DbState {
   progress: ProgressEntry[];
   messages: ChatMessage[];
   announcements: Announcement[];
+  joinRequests: JoinRequest[];
+  audit: AuditEntry[];
 }

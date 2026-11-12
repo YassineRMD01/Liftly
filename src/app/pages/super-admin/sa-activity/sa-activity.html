@@ -1,0 +1,29 @@
+<app-page-header [title]="'Activity log' | t" [subtitle]="'Every important change on the platform: who did it, when, and in which gym.' | t">
+  <p-button [label]="'Export CSV' | t" severity="secondary" [outlined]="true" (onClick)="export()"><ng-template #icon><fa-icon icon="file-csv" /></ng-template></p-button>
+</app-page-header>
+
+<div class="card">
+  <div class="flex flex-wrap gap-3 mb-4">
+    <p-iconfield class="flex-1 min-w-60">
+      <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
+      <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Search user, action or details' | t" />
+    </p-iconfield>
+    <p-select [options]="store.gyms()" optionLabel="name" optionValue="id" [ngModel]="gymId()" (ngModelChange)="gymId.set($event)" [showClear]="true" [placeholder]="'All gyms' | t" styleClass="w-48" />
+    <p-select [options]="actions()" optionLabel="label" optionValue="value" [ngModel]="action()" (ngModelChange)="action.set($event)" [showClear]="true" [placeholder]="'All actions' | t" styleClass="w-56" />
+  </div>
+  <div class="divide-y divide-surface-100 dark:divide-surface-800">
+    @for (e of shown(); track e.id) {
+      <div class="py-2.5 flex items-center gap-3 text-sm" data-testid="audit-row">
+        <span class="w-8 h-8 rounded-full bg-surface-100 dark:bg-surface-800 grid place-items-center shrink-0"><fa-icon [icon]="$any(iconOf(e.action))" class="muted" /></span>
+        <div class="flex-1 min-w-0">
+          <div><span class="font-medium">{{ who(e.actorId) }}</span> · {{ e.action | t }}@if (e.gymId) { <span class="muted"> · {{ store.gym(e.gymId)?.name }}</span> }</div>
+          @if (e.target) { <div class="text-xs muted truncate">{{ e.target }}</div> }
+        </div>
+        <span class="text-xs muted whitespace-nowrap">{{ e.at | date: 'd MMM y, HH:mm' }}</span>
+      </div>
+    } @empty { <p class="text-center muted py-10">{{ 'No activity found.' | t }}</p> }
+  </div>
+  @if (filtered().length > shown().length) {
+    <div class="text-center mt-3"><p-button [label]="'Show more' | t" [text]="true" (onClick)="limit.set(limit() + 50)" /></div>
+  }
+</div>

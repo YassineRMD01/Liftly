@@ -38,6 +38,8 @@ export class AuthService {
   });
 
   constructor() {
+    // audit entries are attributed to the signed-in user
+    effect(() => this.store.actorId.set(this.userId()));
     effect(() => {
       try {
         localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: this.userId(), gymId: this.activeGymId() }));
@@ -54,11 +56,21 @@ export class AuthService {
   }
 
   login(email: string, password: string): User | null {
-    const u = this.store.users().find((x) => x.email.toLowerCase() === email.trim().toLowerCase() && x.password === password);
+    const u = this.store.users().find((x) => x.email.toLowerCase() === email.trim().toLowerCase() && !!x.password && x.password === password);
     if (!u || !u.active) return null;
     this.userId.set(u.id);
     this.activeGymId.set(null);
     return u;
+  }
+
+  /** An invited user whose account is not activated yet. */
+  pendingInvite(email: string) { return this.store.users().find((x) => x.email.toLowerCase() === email.trim().toLowerCase() && !!x.invite && !x.password); }
+
+  /** Sign in right after activating an invitation. */
+  signIn(user: User) {
+    this.userId.set(user.id);
+    this.activeGymId.set(null);
+    this.router.navigateByUrl(HOME_BY_ROLE[user.role]);
   }
 
   loginAs(user: User) {

@@ -1,0 +1,20 @@
+<header class="sticky top-0 z-20 bg-surface-0/80 dark:bg-surface-900/80 backdrop-blur border-b border-surface-200 dark:border-surface-800">
+  <div class="max-w-7xl mx-auto h-16 px-4 flex items-center gap-4">
+    <a routerLink="/" class="flex items-center gap-2 font-extrabold text-lg">
+      @if (store.platform().theme.logoUrl) { <app-gym-logo [theme]="store.platform().theme" name="Liftly" [size]="36" /> } @else { <span class="w-9 h-9 rounded-xl bg-primary text-primary-contrast grid place-items-center"><fa-icon icon="dumbbell" /></span> }
+      Liftly
+    </a>
+    <nav class="hidden md:flex gap-6 text-sm muted ms-6">
+      <a routerLink="/gyms" routerLinkActive="text-primary font-semibold" [routerLinkActiveOptions]="{ exact: true }" class="hover:text-primary">{{ 'Find a gym' | t }}</a>
+      <a routerLink="/" fragment="pricing" class="hover:text-primary">{{ 'For gym owners' | t }}</a>
+    </nav>
+    <div class="flex-1"></div>
+    <app-language-switcher />
+    <app-appearance-switcher />
+    @if (auth.user()) {
+      <p-button [label]="'Open dashboard' | t" [routerLink]="home()" />
+    } @else {
+      <p-button [label]="'Sign in' | t" [text]="true" routerLink="/login" />
+    }
+  </div>
+</header>
