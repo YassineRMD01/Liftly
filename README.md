@@ -45,7 +45,7 @@ Works for any sport (gym, pool, dojo, court…). Four roles:
 - Creating a subscription in Admin → Clients records its payment automatically; more can be added from the calendar (Clients table → calendar icon).
 
 ### Schedule rules
-- Shown as a weekly time-grid calendar (Mon → Sun, hour rows, "now" line); parallel sessions sit side by side. Admins click a session to edit it.
+- Shown as a sideways weekly calendar: one row per day, hours across the full width (all hours visible, no vertical scroll), a "now" line on today; parallel sessions stack inside the day row. Admins click a session to edit it.
 - A slot = day + open/close time + audience (`MIXED` / `MEN` / `WOMEN`) + optional sport (empty = whole gym).
 - Overlapping slots on the same day and area are refused, **except** a men-only and a women-only session running in parallel (separate areas).
 - Closures (holidays, maintenance) close the gym all day on a date.
