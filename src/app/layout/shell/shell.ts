@@ -1,3 +1,4 @@
+import { InstallButton } from '../../shared/install-button/install-button';
 import { NotificationBell } from '../../shared/notification-bell/notification-bell';
 import { AppearanceSwitcher } from '../../shared/appearance-switcher/appearance-switcher';
 import { GymLogo } from '../../shared/gym-logo/gym-logo';
@@ -18,7 +19,7 @@ import { Role } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
 
-interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; }
+interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; /** Heading shown above this item. */ section?: string; badge?: 'messages'; }
 
 const NAV: Record<Role, NavItem[]> = {
   SUPER_ADMIN: [
@@ -32,23 +33,29 @@ const NAV: Record<Role, NavItem[]> = {
   ],
   ADMIN: [
     { label: t('Dashboard'), icon: 'gauge-high', link: '/admin', exact: true },
+    { label: t('Clients'), icon: 'users', link: '/admin/clients', section: t('Members') },
     { label: t('Memberships'), icon: 'id-card', link: '/admin/memberships' },
     { label: t('Promo codes'), icon: 'ticket', link: '/admin/promos' },
-    { label: t('Clients'), icon: 'users', link: '/admin/clients' },
-    { label: t('Classes'), icon: 'calendar-check', link: '/admin/classes' },
     { label: t('Check-in'), icon: 'qrcode', link: '/admin/checkin' },
     { label: t('Attendance'), icon: 'chart-column', link: '/admin/attendance' },
-    { label: t('Coaches'), icon: 'user-tie', link: '/admin/coaches' },
+    { label: t('Classes'), icon: 'calendar-check', link: '/admin/classes', section: t('Training') },
     { label: t('Schedule'), icon: 'clock', link: '/admin/schedule' },
     { label: t('Sports'), icon: 'medal', link: '/admin/sports' },
+    { label: t('Coaches'), icon: 'user-tie', link: '/admin/coaches' },
+    { label: t('Messages'), icon: 'comments', link: '/admin/messages', section: t('Communication'), badge: 'messages' },
+    { label: t('Announcements'), icon: 'bullhorn', link: '/admin/announcements' },
     { label: t('Reports'), icon: 'flag', link: '/admin/reports' },
-    { label: t('Staff'), icon: 'id-badge', link: '/admin/staff' },
+    { label: t('Staff'), icon: 'id-badge', link: '/admin/staff', section: t('Gym') },
     { label: t('Branding'), icon: 'palette', link: '/admin/branding' },
     { label: t('Billing'), icon: 'credit-card', link: '/admin/billing' },
   ],
   COACH: [
     { label: t('Dashboard'), icon: 'gauge-high', link: '/coach', exact: true },
+    { label: t('Athletes'), icon: 'users', link: '/coach/athletes' },
+    { label: t('Private sessions'), icon: 'handshake', link: '/coach/sessions' },
     { label: t('My classes'), icon: 'calendar-check', link: '/coach/classes' },
+    { label: t('Messages'), icon: 'comments', link: '/coach/messages', badge: 'messages' },
+    { label: t('Announcements'), icon: 'bullhorn', link: '/coach/announcements' },
     { label: t('Reviews'), icon: 'star', link: '/coach/reviews' },
     { label: t('My profile'), icon: 'user-pen', link: '/coach/profile' },
   ],
@@ -57,12 +64,19 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Classes'), icon: 'calendar-check', link: '/staff/classes' },
     { label: t('Clients'), icon: 'users', link: '/staff/clients' },
     { label: t('Attendance'), icon: 'chart-column', link: '/staff/attendance' },
+    { label: t('Messages'), icon: 'comments', link: '/staff/messages', badge: 'messages' },
+    { label: t('Announcements'), icon: 'bullhorn', link: '/staff/announcements' },
   ],
   CLIENT: [
     { label: t('My memberships'), icon: 'id-card', link: '/client', exact: true },
     { label: t('My QR card'), icon: 'qrcode', link: '/client/card' },
     { label: t('Classes'), icon: 'calendar-check', link: '/client/classes' },
-    { label: t('Gyms'), icon: 'magnifying-glass', link: '/client/gyms' },
+    { label: t('Private sessions'), icon: 'handshake', link: '/client/sessions' },
+    { label: t('My plans'), icon: 'clipboard-list', link: '/client/plans', section: t('Training') },
+    { label: t('Progress'), icon: 'weight-scale', link: '/client/progress' },
+    { label: t('Messages'), icon: 'comments', link: '/client/messages', section: t('Communication'), badge: 'messages' },
+    { label: t('Announcements'), icon: 'bullhorn', link: '/client/announcements' },
+    { label: t('Gyms'), icon: 'magnifying-glass', link: '/client/gyms', section: t('Explore') },
     { label: t('Coaches'), icon: 'user-tie', link: '/client/coaches' },
   ],
 };
@@ -71,7 +85,7 @@ const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN:
 
 @Component({
   selector: 'app-shell',
-  imports: [NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
+  imports: [InstallButton, NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, Button, Select, Tag, Tooltip],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })
@@ -90,5 +104,6 @@ export class Shell {
     const u = this.auth.user();
     return u ? (u.firstName[0] + u.lastName[0]).toUpperCase() : '?';
   });
+  protected readonly unread = computed(() => this.store.unreadMessages(this.auth.user()?.id ?? ''));
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
 }

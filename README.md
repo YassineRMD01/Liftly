@@ -20,6 +20,14 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 - **Freeze:** admins pause a membership for N days (holiday, injury); the end date moves back by the same amount, and unfreezing gives back unused days. A frozen member's status is `FROZEN`, so they can't check in or book.
 - **Notifications** (bell in the header): waitlist promotions, cancelled classes, freezes and **renewal reminders**. Members are reminded automatically when a membership ends within 7 days, and admins can send reminders from the dashboard's *Ending this week* card. These are in-app only; email, SMS and push need a backend.
 
+### Coaching, messages & mobile app
+- **Private sessions:** coaches set weekly availability per gym (windows split into 30–90 min slots). Members pick a coach from their gyms, see free slots for the next 14 days and send a request with a note. The price comes from the coach's hourly rate and currency. The coach confirms, declines, cancels or marks it done, and the member is notified each time. Payment happens at the gym (no online payment).
+- **Workout & nutrition plans:** coaches write plans for their athletes, grouped by day or meal, with sets × reps or quantities. Members tick off items as they go and can start the plan over.
+- **Progress tracking:** weight, body fat, waist and an optional photo (resized in the browser). Shows a chart per metric, change since the start, a photo gallery and the history. Both the member and their coach can add entries.
+- **Messages:** one-to-one chat between members and their gyms' coaches and admins, coaches and their gyms' members, and admins and their staff. Unread counts show in the sidebar.
+- **Announcements:** admins post news to their gym (optionally pinned). Every member, coach and staff member gets an in-app notification.
+- **PWA:** web app manifest, icons and an Angular service worker in production builds. The app can be installed (an *Install app* button appears when the browser offers it) and works offline; demo data lives in `localStorage`. An *Update* button appears when a new version has been downloaded.
+
 ### Country pricing, currencies & themes
 - Gyms have a **country**. Each SaaS plan has a USD price plus optional **local prices per country** (in that country's currency); the pricing page, sign-up and billing show the price for the gym's country. MRR is converted to USD with the super-admin's exchange rates.
 - The super-admin manages **currencies** (active, rate to USD) and **countries** (default currency, active).

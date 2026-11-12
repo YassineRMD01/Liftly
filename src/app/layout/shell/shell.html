@@ -28,6 +28,7 @@
 
     <nav class="flex-1 overflow-y-auto p-3 space-y-1">
       @for (item of nav(); track item.link) {
+        @if (item.section) { <div class="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-surface-400">{{ item.section }}</div> }
         <a
           [routerLink]="item.link"
           routerLinkActive="!bg-primary !text-primary-contrast shadow"
@@ -36,7 +37,8 @@
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
         >
           <fa-icon [icon]="item.icon" class="w-5 text-center" />
-          {{ item.label }}
+          <span class="flex-1">{{ item.label }}</span>
+          @if (item.badge === 'messages' && unread()) { <span class="min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold grid place-items-center" data-testid="unread-badge">{{ unread() }}</span> }
         </a>
       }
     </nav>
@@ -64,6 +66,7 @@
       }
       <div class="flex-1"></div>
       <app-language-switcher />
+      <app-install-button />
       <app-notification-bell />
       <app-appearance-switcher />
     </header>

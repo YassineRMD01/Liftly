@@ -248,6 +248,96 @@ export interface AppNotification {
   key?: string;
 }
 
+/** Weekly window in which a coach takes private sessions at a gym. */
+export interface CoachAvailability {
+  id: string;
+  coachId: string;
+  gymId: string;
+  day: number; // getDay(): 0 = Sunday
+  start: string; // HH:mm
+  end: string; // HH:mm
+  /** Length of one session in minutes. */
+  slotMin: number;
+}
+
+export type SessionStatus = 'REQUESTED' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED' | 'DONE';
+
+/** A one-to-one session requested by a member with a coach. */
+export interface PrivateSession {
+  id: string;
+  coachId: string;
+  clientId: string;
+  gymId: string;
+  date: string; // YYYY-MM-DD
+  start: string;
+  end: string;
+  status: SessionStatus;
+  note?: string;
+  price: number;
+  currency: string;
+  createdAt: string;
+}
+
+export type TrainingPlanKind = 'WORKOUT' | 'NUTRITION';
+
+/** One line of a plan: an exercise (sets/reps in detail) or a meal. */
+export interface TrainingPlanItem {
+  id: string;
+  /** Group heading, e.g. "Day 1" or "Breakfast". */
+  group: string;
+  name: string;
+  detail?: string;
+  done?: boolean;
+}
+
+/** A workout or nutrition plan a coach writes for one of their members. */
+export interface TrainingPlan {
+  id: string;
+  coachId: string;
+  clientId: string;
+  kind: TrainingPlanKind;
+  title: string;
+  notes?: string;
+  items: TrainingPlanItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A body measurement logged by the member or their coach. */
+export interface ProgressEntry {
+  id: string;
+  clientId: string;
+  date: string; // YYYY-MM-DD
+  weight?: number; // kg
+  bodyFat?: number; // %
+  waist?: number; // cm
+  note?: string;
+  /** Small progress photo (data URL, resized in the browser). */
+  photoUrl?: string;
+  byId: string;
+}
+
+/** Direct message between two users. */
+export interface ChatMessage {
+  id: string;
+  fromId: string;
+  toId: string;
+  body: string;
+  at: string;
+  read: boolean;
+}
+
+/** A gym-wide announcement from the admin to members, coaches and staff. */
+export interface Announcement {
+  id: string;
+  gymId: string;
+  authorId: string;
+  title: string;
+  body: string;
+  at: string;
+  pinned?: boolean;
+}
+
 /** Status of a client at one gym, derived from memberships and bans. */
 export type ClientStatus = 'ACTIVE' | 'FROZEN' | 'EXPIRED' | 'BANNED';
 
@@ -359,4 +449,10 @@ export interface DbState {
   bookings: ClassBooking[];
   checkIns: CheckIn[];
   notifications: AppNotification[];
+  availability: CoachAvailability[];
+  sessions: PrivateSession[];
+  plans: TrainingPlan[];
+  progress: ProgressEntry[];
+  messages: ChatMessage[];
+  announcements: Announcement[];
 }

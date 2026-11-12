@@ -1,0 +1,8 @@
+<app-page-header [title]="'My plans' | t" [subtitle]="'Workout and nutrition plans from your coaches. Tick what you have done.' | t" />
+<div class="space-y-4">
+  @for (p of plans(); track p.id) {
+    <div class="card" data-testid="plan"><app-plan-view [plan]="p" [canTick]="true" />
+      <div class="flex justify-end mt-2"><button type="button" class="text-xs muted hover:underline cursor-pointer" (click)="store.resetPlanProgress(p.id)">{{ 'Start again (untick all)' | t }}</button></div>
+    </div>
+  } @empty { <div class="card text-center muted py-12">{{ 'No plan yet. Ask your coach!' | t }}</div> }
+</div>

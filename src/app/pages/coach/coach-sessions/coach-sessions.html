@@ -1,0 +1,51 @@
+<app-page-header [title]="'Private sessions' | t" [subtitle]="'Set when members can book you one-to-one, then confirm or decline their requests.' | t" />
+
+<div class="grid xl:grid-cols-[24rem_minmax(0,1fr)] gap-6">
+  <div class="card space-y-4">
+    <h2 class="font-semibold">{{ 'My availability' | t }}</h2>
+    @if (gyms().length > 1) {
+      <p-select [options]="gyms()" optionLabel="name" optionValue="id" [ngModel]="gym()" (ngModelChange)="gymId.set($event)" styleClass="w-full" />
+    }
+    <div class="divide-y divide-surface-100 dark:divide-surface-800">
+      @for (w of windows(); track w.id) {
+        <div class="py-2 flex items-center gap-2 text-sm">
+          <span class="w-24 font-medium">{{ dayLabel[w.day] }}</span>
+          <span class="tabular-nums" dir="ltr">{{ w.start }}–{{ w.end }}</span>
+          <span class="flex-1 text-xs muted">{{ slotCount(w) }} × {{ w.slotMin }} min</span>
+          <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="store.deleteAvailability(w.id)"><fa-icon icon="trash" /></p-button>
+        </div>
+      } @empty { <p class="text-sm muted py-2">{{ 'No availability yet: members cannot book you.' | t }}</p> }
+    </div>
+    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-surface-200 dark:border-surface-800">
+      <div class="field col-span-2"><label>{{ 'Day' | t }}</label><p-select [options]="days" optionLabel="label" optionValue="value" [(ngModel)]="form.day" styleClass="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'From' | t }}</label><input pInputText type="time" [(ngModel)]="form.start" /></div>
+      <div class="field"><label>{{ 'To' | t }}</label><input pInputText type="time" [(ngModel)]="form.end" /></div>
+      <div class="field col-span-2"><label>{{ 'Session length' | t }}</label><p-selectbutton [options]="lengths" optionLabel="label" optionValue="value" [(ngModel)]="form.slotMin" [allowEmpty]="false" /></div>
+      <p-button [label]="'Add' | t" styleClass="w-full" class="col-span-2" (onClick)="addWindow()" [disabled]="!gym()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p-selectbutton [options]="tabs()" optionLabel="label" optionValue="value" [ngModel]="tab()" (ngModelChange)="tab.set($event)" [allowEmpty]="false" styleClass="mb-4" />
+    <div class="divide-y divide-surface-100 dark:divide-surface-800">
+      @for (s of shown(); track s.id) {
+        <div class="py-3 flex flex-wrap items-center gap-3" data-testid="session-row">
+          <div class="w-32 text-sm"><div class="font-semibold">{{ s.date | date: 'EEE d MMM' }}</div><div class="muted tabular-nums" dir="ltr">{{ s.start }}–{{ s.end }}</div></div>
+          <div class="flex-1 min-w-40">
+            <div class="font-medium">{{ store.fullName(s.clientId) }}</div>
+            <div class="text-xs muted">{{ store.gym(s.gymId)?.name }} · {{ s.price | money: s.currency }}@if (s.note) { · “{{ s.note }}” }</div>
+          </div>
+          <p-tag [value]="s.status | t" [severity]="sev[s.status]" />
+          @if (s.status === 'REQUESTED') {
+            <p-button [label]="'Confirm' | t" size="small" (onClick)="set(s, 'CONFIRMED')" />
+            <p-button [label]="'Decline' | t" size="small" severity="secondary" [outlined]="true" (onClick)="set(s, 'DECLINED')" />
+          }
+          @if (s.status === 'CONFIRMED') {
+            <p-button [text]="true" [rounded]="true" severity="success" [pTooltip]="'Mark as done' | t" (onClick)="set(s, 'DONE')"><fa-icon icon="check" /></p-button>
+            <p-button [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (onClick)="set(s, 'CANCELLED')"><fa-icon icon="xmark" /></p-button>
+          }
+        </div>
+      } @empty { <p class="text-center muted py-10">{{ 'Nothing here.' | t }}</p> }
+    </div>
+  </div>
+</div>

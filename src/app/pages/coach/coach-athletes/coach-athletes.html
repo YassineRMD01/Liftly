@@ -1,0 +1,47 @@
+<app-page-header [title]="'Athletes' | t" [subtitle]="'Members assigned to you. Write their workout and nutrition plans and follow their progress.' | t" />
+
+@if (athletes().length) {
+  <div class="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-6">
+    <div class="card !p-2 h-fit">
+      @for (a of athletes(); track a.id) {
+        <button type="button" (click)="picked.set(a.id)" class="w-full text-start px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800"
+          [class.bg-surface-100]="current()?.id === a.id" [class.dark:bg-surface-800]="current()?.id === a.id">
+          <p-avatar [label]="initials(a.id)" shape="circle" styleClass="!bg-primary-100 !text-primary-700" />
+          <span class="min-w-0"><span class="block font-medium truncate">{{ a.firstName }} {{ a.lastName }}</span><span class="block text-xs muted truncate">{{ gymsOf(a.id) }}</span></span>
+        </button>
+      }
+    </div>
+
+    @if (current(); as c) {
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <h2 class="text-xl font-bold flex-1">{{ c.firstName }} {{ c.lastName }}</h2>
+          <a [routerLink]="['/coach/messages']" [queryParams]="{ to: c.id }"><p-button [label]="'Message' | t" [outlined]="true" severity="secondary"><ng-template #icon><fa-icon icon="comments" /></ng-template></p-button></a>
+          <p-selectbutton [options]="tabs" optionLabel="label" optionValue="value" [ngModel]="tab()" (ngModelChange)="tab.set($event)" [allowEmpty]="false" />
+        </div>
+        @if (tab() === 'plans') {
+          <div class="flex gap-2 mb-4">
+            <p-button [label]="'New workout plan' | t" (onClick)="newPlan('WORKOUT')"><ng-template #icon><fa-icon icon="dumbbell" /></ng-template></p-button>
+            <p-button [label]="'New nutrition plan' | t" severity="secondary" [outlined]="true" (onClick)="newPlan('NUTRITION')"><ng-template #icon><fa-icon icon="utensils" /></ng-template></p-button>
+          </div>
+          <div class="space-y-4">
+            @for (p of plans(); track p.id) {
+              <div class="card">
+                <app-plan-view [plan]="p" />
+                <div class="flex justify-end gap-2 mt-3">
+                  <p-button [label]="'Edit' | t" size="small" [text]="true" (onClick)="edit(p)"><ng-template #icon><fa-icon icon="pen" /></ng-template></p-button>
+                  <p-button [label]="'Delete' | t" size="small" [text]="true" severity="danger" (onClick)="remove(p)"><ng-template #icon><fa-icon icon="trash" /></ng-template></p-button>
+                </div>
+              </div>
+            } @empty { <div class="card text-center muted py-10">{{ 'No plan yet for this athlete.' | t }}</div> }
+          </div>
+        } @else {
+          <app-progress-view [clientId]="c.id" />
+        }
+      </div>
+    }
+  </div>
+} @else {
+  <div class="card text-center muted py-12">{{ 'No athletes yet. Gym admins assign you to members on their memberships.' | t }}</div>
+}
+<app-plan-editor />

@@ -1,14 +1,14 @@
 import { t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  AppNotification, BillingCycle, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v11';
+const STORAGE_KEY = 'liftly-db-v12';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -51,6 +51,12 @@ export class StoreService {
   readonly bookings = computed(() => this.state().bookings);
   readonly checkIns = computed(() => this.state().checkIns);
   readonly notifications = computed(() => this.state().notifications);
+  readonly availability = computed(() => this.state().availability);
+  readonly sessions = computed(() => this.state().sessions);
+  readonly plans = computed(() => this.state().plans);
+  readonly progress = computed(() => this.state().progress);
+  readonly messages = computed(() => this.state().messages);
+  readonly announcements = computed(() => this.state().announcements);
 
   /** Platform catalog of sports (shared by all gyms). */
   readonly catalogSports = computed(() => this.sports().filter((s) => !s.gymId));
@@ -649,4 +655,176 @@ export class StoreService {
     }
     return sent;
   }
+  // ---------- coach athletes ----------
+  /** Members who have this coach on an active membership. */
+  athletesOf(coachId: string) {
+    const ids = new Set(this.memberships().filter((m) => m.coachId === coachId && m.status === 'ACTIVE').map((m) => m.clientId));
+    return this.users().filter((u) => ids.has(u.id));
+  }
+  /** Coaches a member can work with: coaches of the gyms where they have an active membership. */
+  coachesForClient(clientId: string) {
+    const gyms = this.gymsOfClient(clientId).filter((g) => this.clientStatus(g.id, clientId) === 'ACTIVE');
+    return gyms.flatMap((g) => this.coachesOfGym(g.id).map((c) => ({ coach: c, gym: g })));
+  }
+
+  // ---------- private sessions ----------
+  availabilityOf(coachId: string, gymId?: string) {
+    return this.availability().filter((a) => a.coachId === coachId && (!gymId || a.gymId === gymId)).sort((a, b) => (a.day - b.day) || a.start.localeCompare(b.start));
+  }
+  saveAvailability(a: CoachAvailability) {
+    const saved = a.id ? a : { ...a, id: uid('av') };
+    this.patch((s) => ({ availability: s.availability.some((x) => x.id === saved.id) ? s.availability.map((x) => (x.id === saved.id ? saved : x)) : [...s.availability, saved] }));
+  }
+  deleteAvailability(id: string) { this.patch((s) => ({ availability: s.availability.filter((x) => x.id !== id) })); }
+
+  /** Sessions still holding a slot. */
+  private busy(s: PrivateSession) { return s.status === 'REQUESTED' || s.status === 'CONFIRMED'; }
+  /** Free session slots of a coach at a gym on a date (availability minus booked sessions and the past). */
+  freeSlots(coachId: string, gymId: string, date: string) {
+    const day = new Date(date + 'T00:00:00').getDay();
+    const taken = this.sessions().filter((s) => s.coachId === coachId && s.date === date && this.busy(s));
+    const now = new Date();
+    const out: { start: string; end: string }[] = [];
+    const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    for (const a of this.availabilityOf(coachId, gymId).filter((x) => x.day === day)) {
+      for (let m = toMin(a.start); m + a.slotMin <= toMin(a.end); m += a.slotMin) {
+        const start = hhmm(m), end = hhmm(m + a.slotMin);
+        if (new Date(`${date}T${start}:00`) <= now) continue;
+        if (taken.some((s) => toMin(s.start) < m + a.slotMin && m < toMin(s.end))) continue;
+        out.push({ start, end });
+      }
+    }
+    return out;
+  }
+  sessionsOfCoach(coachId: string) { return this.sessions().filter((s) => s.coachId === coachId).sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)); }
+  sessionsOfClient(clientId: string) { return this.sessions().filter((s) => s.clientId === clientId).sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)); }
+  /** A member asks a coach for a session; the coach confirms or declines it. */
+  requestSession(r: { coachId: string; clientId: string; gymId: string; date: string; start: string; end: string; note?: string }) {
+    if (!this.freeSlots(r.coachId, r.gymId, r.date).some((x) => x.start === r.start)) return null;
+    const profile = this.coachProfile(r.coachId);
+    const minutes = toMin(r.end) - toMin(r.start);
+    const session: PrivateSession = {
+      ...r, id: uid('ps'), status: 'REQUESTED', createdAt: new Date().toISOString(),
+      price: Math.round((profile?.hourlyRate ?? 0) * minutes / 60 * 100) / 100, currency: profile?.currency ?? DEFAULT_CURRENCY,
+    };
+    this.patch((s) => ({ sessions: [...s.sessions, session] }));
+    this.notify(r.coachId, 'New session request', '{name} asks for a session on {date} at {time}.', { name: this.fullName(r.clientId), date: r.date, time: r.start }, '/coach/sessions');
+    return session;
+  }
+  setSessionStatus(id: string, status: SessionStatus, byId?: string) {
+    const ses = this.sessions().find((x) => x.id === id);
+    if (!ses) return;
+    this.patch((s) => ({ sessions: s.sessions.map((x) => (x.id === id ? { ...x, status } : x)) }));
+    const params = { name: this.fullName(ses.coachId), date: ses.date, time: ses.start };
+    if (status === 'CONFIRMED') this.notify(ses.clientId, 'Session confirmed', '{name} confirmed your session on {date} at {time}.', params, '/client/sessions');
+    if (status === 'DECLINED') this.notify(ses.clientId, 'Session declined', '{name} cannot do {date} at {time}. Pick another slot.', params, '/client/sessions');
+    if (status === 'CANCELLED') {
+      if (byId === ses.clientId) this.notify(ses.coachId, 'Session cancelled', '{name} cancelled the session on {date} at {time}.', { ...params, name: this.fullName(ses.clientId) }, '/coach/sessions');
+      else this.notify(ses.clientId, 'Session cancelled', '{name} cancelled the session on {date} at {time}.', params, '/client/sessions');
+    }
+  }
+
+  // ---------- training plans ----------
+  plansOfClient(clientId: string) { return this.plans().filter((p) => p.clientId === clientId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); }
+  plansByCoach(coachId: string) { return this.plans().filter((p) => p.coachId === coachId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); }
+  savePlan(p: TrainingPlan) {
+    const now = new Date().toISOString();
+    const isNew = !p.id;
+    const saved: TrainingPlan = { ...p, id: p.id || uid('tp'), createdAt: p.createdAt || now, updatedAt: now, items: p.items.map((i) => ({ ...i, id: i.id || uid('it') })) };
+    this.patch((s) => ({ plans: isNew ? [...s.plans, saved] : s.plans.map((x) => (x.id === saved.id ? saved : x)) }));
+    this.notify(p.clientId, isNew ? 'New plan from your coach' : 'Your plan was updated', '{name}: {title}', { name: this.fullName(p.coachId), title: p.title }, '/client/plans');
+    return saved;
+  }
+  deletePlan(id: string) { this.patch((s) => ({ plans: s.plans.filter((x) => x.id !== id) })); }
+  /** Member ticks an exercise or meal as done. */
+  toggleItem(planId: string, itemId: string) {
+    this.patch((s) => ({ plans: s.plans.map((p) => (p.id !== planId ? p : { ...p, items: p.items.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)) })) }));
+  }
+  resetPlanProgress(planId: string) {
+    this.patch((s) => ({ plans: s.plans.map((p) => (p.id !== planId ? p : { ...p, items: p.items.map((i) => ({ ...i, done: false })) })) }));
+  }
+
+  // ---------- progress ----------
+  progressOf(clientId: string) { return this.progress().filter((p) => p.clientId === clientId).sort((a, b) => a.date.localeCompare(b.date)); }
+  addProgress(e: Omit<ProgressEntry, 'id'>) { this.patch((s) => ({ progress: [...s.progress, { ...e, id: uid('pr') }] })); }
+  deleteProgress(id: string) { this.patch((s) => ({ progress: s.progress.filter((x) => x.id !== id) })); }
+
+  // ---------- messages ----------
+  /** People a user may write to: members ↔ their gyms' coaches and admins; coaches ↔ their gyms' members and admins; staff ↔ their gym's admins. */
+  contactsOf(userId: string): User[] {
+    const u = this.user(userId);
+    if (!u) return [];
+    const admins = (gymIds: string[]) => this.gyms().filter((g) => gymIds.includes(g.id)).map((g) => g.ownerId);
+    let ids: string[] = [];
+    if (u.role === 'CLIENT') {
+      const gyms = this.gymsOfClient(userId).map((g) => g.id);
+      ids = [...gyms.flatMap((g) => this.coachesOfGym(g).map((c) => c.id)), ...admins(gyms)];
+    } else if (u.role === 'COACH') {
+      const gyms = this.gymsOfCoach(userId).map((g) => g.id);
+      ids = [...gyms.flatMap((g) => this.clientsOfGym(g).map((c) => c.id)), ...admins(gyms)];
+    } else if (u.role === 'ADMIN') {
+      const gyms = this.gyms().filter((g) => g.ownerId === userId).map((g) => g.id);
+      ids = gyms.flatMap((g) => [...this.coachesOfGym(g), ...this.clientsOfGym(g), ...this.staffOfGym(g)].map((x) => x.id));
+    } else if (u.role === 'STAFF') {
+      ids = admins(this.gymsOfStaff(userId).map((g) => g.id));
+    }
+    // anyone who already wrote to the user stays reachable
+    ids.push(...this.messages().filter((m) => m.toId === userId).map((m) => m.fromId));
+    const set = new Set(ids.filter((id) => id !== userId));
+    return this.users().filter((x) => set.has(x.id)).sort((a, b) => a.firstName.localeCompare(b.firstName));
+  }
+  thread(a: string, b: string) {
+    return this.messages().filter((m) => (m.fromId === a && m.toId === b) || (m.fromId === b && m.toId === a)).sort((x, y) => x.at.localeCompare(y.at));
+  }
+  /** Conversations of a user, latest first. */
+  conversationsOf(userId: string) {
+    const map = new Map<string, { otherId: string; last: ChatMessage; unread: number }>();
+    for (const m of [...this.messages()].sort((x, y) => x.at.localeCompare(y.at))) {
+      if (m.fromId !== userId && m.toId !== userId) continue;
+      const other = m.fromId === userId ? m.toId : m.fromId;
+      const c = map.get(other) ?? { otherId: other, last: m, unread: 0 };
+      c.last = m;
+      if (m.toId === userId && !m.read) c.unread++;
+      map.set(other, c);
+    }
+    return [...map.values()].sort((a, b) => b.last.at.localeCompare(a.last.at));
+  }
+  unreadMessages(userId: string) { return this.messages().filter((m) => m.toId === userId && !m.read).length; }
+  sendMessage(fromId: string, toId: string, body: string) {
+    const text = body.trim();
+    if (!text) return;
+    this.patch((s) => ({ messages: [...s.messages, { id: uid('msg'), fromId, toId, body: text, at: new Date().toISOString(), read: false }] }));
+  }
+  markThreadRead(me: string, other: string) {
+    if (!this.messages().some((m) => m.toId === me && m.fromId === other && !m.read)) return;
+    this.patch((s) => ({ messages: s.messages.map((m) => (m.toId === me && m.fromId === other ? { ...m, read: true } : m)) }));
+  }
+
+  // ---------- announcements ----------
+  /** Gyms whose announcements a user sees. */
+  gymsForUser(userId: string) {
+    const u = this.user(userId);
+    if (!u) return [];
+    if (u.role === 'CLIENT') return this.gymsOfClient(userId);
+    if (u.role === 'COACH') return this.gymsOfCoach(userId);
+    if (u.role === 'STAFF') return this.gymsOfStaff(userId);
+    if (u.role === 'ADMIN') return this.gyms().filter((g) => g.ownerId === userId);
+    return [];
+  }
+  announcementsFor(userId: string) {
+    const ids = this.gymsForUser(userId).map((g) => g.id);
+    return this.announcements().filter((a) => ids.includes(a.gymId)).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.at.localeCompare(a.at));
+  }
+  /** Post to everyone at the gym (members, coaches, staff); each gets a notification. */
+  postAnnouncement(a: Omit<Announcement, 'id' | 'at'>) {
+    const ann: Announcement = { ...a, id: uid('an'), at: new Date().toISOString() };
+    this.patch((s) => ({ announcements: [...s.announcements, ann] }));
+    const people = [...this.clientsOfGym(a.gymId), ...this.coachesOfGym(a.gymId), ...this.staffOfGym(a.gymId)];
+    for (const p of new Set(people.map((x) => x.id))) {
+      this.notify(p, 'Announcement from {gym}', a.title, { gym: this.gym(a.gymId)?.name ?? '' }, undefined, `ann-${ann.id}`);
+    }
+    return people.length;
+  }
+  togglePin(id: string) { this.patch((s) => ({ announcements: s.announcements.map((a) => (a.id === id ? { ...a, pinned: !a.pinned } : a)) })); }
+  deleteAnnouncement(id: string) { this.patch((s) => ({ announcements: s.announcements.filter((a) => a.id !== id) })); }
 }

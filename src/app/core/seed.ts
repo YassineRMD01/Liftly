@@ -293,4 +293,53 @@ export const SEED: DbState = {
     ({ id, classId, gymId, clientId, date, status, createdAt: d(ago) })),
   checkIns: checkInHistory(),
   notifications: [],
+  availability: [
+    ...[1, 3, 5].map((day) => ({ id: `av-c1-${day}`, coachId: 'u-c1', gymId: 'g-iron', day, start: '10:00', end: '13:00', slotMin: 60 })),
+    { id: 'av-c1-6', coachId: 'u-c1', gymId: 'g-iron', day: 6, start: '09:00', end: '12:00', slotMin: 60 },
+    ...[2, 4].map((day) => ({ id: `av-c2-${day}`, coachId: 'u-c2', gymId: 'g-wave', day, start: '07:00', end: '09:00', slotMin: 45 })),
+    ...[2, 4].map((day) => ({ id: `av-c3-${day}`, coachId: 'u-c3', gymId: 'g-kumite', day, start: '14:00', end: '17:00', slotMin: 60 })),
+  ],
+  sessions: [
+    { id: 'ps-1', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: nextDate(3, 1), start: '10:00', end: '11:00', status: 'CONFIRMED', note: 'Deadlift technique', price: 45, currency: 'USD', createdAt: d(-2) },
+    { id: 'ps-2', coachId: 'u-c1', clientId: 'u-k6', gymId: 'g-iron', date: nextDate(5, 1), start: '11:00', end: '12:00', status: 'REQUESTED', note: 'First session, assessment', price: 45, currency: 'USD', createdAt: d(-1) },
+    { id: 'ps-3', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: isoDay(-6), start: '10:00', end: '11:00', status: 'DONE', price: 45, currency: 'USD', createdAt: d(-10) },
+  ],
+  plans: [
+    {
+      id: 'tp-1', coachId: 'u-c1', clientId: 'u-k1', kind: 'WORKOUT', title: 'Strength block — 4 weeks', notes: 'Rest 2–3 min between heavy sets. Log your top set each day.', createdAt: d(-14), updatedAt: d(-3),
+      items: [
+        { id: 'i1', group: 'Day 1 — Lower', name: 'Back squat', detail: '5 × 5 @ 75%', done: true },
+        { id: 'i2', group: 'Day 1 — Lower', name: 'Romanian deadlift', detail: '3 × 8', done: true },
+        { id: 'i3', group: 'Day 1 — Lower', name: 'Walking lunges', detail: '3 × 12 / leg' },
+        { id: 'i4', group: 'Day 2 — Upper', name: 'Bench press', detail: '5 × 5 @ 75%' },
+        { id: 'i5', group: 'Day 2 — Upper', name: 'Barbell row', detail: '4 × 8' },
+        { id: 'i6', group: 'Day 2 — Upper', name: 'Pull-ups', detail: '3 × max' },
+        { id: 'i7', group: 'Day 3 — Full body', name: 'Deadlift', detail: '3 × 3 @ 80%' },
+        { id: 'i8', group: 'Day 3 — Full body', name: 'Overhead press', detail: '4 × 6' },
+      ],
+    },
+    {
+      id: 'tp-2', coachId: 'u-c1', clientId: 'u-k1', kind: 'NUTRITION', title: 'Lean bulk — 2 800 kcal', notes: 'About 160 g protein a day. Drink 3 L of water.', createdAt: d(-14), updatedAt: d(-14),
+      items: [
+        { id: 'n1', group: 'Breakfast', name: 'Oats, banana, whey', detail: '80 g oats · 1 banana · 30 g whey' },
+        { id: 'n2', group: 'Lunch', name: 'Chicken, rice, vegetables', detail: '200 g chicken · 120 g rice (dry)' },
+        { id: 'n3', group: 'Snack', name: 'Greek yogurt and nuts', detail: '250 g yogurt · 30 g almonds' },
+        { id: 'n4', group: 'Dinner', name: 'Salmon, potatoes, salad', detail: '180 g salmon · 300 g potatoes' },
+      ],
+    },
+  ],
+  progress: [70, 56, 42, 28, 14, 0].map((ago, i) => ({
+    id: `pr-${i}`, clientId: 'u-k1', date: isoDay(-ago), weight: [82.4, 82.9, 83.1, 83.6, 84.0, 84.3][i], bodyFat: [17.5, 17.2, 17.0, 16.8, 16.5, 16.3][i], waist: [86, 86, 85.5, 85, 85, 84.5][i], byId: i % 2 ? 'u-c1' : 'u-k1',
+  })),
+  messages: [
+    { id: 'msg-1', fromId: 'u-c1', toId: 'u-k1', body: 'Great session today! Keep your back flat on the deadlifts.', at: d(-6), read: true },
+    { id: 'msg-2', fromId: 'u-k1', toId: 'u-c1', body: 'Thanks! Should I add weight next week?', at: d(-6), read: true },
+    { id: 'msg-3', fromId: 'u-c1', toId: 'u-k1', body: 'Yes, +2.5 kg on squat and deadlift. I updated your plan.', at: d(-3), read: false },
+    { id: 'msg-4', fromId: 'u-a1', toId: 'u-c1', body: 'Can you cover the Saturday CrossFit class next week?', at: d(-1), read: false },
+  ],
+  announcements: [
+    { id: 'an-1', gymId: 'g-iron', authorId: 'u-a1', title: 'New squat racks!', body: 'Two new competition squat racks are on the platform area from Monday. Enjoy!', at: d(-2), pinned: true },
+    { id: 'an-2', gymId: 'g-iron', authorId: 'u-a1', title: 'Holiday hours', body: 'The gym closes at 18:00 on public holidays this month.', at: d(-9) },
+    { id: 'an-3', gymId: 'g-wave', authorId: 'u-a2', title: 'Pool maintenance', body: 'Lane 1 and 2 are closed on Thursday morning for cleaning.', at: d(-1) },
+  ],
 };

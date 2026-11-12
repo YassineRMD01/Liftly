@@ -1,0 +1,63 @@
+<div class="grid grid-cols-3 gap-3 mb-4">
+  @for (m of metrics; track m.value) {
+    @let d = delta()[m.value];
+    <div class="card !p-4">
+      <div class="text-xs muted">{{ m.label }}</div>
+      <div class="text-xl font-bold tabular-nums">@if (d) { {{ d.last | number: '1.0-1' }} <span class="text-sm font-normal muted">{{ unit[m.value] }}</span> } @else { — }</div>
+      @if (d && d.diff) { <div class="text-xs tabular-nums muted" dir="ltr">{{ d.diff > 0 ? '+' : '' }}{{ d.diff | number: '1.0-1' }} {{ 'since start' | t }}</div> }
+    </div>
+  }
+</div>
+
+<div class="flex justify-end mb-2">
+  <p-selectbutton [options]="metrics" optionLabel="label" optionValue="value" [ngModel]="metric()" (ngModelChange)="metric.set($event)" [allowEmpty]="false" size="small" />
+</div>
+<app-chart-card type="line" [title]="'Progress' | t" [labels]="chart().labels" [series]="chart().series" [format]="fmt" height="14rem" />
+
+<div class="card mt-4 space-y-3">
+  <h3 class="font-semibold">{{ 'New entry' | t }}</h3>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="field"><label>{{ 'Date' | t }}</label><input pInputText type="date" [(ngModel)]="form.date" /></div>
+    <div class="field"><label>{{ 'Weight' | t }} (kg)</label><p-inputnumber [(ngModel)]="form.weight" [minFractionDigits]="0" [maxFractionDigits]="1" [min]="20" [max]="400" inputId="pw" /></div>
+    <div class="field"><label>{{ 'Body fat' | t }} (%)</label><p-inputnumber [(ngModel)]="form.bodyFat" [maxFractionDigits]="1" [min]="2" [max]="70" /></div>
+    <div class="field"><label>{{ 'Waist' | t }} (cm)</label><p-inputnumber [(ngModel)]="form.waist" [maxFractionDigits]="1" [min]="30" [max]="250" /></div>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <input pInputText class="flex-1 min-w-48" [(ngModel)]="form.note" [placeholder]="'Note (optional)' | t" />
+    <label class="p-button p-button-outlined p-button-secondary cursor-pointer !text-sm"><fa-icon icon="camera" class="me-2" />{{ (form.photoUrl ? 'Change photo' : 'Add photo') | t }}<input type="file" accept="image/*" class="hidden" (change)="onPhoto($event)" /></label>
+    @if (form.photoUrl) { <img [src]="form.photoUrl" alt="" class="w-10 h-10 rounded-lg object-cover" /> }
+    <p-button [label]="'Save' | t" (onClick)="add()" />
+  </div>
+  <p class="text-xs muted">{{ 'Photos stay in this browser in the demo (no upload server).' | t }}</p>
+</div>
+
+@if (photos().length) {
+  <div class="card mt-4">
+    <h3 class="font-semibold mb-3">{{ 'Photos' | t }}</h3>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
+      @for (e of photos(); track e.id) { <figure><img [src]="e.photoUrl" [alt]="e.date" class="w-full aspect-[3/4] object-cover rounded-xl" /><figcaption class="text-xs muted mt-1">{{ e.date | date: 'mediumDate' }}</figcaption></figure> }
+    </div>
+  </div>
+}
+
+<div class="card mt-4">
+  <h3 class="font-semibold mb-2">{{ 'History' | t }}</h3>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-start muted text-xs"><th class="text-start py-1">{{ 'Date' | t }}</th><th class="text-end">{{ 'Weight' | t }}</th><th class="text-end">{{ 'Body fat' | t }}</th><th class="text-end">{{ 'Waist' | t }}</th><th class="text-start ps-4">{{ 'Note' | t }}</th><th class="text-start">{{ 'By' | t }}</th><th></th></tr></thead>
+      <tbody>
+        @for (e of entries().slice().reverse(); track e.id) {
+          <tr class="border-t border-surface-100 dark:border-surface-800">
+            <td class="py-1.5">{{ e.date | date: 'mediumDate' }}</td>
+            <td class="text-end tabular-nums">{{ e.weight != null ? (e.weight | number: '1.0-1') + ' kg' : '—' }}</td>
+            <td class="text-end tabular-nums">{{ e.bodyFat != null ? (e.bodyFat | number: '1.0-1') + ' %' : '—' }}</td>
+            <td class="text-end tabular-nums">{{ e.waist != null ? (e.waist | number: '1.0-1') + ' cm' : '—' }}</td>
+            <td class="ps-4 muted">{{ e.note }}</td>
+            <td class="muted">{{ store.fullName(e.byId) }}</td>
+            <td class="text-end"><p-button [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (onClick)="remove(e)"><fa-icon icon="trash" /></p-button></td>
+          </tr>
+        } @empty { <tr><td colspan="7" class="text-center muted py-6">{{ 'No measurements yet.' | t }}</td></tr> }
+      </tbody>
+    </table>
+  </div>
+</div>

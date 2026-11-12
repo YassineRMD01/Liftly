@@ -1,4 +1,4 @@
-import { ApplicationConfig, LOCALE_ID, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, inject, isDevMode, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeEs from '@angular/common/locales/es';
@@ -10,6 +10,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { PRIMEUI_LICENSE_KEY } from './core/app-settings';
 import { APP_ICONS } from './core/icons';
@@ -43,6 +44,8 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    // offline cache + installable app (production builds only)
+    provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' }),
     MessageService,
     ConfirmationService,
     provideAppInitializer(() => {

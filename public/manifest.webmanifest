@@ -1,0 +1,22 @@
+{
+  "name": "Liftly – Gym management",
+  "short_name": "Liftly",
+  "description": "Memberships, classes, check-in, coaching and payments for any gym.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "categories": ["fitness", "health", "business"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Check-in", "url": "/admin/checkin", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "My QR card", "url": "/client/card", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Classes", "url": "/client/classes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

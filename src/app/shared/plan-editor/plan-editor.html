@@ -1,0 +1,32 @@
+<p-dialog [header]="(plan()?.id ? 'Edit plan' : 'New plan') | t" [visible]="!!plan()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '768px': '96vw' }">
+  @if (plan(); as p) {
+    <div class="space-y-4">
+      <div class="flex flex-wrap gap-3">
+        <p-selectbutton [options]="kinds" optionLabel="label" optionValue="value" [(ngModel)]="p.kind" [allowEmpty]="false" [disabled]="!!p.id" />
+        <input pInputText class="flex-1 min-w-48" [(ngModel)]="p.title" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Strength block — 4 weeks' : 'e.g. Lean bulk — 2 800 kcal') | t" data-testid="plan-title" />
+      </div>
+      <textarea pTextarea class="w-full" rows="2" [(ngModel)]="p.notes" [placeholder]="'Notes for the member (optional)' | t"></textarea>
+      <div class="space-y-2">
+        <div class="hidden sm:grid grid-cols-[9rem_1fr_1fr_4.5rem] gap-2 text-xs muted px-1">
+          <span>{{ (p.kind === 'WORKOUT' ? 'Day' : 'Meal') | t }}</span><span>{{ (p.kind === 'WORKOUT' ? 'Exercise' : 'Food') | t }}</span><span>{{ (p.kind === 'WORKOUT' ? 'Sets × reps' : 'Quantity') | t }}</span><span></span>
+        </div>
+        @for (i of p.items; track $index) {
+          <div class="grid grid-cols-2 sm:grid-cols-[9rem_1fr_1fr_4.5rem] gap-2 items-center" data-testid="plan-line">
+            <input pInputText [(ngModel)]="i.group" [placeholder]="(p.kind === 'WORKOUT' ? 'Day 1' : 'Breakfast') | t" />
+            <input pInputText [(ngModel)]="i.name" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Back squat' : 'e.g. Oats and banana') | t" />
+            <input pInputText [(ngModel)]="i.detail" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. 5 × 5 @ 75%' : 'e.g. 80 g') | t" />
+            <span class="flex">
+              <p-button [text]="true" [rounded]="true" size="small" (onClick)="addItem(i)"><fa-icon icon="plus" /></p-button>
+              <p-button [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="removeItem(i)"><fa-icon icon="trash" /></p-button>
+            </span>
+          </div>
+        }
+        <p-button [label]="(p.kind === 'WORKOUT' ? 'Add a day' : 'Add a meal') | t" [text]="true" size="small" (onClick)="addGroup()"><ng-template #icon><fa-icon icon="plus" /></ng-template></p-button>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button [label]="'Cancel' | t" [text]="true" severity="secondary" (onClick)="plan.set(null)" />
+    <p-button [label]="'Save and notify' | t" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,68 @@
+<app-page-header [title]="'Private sessions' | t" [subtitle]="'Book a one-to-one session with a coach of your gyms. The coach confirms your request.' | t" />
+
+<div class="grid xl:grid-cols-[minmax(0,1fr)_24rem] gap-6">
+  <div class="card space-y-4">
+    <p-select [options]="options()" optionLabel="label" optionValue="value" [ngModel]="pick()" (ngModelChange)="choose($event)" [placeholder]="'Choose a coach' | t" styleClass="w-full" data-testid="coach-pick" />
+    @if (pick()) {
+      <div class="flex flex-wrap items-center gap-3 text-sm">
+        <app-stars [value]="rating().avg" [count]="rating().count" />
+        @if (profile(); as p) { <span class="muted">{{ p.specialties.join(' · ') }}</span><span class="font-semibold">{{ p.hourlyRate | money: p.currency }} / h</span> }
+      </div>
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        @for (d of days(); track d.date) {
+          <button type="button" (click)="chooseDay(d.date)" [disabled]="!d.slots.length"
+            class="shrink-0 w-16 py-2 rounded-xl border text-center text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            [class.bg-primary]="selectedDay()?.date === d.date" [class.text-primary-contrast]="selectedDay()?.date === d.date" [class.border-primary]="selectedDay()?.date === d.date"
+            [class.border-surface-200]="selectedDay()?.date !== d.date" [class.dark:border-surface-700]="selectedDay()?.date !== d.date">
+            <div class="text-xs opacity-80">{{ d.wd }}</div><div class="text-lg font-bold">{{ d.day }}</div><div class="text-[10px] opacity-80">{{ d.slots.length }}</div>
+          </button>
+        }
+      </div>
+      @if (selectedDay(); as day) {
+        <div>
+          <h3 class="text-sm font-semibold mb-2">{{ day.date | date: 'EEEE d MMMM' }}</h3>
+          <div class="flex flex-wrap gap-2">
+            @for (s of day.slots; track s.start) {
+              <p-button size="small" [outlined]="slot()?.start !== s.start" (onClick)="slot.set(s)"><span dir="ltr">{{ s.start }}–{{ s.end }}</span></p-button>
+            }
+          </div>
+        </div>
+        @if (slot()) {
+          <div class="flex flex-wrap gap-2 items-center pt-2 border-t border-surface-200 dark:border-surface-800">
+            <input pInputText class="flex-1 min-w-48" [(ngModel)]="note" [placeholder]="'What do you want to work on? (optional)' | t" />
+            <span class="font-semibold">{{ price() | money: profile()?.currency ?? 'USD' }}</span>
+            <p-button [label]="'Request session' | t" (onClick)="request()" />
+          </div>
+          <p class="text-xs muted">{{ 'Paid to the coach or the gym on the day — no online payment.' | t }}</p>
+        }
+      } @else {
+        <p class="text-sm muted">{{ 'This coach has no free slot in the next 14 days.' | t }}</p>
+      }
+    } @else if (!options().length) {
+      <p class="text-sm muted">{{ 'You need an active membership at a gym with coaches.' | t }}</p>
+    }
+  </div>
+
+  <div class="space-y-6">
+    <div class="card">
+      <h2 class="font-semibold mb-2">{{ 'My upcoming sessions' | t }}</h2>
+      <div class="divide-y divide-surface-100 dark:divide-surface-800">
+        @for (s of mine(); track s.id) {
+          <div class="py-2 flex items-center gap-2" data-testid="my-session">
+            <div class="flex-1 text-sm"><div class="font-medium">{{ store.fullName(s.coachId) }}</div><div class="text-xs muted">{{ s.date | date: 'EEE d MMM' }} · <span dir="ltr">{{ s.start }}</span></div></div>
+            <p-tag [value]="s.status | t" [severity]="sev[s.status]" />
+            <p-button [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="cancel(s)"><fa-icon icon="xmark" /></p-button>
+          </div>
+        } @empty { <p class="text-sm muted py-2">{{ 'No upcoming sessions.' | t }}</p> }
+      </div>
+    </div>
+    @if (history().length) {
+      <div class="card">
+        <h2 class="font-semibold mb-2">{{ 'History' | t }}</h2>
+        @for (s of history(); track s.id) {
+          <div class="py-1.5 flex items-center gap-2 text-sm"><span class="flex-1">{{ store.fullName(s.coachId) }} · {{ s.date | date: 'd MMM' }}</span><p-tag [value]="s.status | t" [severity]="sev[s.status]" /></div>
+        }
+      </div>
+    }
+  </div>
+</div>
