@@ -3,6 +3,21 @@
   @if (isAdmin()) { <button pButton type="button" (click)="open()"><fa-icon icon="user-plus" />{{ 'Add client' | t }}</button> }
 </app-page-header>
 
+@if (isAdmin() && freezeRequests().length) {
+  <div class="card mb-6 border-sky-200 dark:border-sky-900" data-testid="freeze-requests">
+    <h2 class="font-semibold mb-2 flex items-center gap-2"><fa-icon icon="snowflake" class="text-sky-500" />{{ 'Freeze requests' | t }} ({{ freezeRequests().length }})</h2>
+    @for (r of freezeRequests(); track r.id) {
+      <div class="py-2 flex flex-wrap items-center gap-3 text-sm border-t border-surface-100 dark:border-surface-800 first:border-0">
+        <span class="font-medium w-40">{{ store.fullName(r.clientId) }}</span>
+        <span class="muted">{{ r.start | date: 'mediumDate' }} · {{ r.days }} {{ 'days' | t }}</span>
+        <span class="flex-1 min-w-48 italic">“{{ r.reason }}”</span>
+        <button pButton type="button" size="small" (click)="handleFreeze(r.id, true)" data-testid="approve-freeze"><fa-icon icon="check" />{{ 'Approve' | t }}</button>
+        <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="handleFreeze(r.id, false)">{{ 'Decline' | t }}</button>
+      </div>
+    }
+  </div>
+}
+
 <div class="card">
   <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [globalFilterFields]="['clientName', 'planName']" [tableStyle]="{ 'min-width': '64rem' }">
     <ng-template #caption>

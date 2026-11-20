@@ -1,3 +1,6 @@
+import { InputNumber } from 'primeng/inputnumber';
+import { InputText } from 'primeng/inputtext';
+import { isoDate } from '../../../core/schedule';
 import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
@@ -25,7 +28,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Modal],
+  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Modal, InputNumber, InputText],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })
@@ -35,6 +38,18 @@ export class ClientDashboard {
   protected readonly sev = statusSeverity;
   protected readonly payments = viewChild(PaymentCalendar);
   protected readonly scheduleVisible = signal(false);
+  /** Freeze request being written. */
+  protected readonly freezing = signal<{ m: ClientMembership; start: string; days: number; reason: string } | null>(null);
+  pendingFreeze(m: ClientMembership) { return this.store.freezeRequestsOfClient(this.auth.user()?.id ?? '').find((r) => r.membershipId === m.id && r.status === 'PENDING'); }
+  askFreeze(m: ClientMembership) { this.freezing.set({ m, start: isoDate(new Date(Date.now() + 86400000)), days: 14, reason: '' }); }
+  closeFreeze(v: boolean) { if (!v) this.freezing.set(null); }
+  sendFreeze() {
+    const f = this.freezing();
+    if (!f || !(f.days > 0) || !f.reason.trim()) { this.toast.add({ severity: 'error', summary: t('Give a start date, a number of days and a reason.') }); return; }
+    this.store.requestFreeze({ membershipId: f.m.id, start: f.start, days: f.days, reason: f.reason.trim() });
+    this.toast.add({ severity: 'success', summary: t('Request sent'), detail: t('Your gym will answer soon.') });
+    this.freezing.set(null);
+  }
   protected readonly scheduleGym = signal<string | null>(null);
 
   // ---------- rate a gym ----------

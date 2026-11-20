@@ -26,6 +26,11 @@
           <button pButton type="button" size="small" [outlined]="true" (click)="showSchedule(m.gymId)"><fa-icon icon="calendar-week" />{{ 'Schedule' | t }}</button>
           <button pButton type="button" size="small" [outlined]="true" severity="secondary" (click)="rateGym(m.gymId)"><fa-icon icon="star" />{{ (myGymReview(m.gymId) ? 'Edit my gym review' : 'Rate this gym') | t }}</button>
           <button pButton type="button" size="small" [outlined]="true" severity="secondary" (click)="payments()?.open(m.gymId, m.clientId, true)"><fa-icon icon="calendar-days" />{{ 'My payments' | t }}</button>
+          @if (pendingFreeze(m); as r) {
+            <span class="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300 self-center" data-testid="freeze-pending"><fa-icon icon="snowflake" /> {{ 'Freeze requested' | t }} · {{ r.days }} {{ 'days' | t }}</span>
+          } @else {
+            <button pButton type="button" size="small" [text]="true" severity="info" (click)="askFreeze(m)" data-testid="ask-freeze"><fa-icon icon="snowflake" />{{ 'Ask to freeze' | t }}</button>
+          }
         </div>
       </div>
     </div>
@@ -76,4 +81,21 @@
   <div modal-footer>@if (myGymReview(ratingGym() ?? '')) { <button pButton type="button" severity="danger" [text]="true" (click)="deleteGymReview()">{{ 'Delete' | t }}</button> }
     <button pButton type="button" [text]="true" severity="secondary" (click)="ratingGym.set(null)">{{ 'Cancel' | t }}</button>
     <button pButton type="button" (click)="saveGymReview()" [disabled]="!gymForm.rating">{{ 'Submit' | t }}</button></div>
+</app-modal>
+
+<app-modal [visible]="!!freezing()" (visibleChange)="closeFreeze($event)" [header]="'Ask to freeze' | t" [subtitle]="store.gym(freezing()?.m?.gymId)?.name" tone="info" icon="snowflake" width="28rem">
+  @if (freezing(); as f) {
+    <div class="space-y-4">
+      <p class="text-sm muted">{{ 'Holiday, injury, exams… Your gym pauses the membership and moves its end date back by the same number of days.' | t }}</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field"><label>{{ 'From' | t }}</label><input pInputText type="date" [(ngModel)]="f.start" /></div>
+        <div class="field"><label>{{ 'Days' | t }}</label><p-inputnumber [(ngModel)]="f.days" [min]="1" [max]="90" [showButtons]="true" inputStyleClass="w-full" /></div>
+      </div>
+      <div class="field"><label>{{ 'Reason' | t }}</label><input pInputText [(ngModel)]="f.reason" data-testid="freeze-reason" /></div>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="sendFreeze()" data-testid="send-freeze">{{ 'Send request' | t }}</button>
+  </div>
 </app-modal>

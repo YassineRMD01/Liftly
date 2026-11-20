@@ -35,7 +35,7 @@
   <div class="card">
     <p-table [value]="classes()" [tableStyle]="{ 'min-width': '56rem' }">
       <ng-template #header>
-        <tr><th>{{ 'Class' | t }}</th><th>{{ 'Day' | t }}</th><th>{{ 'Time' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Capacity' | t }}</th><th>{{ 'Who can attend' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
+        <tr><th>{{ 'Class' | t }}</th><th>{{ 'Day' | t }}</th><th>{{ 'Time' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Capacity' | t }}</th><th>{{ 'Who can attend' | t }}</th><th>{{ 'Rating' | t }}</th><th>{{ 'Active' | t }}</th><th></th></tr>
       </ng-template>
       <ng-template #body let-c>
         <tr [class.opacity-50]="!c.active">
@@ -45,6 +45,7 @@
           <td>{{ c.coachId ? store.fullName(c.coachId) : '—' }}</td>
           <td>{{ c.capacity }}</td>
           <td><app-audience-tag [audience]="c.audience" [short]="true" /></td>
+          <td class="whitespace-nowrap">@if (store.classSeriesRating(c.gymId, c.name); as r) { @if (r.count) { <span class="text-amber-500">★</span> {{ r.avg }} <span class="text-xs muted">({{ r.count }})</span> } @else { <span class="muted">—</span> } }</td>
           <td>{{ (c.active ? 'Yes' : 'No') | t }}</td>
           <td class="whitespace-nowrap">
             <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
@@ -52,7 +53,7 @@
           </td>
         </tr>
       </ng-template>
-      <ng-template #emptymessage><tr><td colspan="8" class="text-center muted py-8">{{ 'No classes yet.' | t }}</td></tr></ng-template>
+      <ng-template #emptymessage><tr><td colspan="9" class="text-center muted py-8">{{ 'No classes yet.' | t }}</td></tr></ng-template>
     </p-table>
   </div>
 }

@@ -45,7 +45,8 @@
 
   <div class="space-y-6">
     <div class="card">
-      <h2 class="font-semibold mb-2">{{ 'My upcoming sessions' | t }}</h2>
+      <div class="flex items-center justify-between mb-2"><h2 class="font-semibold">{{ 'My upcoming sessions' | t }}</h2>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="exportCalendar()" [attr.aria-label]="'Add to my calendar' | t" data-testid="sessions-ics"><fa-icon icon="calendar-plus" /></button></div>
       <div class="divide-y divide-surface-100 dark:divide-surface-800">
         @for (s of mine(); track s.id) {
           <div class="py-2 flex items-center gap-2" data-testid="my-session">

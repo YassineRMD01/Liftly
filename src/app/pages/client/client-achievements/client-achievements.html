@@ -1,0 +1,52 @@
+<app-page-header [title]="'Achievements' | t" [subtitle]="'Your streak, the badges you earned and your gyms\' challenges.' | t" />
+
+<div class="grid sm:grid-cols-3 gap-4 mb-6">
+  <div class="card flex items-center gap-4" data-testid="streak">
+    <span class="w-14 h-14 rounded-2xl grid place-items-center text-2xl text-white bg-gradient-to-br from-orange-400 to-red-600"><fa-icon icon="fire" /></span>
+    <div><div class="text-3xl font-extrabold">{{ streak().current }}</div><div class="text-sm muted">{{ 'weeks in a row' | t }}</div></div>
+  </div>
+  <div class="card"><div class="text-sm muted">{{ 'Longest streak' | t }}</div><div class="text-3xl font-extrabold">{{ streak().longest }}</div><div class="text-xs muted">{{ 'weeks' | t }}</div></div>
+  <div class="card"><div class="text-sm muted">{{ 'Badges' | t }}</div><div class="text-3xl font-extrabold">{{ earned() }}<span class="text-lg muted font-semibold">/{{ badges().length }}</span></div><div class="text-xs muted">{{ 'earned' | t }}</div></div>
+</div>
+
+<h2 class="font-semibold text-lg mb-3">{{ 'Challenges' | t }}</h2>
+<div class="grid lg:grid-cols-2 gap-4 mb-8">
+  @for (x of challenges(); track x.c.id) {
+    <div class="card space-y-3" data-testid="challenge">
+      <div class="flex items-start gap-3">
+        @if (gymOf(x.c); as g) { <app-gym-logo [theme]="g.theme" [name]="g.name" [size]="40" /> }
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold">{{ x.c.title }}</div>
+          <div class="text-xs muted">{{ gymOf(x.c)?.name }} · {{ x.c.start | date: 'd MMM' }} → {{ x.c.end | date: 'd MMM' }}@if (x.c.reward) { · <fa-icon icon="gift" /> {{ x.c.reward }} }</div>
+        </div>
+        @if (!x.started) { <p-tag [value]="'Upcoming' | t" severity="secondary" /> } @else { <p-tag [value]="x.daysLeft + ' ' + ('days left' | t)" severity="info" /> }
+      </div>
+      <div>
+        <div class="flex justify-between text-sm mb-1"><span>{{ x.mine }} / {{ x.c.target }} {{ metric[x.c.metric] | t }}</span>@if (x.mine >= x.c.target) { <span class="text-green-600 font-semibold"><fa-icon icon="check" /> {{ 'Done!' | t }}</span> }</div>
+        <p-progressbar [value]="pct(x.mine, x.c.target)" [showValue]="false" styleClass="!h-2" />
+      </div>
+      <div>
+        <div class="text-xs font-semibold uppercase tracking-wider muted mb-1">{{ 'Leaderboard' | t }}</div>
+        @for (r of x.board; track r.user.id; let i = $index) {
+          <div class="flex items-center gap-2 text-sm py-0.5" [class.font-semibold]="isMe(r.user.id)" [class.text-primary]="isMe(r.user.id)">
+            <span class="w-5 text-center">@if (i < 3) { <fa-icon icon="medal" [class]="['text-amber-400', 'text-zinc-400', 'text-orange-700'][i]" /> } @else { {{ i + 1 }} }</span>
+            <span class="flex-1">{{ r.user.firstName }} {{ r.user.lastName[0] }}.</span><span class="tabular-nums">{{ r.value }}</span>
+          </div>
+        } @empty { <p class="text-xs muted">{{ 'Nobody has started yet. Be the first!' | t }}</p> }
+        @if (x.rank > 5) { <div class="text-sm text-primary font-semibold mt-1">{{ 'Your rank' | t }}: #{{ x.rank }}</div> }
+      </div>
+    </div>
+  } @empty { <div class="card lg:col-span-2 text-center muted py-8">{{ 'No challenge running at your gyms right now.' | t }}</div> }
+</div>
+
+<h2 class="font-semibold text-lg mb-3">{{ 'Badges' | t }}</h2>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+  @for (b of badges(); track b.key) {
+    <div class="card text-center space-y-2" [class.opacity-60]="!b.earned" data-testid="badge" [attr.data-earned]="b.earned">
+      <span class="w-14 h-14 mx-auto rounded-full grid place-items-center text-2xl" [class]="b.earned ? 'bg-gradient-to-br from-amber-300 to-amber-600 text-white shadow' : 'bg-surface-100 dark:bg-surface-800 text-surface-400'"><fa-icon [icon]="icon(b.icon)" /></span>
+      <div class="font-semibold text-sm">{{ b.title | t }}</div>
+      <div class="text-xs muted">{{ b.description | t }}</div>
+      @if (!b.earned) { <p-progressbar [value]="pct(b.value, b.target)" [showValue]="false" styleClass="!h-1.5" /><div class="text-[11px] muted">{{ b.value }}/{{ b.target }}</div> }
+    </div>
+  }
+</div>

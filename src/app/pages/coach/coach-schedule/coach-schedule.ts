@@ -18,6 +18,7 @@ import { PayoutMethod, PrivateSession, SessionStatus } from '../../../core/model
 import { isoDate, toMin } from '../../../core/schedule';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
+import { downloadIcs } from '../../../core/ics';
 import { SESSION_SEV } from '../coach-sessions/coach-sessions';
 
 type AgendaItem = ReturnType<StoreService['coachAgenda']>[number];
@@ -66,6 +67,13 @@ export class CoachSchedule {
   });
 
   private monday(d: Date) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  /** Download the displayed week (classes + lessons) as a calendar file. */
+  exportWeek() {
+    downloadIcs(`liftly-week-${this.days()[0].date}`, this.items().map((i) => {
+      const g = this.store.gym(i.gymId);
+      return { uid: `${i.kind}-${i.id}-${i.date}`, title: `${i.kind === 'CLASS' ? i.title : t('Private session') + ' · ' + i.title} (${g?.name ?? ''})`, date: i.date, start: i.start, end: i.end, location: `${g?.address ?? ''}, ${g?.city ?? ''}` };
+    }), 'Liftly coaching');
+  }
   shift(weeks: number) { const d = new Date(this.weekStart()); d.setDate(d.getDate() + weeks * 7); this.weekStart.set(d); }
   today() { this.weekStart.set(this.monday(new Date())); }
   itemsOn(date: string) { return this.items().filter((i) => i.date === date); }

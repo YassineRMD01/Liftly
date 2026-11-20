@@ -1,0 +1,39 @@
+<app-page-header [title]="'Challenges' | t" [subtitle]="'Motivate members with monthly goals and a leaderboard. Members are notified when you start one.' | t">
+  <button pButton type="button" (click)="edit()" data-testid="new-challenge"><fa-icon icon="plus" />{{ 'New challenge' | t }}</button>
+</app-page-header>
+<div class="grid lg:grid-cols-2 gap-4">
+  @for (x of list(); track x.c.id) {
+    <div class="card space-y-3" data-testid="admin-challenge">
+      <div class="flex items-start gap-3">
+        <span class="w-10 h-10 rounded-xl grid place-items-center bg-amber-100 text-amber-600 dark:bg-amber-900/40"><fa-icon icon="trophy" /></span>
+        <div class="flex-1 min-w-0"><div class="font-semibold">{{ x.c.title }}</div>
+          <div class="text-xs muted">{{ x.c.target }} {{ metric[x.c.metric] | t }} · {{ x.c.start | date: 'd MMM' }} → {{ x.c.end | date: 'd MMM' }}@if (x.c.reward) { · {{ x.c.reward }} }</div></div>
+        <p-tag [value]="x.status | t" [severity]="sev(x.status)" />
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(x.c)"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(x.c)"><fa-icon icon="trash" /></button>
+      </div>
+      <div class="text-sm"><b>{{ x.board.length }}</b> {{ 'taking part' | t }} · <b>{{ finishers(x) }}</b> {{ 'reached the goal' | t }}</div>
+      @for (r of x.board.slice(0, 5); track r.user.id; let i = $index) {
+        <div class="flex items-center gap-2 text-sm"><span class="w-5 text-center muted">{{ i + 1 }}</span><span class="w-36 truncate">{{ r.user.firstName }} {{ r.user.lastName }}</span>
+          <p-progressbar class="flex-1" [value]="r.value * 100 / x.c.target" [showValue]="false" styleClass="!h-1.5" /><span class="w-8 text-end tabular-nums">{{ r.value }}</span></div>
+      }
+    </div>
+  } @empty { <div class="card lg:col-span-2 text-center muted py-12">{{ 'No challenges yet.' | t }}</div> }
+</div>
+
+<app-modal [visible]="!!editing()" (visibleChange)="close($event)" [header]="(editing()?.id ? 'Edit challenge' : 'New challenge') | t" [tone]="editing()?.id ? 'edit' : 'primary'" [icon]="editing()?.id ? 'pen' : 'trophy'" width="32rem">
+  @if (editing(); as c) {
+    <div class="grid grid-cols-2 gap-4">
+      <div class="field col-span-2"><label>{{ 'Title' | t }}</label><input pInputText [(ngModel)]="c.title" [placeholder]="'e.g. 12 visits this month' | t" data-testid="challenge-title" /></div>
+      <div class="field col-span-2"><label>{{ 'Counts' | t }}</label><p-selectbutton [options]="metrics" optionLabel="label" optionValue="value" [(ngModel)]="c.metric" [allowEmpty]="false" /></div>
+      <div class="field"><label>{{ 'Goal' | t }}</label><p-inputnumber [(ngModel)]="c.target" [min]="1" inputStyleClass="w-full" /></div>
+      <div class="field"><label>{{ 'Reward (optional)' | t }}</label><input pInputText [(ngModel)]="c.reward" /></div>
+      <div class="field"><label>{{ 'Starts' | t }}</label><input pInputText type="date" [(ngModel)]="c.start" /></div>
+      <div class="field"><label>{{ 'Ends' | t }}</label><input pInputText type="date" [(ngModel)]="c.end" /></div>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" data-testid="save-challenge">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>

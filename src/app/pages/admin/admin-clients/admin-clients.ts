@@ -198,6 +198,13 @@ export class AdminClients {
   banInfo(clientId: string) { return this.store.ban(this.gymId(), clientId); }
   clientSev(s: ClientStatus) { return ({ ACTIVE: 'success', FROZEN: 'info', EXPIRED: 'secondary', BANNED: 'danger' } as const)[s]; }
 
+  // ---------- freeze requests from members ----------
+  protected readonly freezeRequests = computed(() => this.store.freezeRequestsOf(this.gymId()).filter((r) => r.status === 'PENDING'));
+  handleFreeze(id: string, approve: boolean) {
+    this.store.handleFreezeRequest(id, approve);
+    this.toast.add({ severity: approve ? 'success' : 'info', summary: approve ? t('Membership frozen') : t('Request declined'), life: 2000 });
+  }
+
   // ---------- freeze ----------
   protected readonly freezing = signal<ClientMembership | null>(null);
   protected freezeForm = { start: isoDate(), days: 14, reason: '' };

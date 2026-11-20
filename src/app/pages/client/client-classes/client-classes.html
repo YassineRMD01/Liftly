@@ -1,4 +1,10 @@
 <app-page-header [title]="'Classes' | t" [subtitle]="'Book a place in your gyms\' classes. When a class is full, join the waitlist — you get the next free place automatically.' | t">
+  @if (view() === 'browse') {
+    <button pButton type="button" size="small" [outlined]="!onlyFavorites()" severity="warn" (click)="onlyFavorites.set(!onlyFavorites())" data-testid="only-favs"><fa-icon icon="star" />{{ 'Favourites' | t }}</button>
+  }
+  @if (view() === 'mine') {
+    <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="exportCalendar()" data-testid="export-ics"><fa-icon icon="calendar-plus" />{{ 'Add all to my calendar' | t }}</button>
+  }
   <p-selectbutton [options]="views" optionLabel="label" optionValue="value" [ngModel]="view()" (ngModelChange)="view.set($event)" [allowEmpty]="false" />
 </app-page-header>
 
@@ -14,7 +20,12 @@
             <div class="card !p-4 flex flex-col gap-2" data-testid="class-row">
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
-                  <div class="font-semibold truncate">{{ o.cls.name }}</div>
+                  <div class="font-semibold truncate flex items-center gap-1.5">
+                    <button type="button" class="cursor-pointer" (click)="toggleFav(o.cls)" [attr.aria-label]="(fav(o.cls) ? 'Remove from favourites' : 'Add to favourites') | t" [attr.aria-pressed]="fav(o.cls)" data-testid="fav-toggle">
+                      <fa-icon icon="star" [class]="fav(o.cls) ? 'text-amber-400' : 'text-surface-300 dark:text-surface-600'" /></button>
+                    <span class="truncate">{{ o.cls.name }}</span>
+                    @if (rating(o.cls).count) { <span class="text-xs font-normal muted shrink-0">★ {{ rating(o.cls).avg }}</span> }
+                  </div>
                   <div class="text-xs muted">{{ store.gym(o.cls.gymId)?.name }}@if (o.cls.locationId) { · {{ store.location(o.cls.gymId, o.cls.locationId)?.name }} }@if (o.cls.room) { · {{ o.cls.room }} }</div>
                 </div>
                 <span class="text-sm font-semibold tabular-nums" dir="ltr">{{ o.cls.start }}–{{ o.cls.end }}</span>
@@ -55,6 +66,21 @@
       <div class="card text-center py-12 muted">{{ 'No classes in the next 7 days at your gyms.' | t }}</div>
     }
   </div>
+} @else if (view() === 'past') {
+  <div class="card divide-y divide-surface-100 dark:divide-surface-800">
+    @for (b of past(); track b.id) {
+      @let c = store.gymClass(b.classId);
+      <div class="py-3 flex flex-wrap items-center gap-3" data-testid="past-row">
+        <div class="flex-1 min-w-0"><div class="font-medium">{{ c?.name }}</div><div class="text-xs muted">{{ store.gym(b.gymId)?.name }} · {{ b.date | date: 'EEE d MMM' }}@if (c?.coachId) { · {{ store.fullName(c!.coachId!) }} }</div></div>
+        @if (myReview(b); as r) {
+          <span class="text-amber-500 text-sm">@for (i of [1, 2, 3, 4, 5]; track i) { <fa-icon icon="star" [class.opacity-25]="i > r.rating" /> }</span>
+          <button pButton type="button" size="small" [text]="true" (click)="rate(b)">{{ 'Edit' | t }}</button>
+        } @else {
+          <button pButton type="button" size="small" [outlined]="true" (click)="rate(b)" data-testid="rate-class"><fa-icon icon="star" />{{ 'Rate this class' | t }}</button>
+        }
+      </div>
+    } @empty { <p class="text-center muted py-8">{{ 'No class attended in the last 60 days.' | t }}</p> }
+  </div>
 } @else {
   <div class="card divide-y divide-surface-100 dark:divide-surface-800">
     @for (b of mine(); track b.id) {
@@ -67,6 +93,9 @@
         @if (b.status === 'WAITLIST') { <p-tag [value]="('Waitlist #' | t) + waitPosition(b)" severity="warn" /> }
         @else if (b.status === 'ATTENDED') { <p-tag [value]="'Attended' | t" severity="secondary" /> }
         @else { <p-tag [value]="'Booked' | t" severity="success" /> }
+        @if (b.status === 'BOOKED') {
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Add to my calendar' | t" (click)="exportCalendar([b])"><fa-icon icon="calendar-plus" /></button>
+        }
         @if (b.status === 'BOOKED' || b.status === 'WAITLIST') {
           <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(b)">{{ 'Cancel' | t }}</button>
         }
@@ -74,3 +103,16 @@
     } @empty { <p class="text-center muted py-8">{{ 'No upcoming bookings.' | t }}</p> }
   </div>
 }
+
+<app-modal [visible]="!!rating$()" (visibleChange)="closeRate($event)" [header]="'Rate this class' | t" [subtitle]="store.gymClass(rating$()?.booking?.classId)?.name" tone="edit" icon="star" width="26rem">
+  @if (rating$(); as r) {
+    <div class="space-y-4 text-center">
+      <p-rating [(ngModel)]="r.stars" [stars]="5" class="justify-center text-2xl" data-testid="class-stars" />
+      <textarea pTextarea class="w-full" rows="3" [(ngModel)]="r.comment" [placeholder]="'What did you think? (optional)' | t"></textarea>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="rating$.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="saveRating()" data-testid="save-class-rating">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>

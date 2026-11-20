@@ -1,3 +1,9 @@
+import { Rating } from 'primeng/rating';
+import { Textarea } from 'primeng/textarea';
+import { Tooltip } from 'primeng/tooltip';
+import { Modal } from '../../../shared/modal/modal';
+import { IcsEvent, downloadIcs } from '../../../core/ics';
+import { isoDate } from '../../../core/schedule';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +26,7 @@ export const LEVEL_LABEL: Record<GymClass['level'], string> = {
 /** Member: book classes at their gyms (next 7 days), join waitlists, cancel. */
 @Component({
   selector: 'app-client-classes',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, SelectButton, Tag, AudienceTag, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Rating, SelectButton, Tag, Textarea, Tooltip, AudienceTag, Modal, PageHeader],
   templateUrl: './client-classes.html',
   styleUrl: './client-classes.css',
 })
@@ -30,14 +36,18 @@ export class ClientClasses {
   private readonly toast = inject(MessageService);
   protected readonly level = LEVEL_LABEL;
   protected readonly me = computed(() => this.auth.user()?.id ?? '');
-  protected readonly view = signal<'browse' | 'mine'>('browse');
-  protected readonly views = [{ label: t('Browse classes'), value: 'browse' }, { label: t('My bookings'), value: 'mine' }];
+  protected readonly view = signal<'browse' | 'mine' | 'past'>('browse');
+  protected readonly views = [{ label: t('Browse classes'), value: 'browse' }, { label: t('My bookings'), value: 'mine' }, { label: t('Attended'), value: 'past' }];
+  /** Show only starred classes. */
+  protected readonly onlyFavorites = signal(false);
 
   /** Next 7 days of classes at the member's gyms, grouped by date. */
   protected readonly days = computed(() => {
     const gyms = this.store.gymsOfClient(this.me()).filter((g) => this.store.clientStatus(g.id, this.me()) !== 'BANNED');
-    const all = gyms.flatMap((g) => this.store.upcomingClasses(g.id, 7)).filter((o) => !this.store.started(o.cls, o.date))
-      .sort((a, b) => (a.date + a.cls.start).localeCompare(b.date + b.cls.start));
+    const fav = (id: string) => this.store.isFavoriteClass(this.me(), id);
+    const all = gyms.flatMap((g) => this.store.upcomingClasses(g.id, 7)).filter((o) => !this.store.started(o.cls, o.date) && (!this.onlyFavorites() || fav(o.cls.id)))
+      // favourites first within each day
+      .sort((a, b) => a.date.localeCompare(b.date) || Number(fav(b.cls.id)) - Number(fav(a.cls.id)) || a.cls.start.localeCompare(b.cls.start));
     const byDate = new Map<string, typeof all>();
     for (const o of all) byDate.set(o.date, [...(byDate.get(o.date) ?? []), o]);
     return [...byDate.entries()].map(([date, items]) => ({ date, items }));
@@ -46,6 +56,41 @@ export class ClientClasses {
     const today = new Date().toISOString().slice(0, 10);
     return this.store.bookingsOfClient(this.me()).filter((b) => b.status !== 'CANCELLED' && b.date >= today);
   });
+
+  /** Classes attended in the last 60 days (to rate them). */
+  protected readonly past = computed(() => {
+    const from = isoDate(new Date(Date.now() - 60 * 86400000));
+    return this.store.bookingsOfClient(this.me()).filter((b) => b.status === 'ATTENDED' && b.date >= from).reverse();
+  });
+  fav(c: GymClass) { return this.store.isFavoriteClass(this.me(), c.id); }
+  toggleFav(c: GymClass) { this.store.toggleFavoriteClass(this.me(), c.id); }
+  rating(c: GymClass) { return this.store.classSeriesRating(c.gymId, c.name); }
+  myReview(b: ClassBooking) { return this.store.myClassReview(b.classId, b.date, this.me()); }
+
+  // ---------- rate a class ----------
+  protected readonly rating$ = signal<{ booking: ClassBooking; stars: number; comment: string } | null>(null);
+  rate(b: ClassBooking) { const r = this.myReview(b); this.rating$.set({ booking: b, stars: r?.rating ?? 5, comment: r?.comment ?? '' }); }
+  closeRate(v: boolean) { if (!v) this.rating$.set(null); }
+  saveRating() {
+    const r = this.rating$();
+    if (!r) return;
+    this.store.reviewClass(r.booking.classId, r.booking.date, this.me(), r.stars, r.comment.trim() || undefined);
+    this.toast.add({ severity: 'success', summary: t('Thanks for your rating!'), life: 1500 });
+    this.rating$.set(null);
+  }
+
+  // ---------- calendar ----------
+  exportCalendar(list: ClassBooking[] = this.mine().filter((b) => b.status === 'BOOKED')) {
+    const events: IcsEvent[] = list.flatMap((b) => {
+      const c = this.store.gymClass(b.classId);
+      if (!c) return [];
+      const g = this.store.gym(c.gymId);
+      const loc = this.store.location(c.gymId, c.locationId);
+      return [{ uid: b.id, title: `${c.name} · ${g?.name ?? ''}`, date: b.date, start: c.start, end: c.end, location: loc ? `${loc.name}, ${loc.address}, ${loc.city}` : `${g?.address ?? ''}, ${g?.city ?? ''}`, description: [c.room, c.coachId ? this.store.fullName(c.coachId) : ''].filter(Boolean).join(' · ') }];
+    });
+    if (!events.length) { this.toast.add({ severity: 'info', summary: t('No booked class to export.') }); return; }
+    downloadIcs(list.length === 1 ? `class-${list[0].date}` : 'liftly-classes', events, 'Liftly classes');
+  }
 
   occ(c: GymClass, date: string) { return this.store.occupancy(c.id, date); }
   booking(c: GymClass, date: string) { return this.store.myBooking(c.id, date, this.me()); }

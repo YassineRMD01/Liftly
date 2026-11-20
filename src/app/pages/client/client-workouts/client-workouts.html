@@ -1,0 +1,93 @@
+<app-page-header [title]="'Workouts' | t" [subtitle]="'Log your sets, reps and weights. Records and progress update automatically.' | t">
+  <button pButton type="button" (click)="open()" data-testid="log-workout"><fa-icon icon="plus" />{{ 'Log workout' | t }}</button>
+</app-page-header>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="card"><div class="text-sm muted">{{ 'This month' | t }}</div><div class="text-2xl font-bold">{{ thisMonth() }}</div><div class="text-xs muted">{{ 'workouts' | t }}</div></div>
+  <div class="card"><div class="text-sm muted">{{ 'Volume this month' | t }}</div><div class="text-2xl font-bold tabular-nums">{{ totalVolume() | number: '1.0-0' }}</div><div class="text-xs muted">kg</div></div>
+  <div class="card"><div class="text-sm muted">{{ 'Exercises' | t }}</div><div class="text-2xl font-bold">{{ records().length }}</div><div class="text-xs muted">{{ 'with a record' | t }}</div></div>
+  <div class="card"><div class="text-sm muted">{{ 'All time' | t }}</div><div class="text-2xl font-bold">{{ logs().length }}</div><div class="text-xs muted">{{ 'workouts' | t }}</div></div>
+</div>
+
+<div class="grid xl:grid-cols-[minmax(0,1fr)_22rem] gap-6 mb-6">
+  <div class="min-w-0">
+    <div class="flex justify-end mb-2">
+      <p-select [options]="exercises()" [ngModel]="selectedExercise()" (ngModelChange)="exercise.set($event)" [filter]="true" class="w-60" [placeholder]="'Exercise' | t" data-testid="exercise-pick" />
+    </div>
+    <app-chart-card type="line" [title]="selectedExercise() ?? ('Progress' | t)" [subtitle]="'Best set and estimated one-rep max per session' | t" [labels]="chart().labels" [series]="chart().series" [format]="kg" height="15rem" />
+  </div>
+  <div class="card">
+    <h2 class="font-semibold mb-2 flex items-center gap-2"><fa-icon icon="medal" class="text-amber-500" />{{ 'Personal records' | t }}</h2>
+    <div class="divide-y divide-surface-100 dark:divide-surface-800">
+      @for (r of records().slice(0, 8); track r.exercise) {
+        <button type="button" class="w-full text-start py-2 flex items-center gap-2 text-sm cursor-pointer" (click)="exercise.set(r.exercise)" data-testid="pr-row">
+          <span class="flex-1 min-w-0"><span class="font-medium truncate block">{{ r.exercise }}</span><span class="text-xs muted">{{ r.date | date: 'mediumDate' }}</span></span>
+          <span class="text-end tabular-nums"><span class="font-semibold">{{ r.weight }} kg × {{ r.reps }}</span><span class="block text-xs muted">1RM ≈ {{ r.e1rm }} kg</span></span>
+        </button>
+      } @empty { <p class="text-sm muted py-4">{{ 'Log a workout with weights to see your records.' | t }}</p> }
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="font-semibold mb-2">{{ 'History' | t }}</h2>
+  <div class="divide-y divide-surface-100 dark:divide-surface-800">
+    @for (w of logs(); track w.id) {
+      <div class="py-3 flex flex-wrap items-start gap-3" data-testid="workout-row">
+        <div class="w-28 text-sm"><div class="font-semibold">{{ w.date | date: 'EEE d MMM' }}</div>@if (w.durationMin) { <div class="text-xs muted">{{ w.durationMin }} min</div> }</div>
+        <div class="flex-1 min-w-48">
+          <div class="font-medium">{{ w.title }}</div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs muted mt-1">@for (e of w.entries; track $index) { <span><span class="text-surface-700 dark:text-surface-200">{{ e.exercise }}</span> {{ summary(e) }}</span> }</div>
+          @if (w.note) { <div class="text-xs mt-1 italic">“{{ w.note }}”</div> }
+        </div>
+        <span class="text-sm tabular-nums muted">{{ volume(w) | number: '1.0-0' }} kg</span>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="open(w)"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(w)"><fa-icon icon="trash" /></button>
+      </div>
+    } @empty { <p class="text-sm muted py-8 text-center">{{ 'No workouts yet. Log your first one!' | t }}</p> }
+  </div>
+</div>
+
+<datalist id="exercise-names">@for (e of exercises(); track e) { <option [value]="e"></option> }</datalist>
+
+<app-modal [visible]="!!editing()" (visibleChange)="close($event)" [header]="(editing()?.id ? 'Edit workout' : 'Log workout') | t" [tone]="editing()?.id ? 'edit' : 'primary'" [icon]="editing()?.id ? 'pen' : 'dumbbell'" width="44rem">
+  @if (editing(); as w) {
+    <div class="space-y-4">
+      <div class="grid sm:grid-cols-[1fr_10rem_7rem] gap-3">
+        <div class="field"><label>{{ 'Title' | t }}</label><input pInputText [(ngModel)]="w.title" /></div>
+        <div class="field"><label>{{ 'Date' | t }}</label><input pInputText type="date" [(ngModel)]="w.date" /></div>
+        <div class="field"><label>{{ 'Minutes' | t }}</label><p-inputnumber [(ngModel)]="w.durationMin" [min]="0" inputStyleClass="w-full" /></div>
+      </div>
+      @if (plans().length) {
+        <div class="flex flex-wrap items-end gap-2 p-3 rounded-xl bg-surface-50 dark:bg-surface-800">
+          <div class="field flex-1 min-w-40"><label>{{ 'From my plan' | t }}</label><p-select [options]="plans()" optionLabel="title" optionValue="id" [ngModel]="planId()" (ngModelChange)="planId.set($event)" class="w-full" appendTo="body" /></div>
+          @for (g of groups(); track g.value) { <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="usePlanDay(g.value)" data-testid="plan-day">{{ g.label }}</button> }
+        </div>
+      }
+      @for (e of w.entries; track $index; let i = $index) {
+        <div class="rounded-xl border border-surface-200 dark:border-surface-700 p-3" data-testid="workout-entry">
+          <div class="flex gap-2 mb-2">
+            <input pInputText class="flex-1 font-medium" [(ngModel)]="e.exercise" list="exercise-names" [placeholder]="'Exercise' | t" />
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="removeExercise(i)" [attr.aria-label]="'Remove' | t"><fa-icon icon="trash" /></button>
+          </div>
+          <div class="grid grid-cols-[2rem_1fr_1fr_2.5rem] gap-2 items-center text-sm">
+            <span class="text-xs muted">#</span><span class="text-xs muted">{{ 'Reps' | t }}</span><span class="text-xs muted">{{ 'Weight (kg)' | t }}</span><span></span>
+            @for (s of e.sets; track $index; let j = $index) {
+              <span class="muted tabular-nums">{{ j + 1 }}</span>
+              <p-inputnumber [(ngModel)]="s.reps" [min]="0" [max]="100" inputStyleClass="w-full !py-1" />
+              <p-inputnumber [(ngModel)]="s.weight" [min]="0" [max]="600" [maxFractionDigits]="2" inputStyleClass="w-full !py-1" />
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="removeSet(i, j)" [attr.aria-label]="'Remove' | t"><fa-icon icon="xmark" /></button>
+            }
+          </div>
+          <button pButton type="button" [text]="true" size="small" (click)="addSet(i)"><fa-icon icon="plus" />{{ 'Add set' | t }}</button>
+        </div>
+      }
+      <button pButton type="button" [outlined]="true" severity="secondary" (click)="addExercise()"><fa-icon icon="plus" />{{ 'Add exercise' | t }}</button>
+      <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="w.note" /></div>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" data-testid="save-workout">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>

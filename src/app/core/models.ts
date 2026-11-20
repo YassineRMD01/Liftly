@@ -13,6 +13,8 @@ export interface User {
   gender?: Gender;
   /** ISO 3166 alpha-2 — sets the currency the user's accounting is shown in. */
   country?: string;
+  /** Classes (GymClass ids) the member starred. */
+  favoriteClasses?: string[];
   createdAt: string;
   active: boolean;
   /** Pending invitation: the account is activated from a link and the user picks a password. */
@@ -567,4 +569,68 @@ export interface DbState {
   audit: AuditEntry[];
   expenses: Expense[];
   coachPayouts: CoachPayout[];
+  workouts: WorkoutLog[];
+  challenges: GymChallenge[];
+  classReviews: ClassReview[];
+  freezeRequests: FreezeRequest[];
+}
+
+export interface WorkoutSet { reps: number; weight: number; }
+export interface WorkoutEntry {
+  exercise: string;
+  sets: WorkoutSet[];
+  /** Plan line this entry follows (ticked in the plan when logged). */
+  itemId?: string;
+}
+/** A training session a member logged (sets × reps × weight). */
+export interface WorkoutLog {
+  id: string;
+  clientId: string;
+  date: string; // YYYY-MM-DD
+  title: string;
+  planId?: string;
+  entries: WorkoutEntry[];
+  durationMin?: number;
+  note?: string;
+  createdAt: string;
+}
+
+export type ChallengeMetric = 'VISITS' | 'CLASSES' | 'WORKOUTS';
+/** A gym challenge with a leaderboard, e.g. "12 visits in November". */
+export interface GymChallenge {
+  id: string;
+  gymId: string;
+  title: string;
+  metric: ChallengeMetric;
+  target: number;
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
+  reward?: string;
+}
+
+/** A member's rating of a class occurrence they attended. */
+export interface ClassReview {
+  id: string;
+  classId: string;
+  gymId: string;
+  clientId: string;
+  date: string; // occurrence
+  rating: number; // 1..5
+  comment?: string;
+  createdAt: string;
+}
+
+export type FreezeRequestStatus = 'PENDING' | 'APPROVED' | 'DECLINED';
+/** A member asking the gym to pause their membership. */
+export interface FreezeRequest {
+  id: string;
+  membershipId: string;
+  gymId: string;
+  clientId: string;
+  start: string; // YYYY-MM-DD
+  days: number;
+  reason: string;
+  status: FreezeRequestStatus;
+  createdAt: string;
+  handledAt?: string;
 }

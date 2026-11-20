@@ -1,4 +1,5 @@
 <app-page-header [title]="'My schedule' | t" [subtitle]="'Your classes at every gym and your private lessons, week by week. Click an empty slot to book a lesson.' | t">
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportWeek()" data-testid="week-ics"><fa-icon icon="calendar-plus" />{{ 'Export week' | t }}</button>
   <button pButton type="button" (click)="newLesson()" data-testid="new-lesson"><fa-icon icon="plus" />{{ 'New private lesson' | t }}</button>
 </app-page-header>
 

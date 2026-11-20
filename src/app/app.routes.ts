@@ -50,6 +50,7 @@ export const routes: Routes = [
       { path: 'locations', loadComponent: () => import('./pages/admin/admin-locations/admin-locations').then((m) => m.AdminLocations) },
       { path: 'messages', loadComponent: () => import('./pages/messages/messages').then((m) => m.Messages) },
       { path: 'announcements', loadComponent: () => import('./pages/announcements/announcements').then((m) => m.Announcements) },
+      { path: 'challenges', loadComponent: () => import('./pages/admin/admin-challenges/admin-challenges').then((m) => m.AdminChallenges) },
     ],
   },
   {
@@ -82,6 +83,8 @@ export const routes: Routes = [
       { path: 'sessions', loadComponent: () => import('./pages/client/client-sessions/client-sessions').then((m) => m.ClientSessions) },
       { path: 'plans', loadComponent: () => import('./pages/client/client-plans/client-plans').then((m) => m.ClientPlans) },
       { path: 'progress', loadComponent: () => import('./pages/client/client-progress/client-progress').then((m) => m.ClientProgress) },
+      { path: 'workouts', loadComponent: () => import('./pages/client/client-workouts/client-workouts').then((m) => m.ClientWorkouts) },
+      { path: 'achievements', loadComponent: () => import('./pages/client/client-achievements/client-achievements').then((m) => m.ClientAchievements) },
       { path: 'messages', loadComponent: () => import('./pages/messages/messages').then((m) => m.Messages) },
       { path: 'announcements', loadComponent: () => import('./pages/announcements/announcements').then((m) => m.Announcements) },
     ],

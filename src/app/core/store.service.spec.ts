@@ -233,4 +233,40 @@ describe('StoreService', () => {
       expect(gym.original?.currency).toBe('USD');
     });
   });
+  describe('member engagement', () => {
+    it('logs workouts, ticks plan items and tracks personal records', () => {
+      const before = store.personalRecords('u-k1').find((r) => r.exercise === 'Back squat')!.e1rm;
+      store.saveWorkout({ id: '', clientId: 'u-k1', date: isoDate(), title: 'Day 1', planId: 'tp-1', entries: [{ exercise: 'Back squat', itemId: 'i3', sets: [{ reps: 3, weight: 150 }] }], createdAt: '' });
+      expect(store.personalRecords('u-k1').find((r) => r.exercise === 'Back squat')!.e1rm).toBeGreaterThan(before);
+      expect(store.plans().find((p) => p.id === 'tp-1')!.items.find((i) => i.id === 'i3')!.done).toBe(true);
+      expect(store.e1rm(100, 5)).toBeCloseTo(116.7, 1);
+    });
+    it('computes badges, streaks and challenge progress', () => {
+      const badges = store.badges('u-k1');
+      expect(badges.find((b) => b.key === 'first-visit')!.earned).toBe(true);
+      expect(store.visitStreak('u-k1').longest).toBeGreaterThanOrEqual(store.visitStreak('u-k1').current);
+      const ch = store.challenges().find((c) => c.id === 'ch-1')!;
+      const before = store.challengeProgress(ch, 'u-k1');
+      store.checkIn('g-iron', 'u-k1', 'QR');
+      expect(store.challengeProgress(ch, 'u-k1')).toBe(before + 1);
+      expect(store.leaderboard(ch)[0].user.id).toBe('u-k1');
+    });
+    it('lets only attendees rate a class, and toggles favourites', () => {
+      const b = store.bookings().find((x) => x.id === 'b-13')!;
+      expect(store.reviewClass(b.classId, b.date, 'u-k1', 4)).toBe(true);
+      expect(store.reviewClass(b.classId, b.date, 'u-k2', 4)).toBe(false);
+      expect(store.myClassReview(b.classId, b.date, 'u-k1')?.rating).toBe(4);
+      store.toggleFavoriteClass('u-k3', 'c-hiit-1');
+      expect(store.isFavoriteClass('u-k3', 'c-hiit-1')).toBe(true);
+      store.toggleFavoriteClass('u-k3', 'c-hiit-1');
+      expect(store.isFavoriteClass('u-k3', 'c-hiit-1')).toBe(false);
+    });
+    it('turns an approved freeze request into a freeze', () => {
+      const r = store.requestFreeze({ membershipId: 'm-10', start: isoDate(), days: 7, reason: 'Trip' })!;
+      expect(store.requestFreeze({ membershipId: 'm-10', start: isoDate(), days: 7, reason: 'Again' })).toBeNull();
+      expect(store.notificationsOf('u-a1')[0].title).toBe('Freeze request');
+      store.handleFreezeRequest(r.id, true);
+      expect(store.clientStatus('g-iron', 'u-k6')).toBe('FROZEN');
+    });
+  });
 });

@@ -14,6 +14,7 @@ import { PrivateSession } from '../../../core/models';
 import { isoDate, toMin } from '../../../core/schedule';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
+import { downloadIcs } from '../../../core/ics';
 import { Stars } from '../../../shared/stars/stars';
 import { SESSION_SEV } from '../../coach/coach-sessions/coach-sessions';
 
@@ -73,6 +74,15 @@ export class ClientSessions {
     if (!res) { this.toast.add({ severity: 'error', summary: t('This slot was just taken. Pick another one.') }); return; }
     this.slot.set(null); this.note = '';
     this.toast.add({ severity: 'success', summary: t('Request sent'), detail: t('You will be notified when the coach confirms.') });
+  }
+
+  exportCalendar() {
+    const list = this.mine().filter((s) => s.status === 'CONFIRMED');
+    if (!list.length) { this.toast.add({ severity: 'info', summary: t('No confirmed session to export.') }); return; }
+    downloadIcs('liftly-sessions', list.map((s) => {
+      const g = this.store.gym(s.gymId);
+      return { uid: s.id, title: `${t('Private session')} · ${this.store.fullName(s.coachId)}`, date: s.date, start: s.start, end: s.end, location: `${g?.name ?? ''}, ${g?.address ?? ''}, ${g?.city ?? ''}`, description: s.note };
+    }), 'Liftly sessions');
   }
 
   cancel(s: PrivateSession) {

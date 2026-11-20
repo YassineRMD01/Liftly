@@ -37,6 +37,13 @@ const IRON_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/20
 const WAVE_LOGO = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2228%22%20fill%3D%22%230ea5e9%22/%3E%3Cpath%20d%3D%22M10%2070%20Q30%2050%2050%2070%20T90%2070%20T130%2070%20V120%20H10Z%22%20fill%3D%22%230369a1%22/%3E%3Cpath%20d%3D%22M10%2082%20Q30%2064%2050%2082%20T90%2082%20T130%2082%20V120%20H10Z%22%20fill%3D%22%23e0f2fe%22/%3E%3Ccircle%20cx%3D%2284%22%20cy%3D%2236%22%20r%3D%2214%22%20fill%3D%22%23facc15%22/%3E%3C/svg%3E';
 
 /** Next date (today included) falling on a weekday (getDay()), as YYYY-MM-DD. */
+/** Most recent past `day` (0 = Sunday), `weeksBack` extra weeks earlier. */
+const prevDate = (day: number, weeksBack = 0) => {
+  const t = new Date();
+  const diff = ((t.getDay() - day + 7) % 7 || 7) + weeksBack * 7;
+  const x = new Date(t.getFullYear(), t.getMonth(), t.getDate() - diff);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
 const nextDate = (day: number, weeksAhead = 0) => {
   const t = new Date();
   const diff = (day - t.getDay() + 7) % 7 + weeksAhead * 7;
@@ -81,6 +88,12 @@ const monthDay = (offset: number, day: number) => {
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
 };
 const monthKey = (offset: number) => monthDay(offset, 1).slice(0, 7);
+/** Last day (YYYY-MM-DD) of the month `offset` months from now. */
+const monthEnd = (offset: number) => {
+  const now = new Date();
+  const x = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
 
 export const SEED: DbState = {
   platform: { theme: { primary: '#6366f1', logoText: 'LF', appearance: 'system' }, defaultCountry: 'US' },
@@ -169,7 +182,7 @@ export const SEED: DbState = {
     { id: 'u-c2', gender: 'FEMALE', role: 'COACH', firstName: 'Lina', lastName: 'Costa', email: 'lina@liftly.io', password: 'demo', country: 'ES', createdAt: d(-250), active: true },
     { id: 'u-c3', gender: 'MALE', role: 'COACH', firstName: 'Omar', lastName: 'Haddad', email: 'omar@liftly.io', password: 'demo', country: 'MA', createdAt: d(-150), active: true },
     { id: 'u-c4', gender: 'FEMALE', role: 'COACH', firstName: 'Sofia', lastName: 'Novak', email: 'sofia@liftly.io', password: 'demo', country: 'US', createdAt: d(-90), active: true },
-    { id: 'u-k1', gender: 'MALE', role: 'CLIENT', firstName: 'Chris', lastName: 'Evans', email: 'client@liftly.io', password: 'demo', country: 'US', createdAt: d(-120), active: true },
+    { id: 'u-k1', gender: 'MALE', role: 'CLIENT', firstName: 'Chris', lastName: 'Evans', email: 'client@liftly.io', password: 'demo', favoriteClasses: ['c-power-2', 'c-wod-5'], country: 'US', createdAt: d(-120), active: true },
     { id: 'u-k2', gender: 'FEMALE', role: 'CLIENT', firstName: 'Nora', lastName: 'Ali', email: 'nora@liftly.io', password: 'demo', country: 'MA', createdAt: d(-100), active: true },
     { id: 'u-k3', gender: 'MALE', role: 'CLIENT', firstName: 'Ethan', lastName: 'Park', email: 'ethan@liftly.io', password: 'demo', country: 'US', createdAt: d(-80), active: true },
     { id: 'u-k4', gender: 'FEMALE', role: 'CLIENT', firstName: 'Zoe', lastName: 'Martin', email: 'zoe@liftly.io', password: 'demo', country: 'ES', createdAt: d(-60), active: true },
@@ -299,6 +312,13 @@ export const SEED: DbState = {
     ['b-8', 'c-bjj-1', 'g-kumite', 'u-k5', nextDate(1), 'BOOKED', -1],
     ['b-9', 'c-bjj-1', 'g-kumite', 'u-k6', nextDate(1), 'BOOKED', -1],
     ['b-10', 'c-swimtech-2', 'g-wave', 'u-k4', nextDate(2), 'BOOKED', -2],
+    // past classes attended (rated or waiting for a rating)
+    ['b-11', 'c-hiit-1', 'g-iron', 'u-k1', prevDate(1, 1), 'ATTENDED', -9],
+    ['b-12', 'c-wod-3', 'g-iron', 'u-k1', prevDate(3, 1), 'ATTENDED', -9],
+    ['b-13', 'c-power-4', 'g-iron', 'u-k1', prevDate(4, 0), 'ATTENDED', -5],
+    ['b-14', 'c-hiit-5', 'g-iron', 'u-k1', prevDate(5, 0), 'ATTENDED', -4],
+    ['b-15', 'c-hiit-1', 'g-iron', 'u-k3', prevDate(1, 3), 'ATTENDED', -24],
+    ['b-16', 'c-power-2', 'g-iron', 'u-k1', prevDate(2, 2), 'NO_SHOW', -17],
   ] as [string, string, string, string, string, ClassBooking['status'], number][]).map(([id, classId, gymId, clientId, date, status, ago]) =>
     ({ id, classId, gymId, clientId, date, status, createdAt: d(ago) })),
   checkIns: checkInHistory(),
@@ -388,5 +408,33 @@ export const SEED: DbState = {
     { id: 'po-2', gymId: 'g-iron', coachId: 'u-c1', date: monthDay(0, 2), amount: 720, currency: 'USD', method: 'TRANSFER', reference: 'IT-PAY-1077', period: monthKey(-1) },
     { id: 'po-3', gymId: 'g-iron', coachId: 'u-c4', date: monthDay(0, 3), amount: 360, currency: 'USD', method: 'CASH', period: monthKey(-1) },
     { id: 'po-4', gymId: 'g-wave', coachId: 'u-c2', date: monthDay(0, 5), amount: 280, currency: 'EUR', method: 'TRANSFER', reference: 'BW-00932', period: monthKey(-1) },
+  ],
+  workouts: [
+    ...[42, 35, 28, 21, 14, 7, 3].map((ago, i) => ({
+      id: `wo-${i}`, clientId: 'u-k1', date: isoDay(-ago), title: i % 2 ? 'Day 2 — Upper' : 'Day 1 — Lower', planId: 'tp-1', durationMin: 55 + (i % 3) * 5, createdAt: d(-ago),
+      entries: i % 2
+        ? [
+          { exercise: 'Bench press', itemId: 'i4', sets: [5, 5, 5, 5, 5].map((reps) => ({ reps, weight: 70 + i * 2.5 })) },
+          { exercise: 'Barbell row', itemId: 'i5', sets: [8, 8, 8, 8].map((reps) => ({ reps, weight: 55 + i * 2.5 })) },
+          { exercise: 'Pull-ups', itemId: 'i6', sets: [10, 9, 8].map((reps) => ({ reps, weight: 0 })) },
+        ]
+        : [
+          { exercise: 'Back squat', itemId: 'i1', sets: [5, 5, 5, 5, 5].map((reps) => ({ reps, weight: 95 + i * 2.5 })) },
+          { exercise: 'Romanian deadlift', itemId: 'i2', sets: [8, 8, 8].map((reps) => ({ reps, weight: 80 + i * 2.5 })) },
+        ],
+    })),
+  ],
+  challenges: [
+    { id: 'ch-1', gymId: 'g-iron', title: '12 visits this month', metric: 'VISITS', target: 12, start: monthDay(0, 1), end: monthEnd(0), reward: 'Free protein shake' },
+    { id: 'ch-2', gymId: 'g-iron', title: 'Class marathon', metric: 'CLASSES', target: 8, start: monthDay(0, 1), end: monthEnd(1), reward: 'Liftly T-shirt' },
+    { id: 'ch-3', gymId: 'g-wave', title: 'Log 6 workouts', metric: 'WORKOUTS', target: 6, start: monthDay(0, 1), end: monthEnd(0) },
+  ],
+  classReviews: [
+    { id: 'cr-1', classId: 'c-hiit-1', gymId: 'g-iron', clientId: 'u-k1', date: prevDate(1, 1), rating: 5, comment: 'Sofia brings the energy!', createdAt: d(-11) },
+    { id: 'cr-2', classId: 'c-hiit-1', gymId: 'g-iron', clientId: 'u-k3', date: prevDate(1, 3), rating: 4, createdAt: d(-25) },
+    { id: 'cr-3', classId: 'c-wod-3', gymId: 'g-iron', clientId: 'u-k1', date: prevDate(3, 1), rating: 4, comment: 'Tough but fun.', createdAt: d(-9) },
+  ],
+  freezeRequests: [
+    { id: 'fr-1', membershipId: 'm-4', gymId: 'g-iron', clientId: 'u-k3', start: isoDay(3), days: 21, reason: 'Knee surgery — doctor says 3 weeks off.', status: 'PENDING', createdAt: d(-1) },
   ],
 };

@@ -1,14 +1,14 @@
 import { CURRENT_LANGUAGE, t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  Announcement, AppNotification, AuditEntry, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, AuditEntry, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v15';
+const STORAGE_KEY = 'liftly-db-v17';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -61,6 +61,10 @@ export class StoreService {
   readonly audit = computed(() => this.state().audit);
   readonly expenses = computed(() => this.state().expenses);
   readonly coachPayouts = computed(() => this.state().coachPayouts);
+  readonly workouts = computed(() => this.state().workouts);
+  readonly challenges = computed(() => this.state().challenges);
+  readonly classReviews = computed(() => this.state().classReviews);
+  readonly freezeRequests = computed(() => this.state().freezeRequests);
   /** Signed-in user, set by AuthService: recorded as the actor of audit entries. */
   readonly actorId = signal<string | null>(null);
 
@@ -1133,6 +1137,171 @@ export class StoreService {
   saveCoachBank(coachId: string, payoutMethod: PayoutMethod, bank?: CoachProfile['bank']) {
     const p = this.coachProfile(coachId);
     if (p) this.upsertCoachProfile({ ...p, payoutMethod, bank });
+  }
+
+  // ---------- workout log ----------
+  workoutsOf(clientId: string) { return this.workouts().filter((w) => w.clientId === clientId).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)); }
+  /** Save a logged workout; plan lines it follows are ticked in the plan. */
+  saveWorkout(w: WorkoutLog) {
+    const isNew = !w.id;
+    const saved: WorkoutLog = { ...w, id: w.id || uid('wo'), createdAt: w.createdAt || new Date().toISOString() };
+    this.patch((s) => ({ workouts: isNew ? [...s.workouts, saved] : s.workouts.map((x) => (x.id === saved.id ? saved : x)) }));
+    if (w.planId) {
+      const done = new Set(w.entries.map((e) => e.itemId).filter(Boolean));
+      this.patch((s) => ({ plans: s.plans.map((p) => (p.id !== w.planId ? p : { ...p, items: p.items.map((i) => (done.has(i.id) ? { ...i, done: true } : i)) })) }));
+    }
+    return saved;
+  }
+  deleteWorkout(id: string) { this.patch((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })); }
+  /** Estimated one-rep max (Epley). */
+  e1rm(weight: number, reps: number) { return reps <= 1 ? weight : Math.round(weight * (1 + reps / 30) * 10) / 10; }
+  /** Exercises a member does: from their plans and their logs. */
+  exercisesOf(clientId: string) {
+    const names = new Set<string>();
+    for (const p of this.plansOfClient(clientId)) if (p.kind === 'WORKOUT') p.items.forEach((i) => names.add(i.name));
+    for (const w of this.workoutsOf(clientId)) w.entries.forEach((e) => names.add(e.exercise));
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }
+  /** Best set per session for one exercise, oldest first. */
+  exerciseHistory(clientId: string, exercise: string) {
+    const key = exercise.trim().toLowerCase();
+    return this.workoutsOf(clientId).slice().reverse().flatMap((w) => {
+      const sets = w.entries.filter((e) => e.exercise.trim().toLowerCase() === key).flatMap((e) => e.sets);
+      if (!sets.length) return [];
+      const best = sets.reduce((a, b) => (this.e1rm(b.weight, b.reps) > this.e1rm(a.weight, a.reps) ? b : a));
+      return [{ date: w.date, weight: best.weight, reps: best.reps, e1rm: this.e1rm(best.weight, best.reps), volume: sets.reduce((v, s) => v + s.reps * s.weight, 0) }];
+    });
+  }
+  /** Personal record (heaviest estimated 1RM) per exercise. */
+  personalRecords(clientId: string) {
+    return this.exercisesOf(clientId).map((exercise) => {
+      const h = this.exerciseHistory(clientId, exercise);
+      if (!h.length) return null;
+      const best = h.reduce((a, b) => (b.e1rm > a.e1rm ? b : a));
+      return { exercise, ...best, sessions: h.length, improving: h.length > 1 && h.at(-1)!.e1rm >= best.e1rm };
+    }).filter((x): x is NonNullable<typeof x> => !!x && x.weight > 0).sort((a, b) => b.e1rm - a.e1rm);
+  }
+
+  // ---------- streaks, badges & challenges ----------
+  /** Weeks in a row (ending this or last week) with at least one check-in, and the longest run. */
+  visitStreak(clientId: string) {
+    const weekKey = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return isoDate(x); };
+    const weeks = new Set(this.checkInsOfClient(clientId).filter((c) => c.ok).map((c) => weekKey(new Date(c.at))));
+    const week = (offset: number) => { const d = new Date(); d.setDate(d.getDate() - offset * 7); return weekKey(d); };
+    let current = 0;
+    let start = weeks.has(week(0)) ? 0 : weeks.has(week(1)) ? 1 : -1;
+    if (start >= 0) while (weeks.has(week(start + current))) current++;
+    const sorted = [...weeks].sort();
+    let longest = 0, run = 0, prev = '';
+    for (const w of sorted) {
+      const expected = prev ? isoDate(new Date(new Date(prev + 'T00:00:00').getTime() + 7 * 86400000)) : '';
+      run = prev && w === expected ? run + 1 : 1; longest = Math.max(longest, run); prev = w;
+    }
+    return { current, longest: Math.max(longest, current) };
+  }
+  /** Badges and how close the member is to each. */
+  badges(clientId: string) {
+    const visits = this.checkInsOfClient(clientId).filter((c) => c.ok);
+    const hour = (c: { at: string }) => new Date(c.at).getHours();
+    const attended = this.bookingsOfClient(clientId).filter((b) => b.status === 'ATTENDED');
+    const workouts = this.workoutsOf(clientId);
+    const streak = this.visitStreak(clientId).longest;
+    const prs = this.personalRecords(clientId).filter((p) => p.sessions > 1).length;
+    const b = (key: string, title: string, description: string, icon: string, value: number, target: number) => ({ key, title, description, icon, value: Math.min(value, target), target, earned: value >= target });
+    return [
+      b('first-visit', 'First visit', 'Check in for the first time', 'door-open', visits.length, 1),
+      b('visits-10', 'Regular', '10 visits', 'person-walking', visits.length, 10),
+      b('visits-50', 'Committed', '50 visits', 'fire', visits.length, 50),
+      b('early-bird', 'Early bird', '5 check-ins before 8:00', 'sun', visits.filter((c) => hour(c) < 8).length, 5),
+      b('night-owl', 'Night owl', '5 check-ins after 20:00', 'moon', visits.filter((c) => hour(c) >= 20).length, 5),
+      b('classes-10', 'Class regular', 'Attend 10 classes', 'calendar-check', attended.length, 10),
+      b('first-workout', 'Logbook', 'Log your first workout', 'pen', workouts.length, 1),
+      b('workouts-10', 'Grinder', 'Log 10 workouts', 'dumbbell', workouts.length, 10),
+      b('records', 'Record breaker', 'Improve 3 exercises', 'medal', prs, 3),
+      b('streak-4', 'On a roll', 'Come 4 weeks in a row', 'bolt', streak, 4),
+      b('streak-12', 'Unstoppable', 'Come 12 weeks in a row', 'trophy', streak, 12),
+      b('referral', 'Ambassador', 'Bring a friend', 'gift', this.referralsOf(clientId).length, 1),
+    ];
+  }
+  challengesOfGym(gymId: string) { return this.challenges().filter((c) => c.gymId === gymId).sort((a, b) => b.start.localeCompare(a.start)); }
+  /** Running and upcoming challenges at the member's gyms. */
+  challengesFor(clientId: string) {
+    const gyms = new Set(this.gymsOfClient(clientId).map((g) => g.id));
+    return this.challenges().filter((c) => gyms.has(c.gymId) && c.end >= isoDate()).sort((a, b) => a.end.localeCompare(b.end));
+  }
+  challengeProgress(c: GymChallenge, clientId: string) {
+    const inRange = (d: string) => d >= c.start && d <= c.end;
+    return this.metricCount(c.metric, c.gymId, clientId, inRange);
+  }
+  private metricCount(metric: ChallengeMetric, gymId: string, clientId: string, inRange: (d: string) => boolean) {
+    if (metric === 'VISITS') return this.checkIns().filter((x) => x.ok && x.gymId === gymId && x.clientId === clientId && inRange(x.at.slice(0, 10))).length;
+    if (metric === 'CLASSES') return this.bookings().filter((x) => x.status === 'ATTENDED' && x.gymId === gymId && x.clientId === clientId && inRange(x.date)).length;
+    return this.workouts().filter((x) => x.clientId === clientId && inRange(x.date)).length;
+  }
+  /** Members of the gym ranked by progress (ties: first to reach it). */
+  leaderboard(c: GymChallenge) {
+    return this.clientsOfGym(c.gymId).map((u) => ({ user: u, value: this.challengeProgress(c, u.id) })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+  }
+  saveChallenge(c: GymChallenge) {
+    const isNew = !c.id;
+    const saved = isNew ? { ...c, id: uid('ch') } : c;
+    this.patch((s) => ({ challenges: isNew ? [...s.challenges, saved] : s.challenges.map((x) => (x.id === saved.id ? saved : x)) }));
+    if (isNew) for (const m of this.clientsOfGym(c.gymId)) this.notify(m.id, 'New challenge', '{gym}: {title}', { gym: this.gym(c.gymId)?.name ?? '', title: c.title }, '/client/achievements', `ch-${saved.id}`);
+    return saved;
+  }
+  deleteChallenge(id: string) { this.patch((s) => ({ challenges: s.challenges.filter((x) => x.id !== id) })); }
+
+  // ---------- class reviews & favourites ----------
+  classRating(classId: string) {
+    const list = this.classReviews().filter((r) => r.classId === classId);
+    return { avg: list.length ? Math.round((list.reduce((s, r) => s + r.rating, 0) / list.length) * 10) / 10 : 0, count: list.length };
+  }
+  /** Rating of every occurrence of a class series (same name at the same gym). */
+  classSeriesRating(gymId: string, name: string) {
+    const ids = new Set(this.classesOfGym(gymId).filter((c) => c.name === name).map((c) => c.id));
+    const list = this.classReviews().filter((r) => ids.has(r.classId));
+    return { avg: list.length ? Math.round((list.reduce((s, r) => s + r.rating, 0) / list.length) * 10) / 10 : 0, count: list.length };
+  }
+  myClassReview(classId: string, date: string, clientId: string) { return this.classReviews().find((r) => r.classId === classId && r.date === date && r.clientId === clientId); }
+  /** Only members who attended can rate (once per occurrence; rating again replaces it). */
+  reviewClass(classId: string, date: string, clientId: string, rating: number, comment?: string) {
+    const attended = this.bookings().some((b) => b.classId === classId && b.date === date && b.clientId === clientId && b.status === 'ATTENDED');
+    if (!attended) return false;
+    const cls = this.gymClass(classId);
+    const existing = this.myClassReview(classId, date, clientId);
+    const r: ClassReview = { id: existing?.id ?? uid('cr'), classId, gymId: cls?.gymId ?? '', clientId, date, rating, ...(comment ? { comment } : {}), createdAt: new Date().toISOString() };
+    this.patch((s) => ({ classReviews: existing ? s.classReviews.map((x) => (x.id === r.id ? r : x)) : [...s.classReviews, r] }));
+    return true;
+  }
+  isFavoriteClass(userId: string, classId: string) { return !!this.user(userId)?.favoriteClasses?.includes(classId); }
+  toggleFavoriteClass(userId: string, classId: string) {
+    this.patch((s) => ({ users: s.users.map((u) => {
+      if (u.id !== userId) return u;
+      const fav = new Set(u.favoriteClasses ?? []);
+      if (fav.has(classId)) fav.delete(classId); else fav.add(classId);
+      return { ...u, favoriteClasses: [...fav] };
+    }) }));
+  }
+
+  // ---------- freeze requests ----------
+  freezeRequestsOf(gymId: string) { return this.freezeRequests().filter((r) => r.gymId === gymId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  freezeRequestsOfClient(clientId: string) { return this.freezeRequests().filter((r) => r.clientId === clientId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  requestFreeze(r: { membershipId: string; start: string; days: number; reason: string }) {
+    const m = this.memberships().find((x) => x.id === r.membershipId);
+    if (!m) return null;
+    if (this.freezeRequests().some((x) => x.membershipId === m.id && x.status === 'PENDING')) return null;
+    const req: FreezeRequest = { ...r, id: uid('fr'), gymId: m.gymId, clientId: m.clientId, status: 'PENDING', createdAt: new Date().toISOString() };
+    this.patch((s) => ({ freezeRequests: [...s.freezeRequests, req] }));
+    const gym = this.gym(m.gymId);
+    if (gym) this.notify(gym.ownerId, 'Freeze request', '{name} asks to pause their membership for {days} days from {start}.', { name: this.fullName(m.clientId), days: r.days, start: r.start }, '/admin/clients');
+    return req;
+  }
+  handleFreezeRequest(id: string, approve: boolean) {
+    const r = this.freezeRequests().find((x) => x.id === id);
+    if (!r || r.status !== 'PENDING') return;
+    this.patch((s) => ({ freezeRequests: s.freezeRequests.map((x) => (x.id === id ? { ...x, status: approve ? 'APPROVED' as const : 'DECLINED' as const, handledAt: new Date().toISOString() } : x)) }));
+    if (approve) this.freezeMembership(r.membershipId, r.start, r.days, r.reason);
+    else this.notify(r.clientId, 'Freeze request declined', '{gym} could not pause your membership. Contact the front desk.', { gym: this.gym(r.gymId)?.name ?? '' }, '/client');
   }
 
   // ---------- accounting currency ----------
