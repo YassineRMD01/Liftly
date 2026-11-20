@@ -1,9 +1,7 @@
+import { registerLocaleData } from '@angular/common';
 import { Pipe, PipeTransform } from '@angular/core';
-import { AR } from './ar';
-import { ES } from './es';
-import { FR } from './fr';
 
-export type Lang = 'en' | 'fr' | 'es' | 'ar';
+export type Lang = 'en' | 'fr' | 'es' | 'ar' | 'pt' | 'de' | 'tr';
 
 export interface LanguageInfo {
   code: Lang;
@@ -18,6 +16,9 @@ export const LANGUAGES: LanguageInfo[] = [
   { code: 'en', label: 'English', locale: 'en-US', dir: 'ltr' },
   { code: 'fr', label: 'Français', locale: 'fr-FR', dir: 'ltr' },
   { code: 'es', label: 'Español', locale: 'es-ES', dir: 'ltr' },
+  { code: 'pt', label: 'Português (Brasil)', locale: 'pt-BR', dir: 'ltr' },
+  { code: 'de', label: 'Deutsch', locale: 'de-DE', dir: 'ltr' },
+  { code: 'tr', label: 'Türkçe', locale: 'tr-TR', dir: 'ltr' },
   // ar-MA: Arabic with Latin digits (0-9), common for prices and dates in the Maghreb
   { code: 'ar', label: 'العربية', locale: 'ar-MA', dir: 'rtl' },
 ];
@@ -41,8 +42,27 @@ function detectLanguage(): Lang {
 export const CURRENT_LANG: Lang = detectLanguage();
 export const CURRENT_LANGUAGE: LanguageInfo = LANGUAGES.find((l) => l.code === CURRENT_LANG)!;
 
-/** Translations keyed by the English text. Missing keys fall back to English. */
-const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: FR, es: ES, ar: AR };
+/** Translations of the current language, keyed by the English text. Missing keys fall back to English. */
+let DICTIONARY: Record<string, string> = {};
+
+type Loaded = [Record<string, string>, unknown];
+/** Each language (dictionary + Angular locale data) is its own lazy chunk: only the one in use is downloaded. */
+const LOADERS: Record<Exclude<Lang, 'en'>, () => Promise<Loaded>> = {
+  fr: () => Promise.all([import('./fr').then((m) => m.FR), import('@angular/common/locales/fr').then((m) => m.default)]),
+  es: () => Promise.all([import('./es').then((m) => m.ES), import('@angular/common/locales/es').then((m) => m.default)]),
+  ar: () => Promise.all([import('./ar').then((m) => m.AR), import('@angular/common/locales/ar-MA').then((m) => m.default)]),
+  pt: () => Promise.all([import('./pt').then((m) => m.PT), import('@angular/common/locales/pt').then((m) => m.default)]),
+  de: () => Promise.all([import('./de').then((m) => m.DE), import('@angular/common/locales/de').then((m) => m.default)]),
+  tr: () => Promise.all([import('./tr').then((m) => m.TR), import('@angular/common/locales/tr').then((m) => m.default)]),
+};
+
+/** Loads the dictionary and locale data of the current language. Called once in main.ts, before the app starts. */
+export async function loadLanguage(lang: Lang = CURRENT_LANG) {
+  if (lang === 'en') return;
+  const [dict, locale] = await LOADERS[lang]();
+  DICTIONARY = dict;
+  registerLocaleData(locale, LANGUAGES.find((l) => l.code === lang)!.locale);
+}
 
 /** English labels for enum values shown in the UI (statuses, roles). */
 const ENUM_EN: Record<string, string> = {
@@ -62,7 +82,7 @@ const ENUM_EN: Record<string, string> = {
  */
 export function t(key: string, params?: Record<string, string | number>): string {
   const english = ENUM_EN[key] ?? key;
-  let text = DICTIONARIES[CURRENT_LANG][english] ?? english;
+  let text = DICTIONARY[english] ?? english;
   if (params) text = text.replace(/\{(\w+)\}/g, (_, k: string) => (k in params ? String(params[k]) : `{${k}}`));
   return text;
 }

@@ -6,12 +6,12 @@ import { Dialog } from 'primeng/dialog';
 import { AuthService } from '../../core/auth.service';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
 import { StoreService } from '../../core/store.service';
+import { DAY_SHORT } from '../../core/schedule';
 import { Modal } from '../modal/modal';
 
 export interface PaletteLink { label: string; icon: IconProp; link: string }
 interface Hit { label: string; hint: string; icon: IconProp; link: string; group: string }
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** `g` + key jumps to the nav item whose link ends with this segment. */
 export const GO_KEYS: Record<string, { seg: string; label: string }> = {
   h: { seg: '', label: 'Home' }, m: { seg: 'messages', label: 'Messages' }, c: { seg: 'classes', label: 'Classes' },
@@ -47,12 +47,12 @@ export class CommandPalette {
     const base = u.role === 'STAFF' ? '/staff' : '/admin';
     if ((u.role === 'ADMIN' || u.role === 'STAFF') && gym) {
       for (const c of this.store.clientsOfGym(gym.id)) out.push({ label: `${c.firstName} ${c.lastName}`, hint: c.email, icon: 'user', link: `${base}/clients?q=${encodeURIComponent(c.firstName + ' ' + c.lastName)}`, group: t('Members') });
-      for (const k of this.store.classesOfGym(gym.id)) out.push({ label: k.name, hint: `${t(DAYS[k.day])} ${k.start}`, icon: 'calendar-check', link: `${base}/classes`, group: t('Classes') });
+      for (const k of this.store.classesOfGym(gym.id)) out.push({ label: k.name, hint: `${DAY_SHORT[k.day]} ${k.start}`, icon: 'calendar-check', link: `${base}/classes`, group: t('Classes') });
       if (u.role === 'ADMIN') for (const c of this.store.coachesOfGym(gym.id)) out.push({ label: `${c.firstName} ${c.lastName}`, hint: t('Coach'), icon: 'user-tie', link: '/admin/coaches', group: t('Coaches') });
     }
     if (u.role === 'COACH') for (const a of this.store.athletesOf(u.id)) out.push({ label: `${a.firstName} ${a.lastName}`, hint: a.email, icon: 'user', link: '/coach/athletes', group: t('Athletes') });
     if (u.role === 'SUPER_ADMIN' || u.role === 'CLIENT') for (const g of this.store.gyms()) out.push({ label: g.name, hint: g.city, icon: 'dumbbell', link: `/gyms/${g.id}`, group: t('Gyms') });
-    if (u.role === 'CLIENT') for (const g of this.store.gymsOfClient(u.id)) for (const k of this.store.classesOfGym(g.id)) out.push({ label: k.name, hint: `${g.name} · ${t(DAYS[k.day])} ${k.start}`, icon: 'calendar-check', link: '/client/classes', group: t('Classes') });
+    if (u.role === 'CLIENT') for (const g of this.store.gymsOfClient(u.id)) for (const k of this.store.classesOfGym(g.id)) out.push({ label: k.name, hint: `${g.name} · ${DAY_SHORT[k.day]} ${k.start}`, icon: 'calendar-check', link: '/client/classes', group: t('Classes') });
     return out;
   });
 

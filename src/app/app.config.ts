@@ -1,8 +1,4 @@
 import { ApplicationConfig, LOCALE_ID, inject, isDevMode, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { registerLocaleData } from '@angular/common';
-import localeFr from '@angular/common/locales/fr';
-import localeEs from '@angular/common/locales/es';
-import localeArMa from '@angular/common/locales/ar-MA';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -20,9 +16,6 @@ import { ThemeService, buildPalette, DEFAULT_PRIMARY } from './core/theme.servic
 import { CURRENT_LANG, CURRENT_LANGUAGE, applyDocumentLanguage } from './core/i18n/i18n';
 import { PRIMENG_TRANSLATIONS } from './core/i18n/primeng-locale';
 
-registerLocaleData(localeFr, 'fr-FR');
-registerLocaleData(localeEs, 'es-ES');
-registerLocaleData(localeArMa, 'ar-MA');
 
 const GymPreset = definePreset(Aura, {
   semantic: { primary: buildPalette(DEFAULT_PRIMARY) },

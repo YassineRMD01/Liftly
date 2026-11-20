@@ -22,3 +22,13 @@ test('protected pages redirect to login', async ({ page }) => {
   await page.goto('/admin/clients');
   await expect(page).toHaveURL(/\/login/);
 });
+
+test('switching language translates the app and keeps the choice', async ({ page }) => {
+  await login(page, USERS.admin);
+  await page.getByRole('combobox', { name: 'Language' }).click();
+  await page.getByRole('option', { name: /Deutsch/ }).click();
+  await expect(page.locator('aside')).toContainText('Mitglieder');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await page.reload();
+  await expect(page.locator('aside')).toContainText('Mitglieder');
+});

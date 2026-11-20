@@ -73,7 +73,9 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 
 ### Tests & CI
 - Unit tests run on Vitest through Angular's unit-test builder: `npm test` (watch mode) or `npm run test:ci`. They cover booking/waitlist promotion, booking rules, check-in rules, freeze, private-session slots, invitations, referrals, join requests, VAT, invoices, audit, messages, CSV and QR codes (`src/app/core/*.spec.ts`).
-- GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, the unit tests and a production build on every push to `main` and on pull requests, and uploads the built app as an artifact. `.npmrc` sets `legacy-peer-deps` because of an optional Vitest peer range.
+- They also cover undo snapshots, muted notification categories, the mock HTTP API and the offline check-in queue (`core/api.service.spec.ts`).
+- **End-to-end tests** use Playwright (`e2e/*.e2e.ts`, `playwright.config.ts`): `npm run e2e` starts the dev server on port 4300 (or reuses a running one) and checks sign-in per role, undo, notification settings, the Ctrl+K palette, shortcuts, offline check-in, high contrast and switching language. Set `PW_CHROMIUM=/path/to/chromium` to use a Chromium you already have.
+- GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, the unit tests and a production build on every push to `main` and on pull requests, and uploads the built app as an artifact. A second job installs Chromium and runs the e2e suite, uploading the Playwright report when it fails. `.npmrc` sets `legacy-peer-deps` because of an optional Vitest peer range.
 
 ### Country pricing, currencies & themes
 - Gyms have a **country**. Each SaaS plan has a USD price plus optional **local prices per country** (in that country's currency); the pricing page, sign-up and billing show the price for the gym's country. MRR is converted to USD with the super-admin's exchange rates.
@@ -93,10 +95,19 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 ### Charts
 - `shared/chart-card` draws with Chart.js directly with the data-viz rules: validated color-blind-safe palette (separate light/dark steps), status colors only for states, ≤24px bars with 4px rounded ends, 2px lines, legend only for 2+ series, hover tooltips, an accessible **table view** toggle, and mirrored axes in Arabic.
 
+### Productivity, accessibility & offline
+- **Undo instead of "Are you sure?"**: deleting a workout, plan, exercise, template, note, challenge, announcement, expense, coach payment, location, shift or progress entry happens at once and shows a toast with **Undo** for a few seconds (`core/undo.service.ts` snapshots the affected store collections).
+- **Notification settings**: the gear in the bell lets each user mute categories (class bookings, private sessions, membership & payments, announcements); muted notifications are not delivered.
+- **Command palette**: `Ctrl+K` / `⌘K` (or `/`) searches pages and the user's data: members, classes and coaches for admins and front desk, athletes for coaches, gyms and classes for members. Enter opens the result (a member opens the filtered client list).
+- **Keyboard shortcuts**: `?` shows them; `g` then `h`/`m`/`c`/`s`/`a`/`u`/`p`/`r`/`b` goes to home, messages, classes, schedule, announcements, clients, plans, reports or accounting when the role has that page.
+- **Accessibility**: skip-to-content link, visible focus rings, `prefers-reduced-motion` respected, labels on every icon-only button, and a **High contrast** mode in the appearance menu (also on by default with `prefers-contrast: more`).
+- **Offline check-in**: at the desk and on the kiosk, a check-in without a connection is kept in a local queue, shown in the header (*Offline · 2 queued*), and sent automatically when the connection is back.
+
 ### Languages
-- English, Français, Español and العربية (right-to-left), picked from the language menu in the header, landing, login and sign-up pages.
+- English, Français, Español, العربية (right-to-left), Português (Brasil), Deutsch and Türkçe, picked from the language menu in the header, landing, login and sign-up pages.
 - Templates use the `t` pipe with the English text as key (`{{ 'Save' | t }}`, `[label]="'Save' | t"`); TypeScript uses `t('…')`, with placeholders for values (`t('Renew {0} for {1}?', { 0: plan, 1: name })`). Missing translations fall back to English.
-- Dictionaries: `src/app/core/i18n/fr.ts`, `es.ts`, `ar.ts`. To add a text, use it with `t` and add the same English key to each dictionary.
+- Dictionaries: `src/app/core/i18n/fr.ts`, `es.ts`, `ar.ts`, `pt.ts`, `de.ts`, `tr.ts`. To add a text, use it with `t` and add the same English key to each dictionary.
+- Each dictionary and its Angular locale data is a **lazy chunk**: `main.ts` calls `loadLanguage()` before it imports the app, so only the language in use is downloaded, and labels translated when modules load (menus, enums) are already translated.
 - Switching language saves the choice and reloads, so Angular's `LOCALE_ID` (dates, numbers, currencies), PrimeNG's built-in texts (`core/i18n/primeng-locale.ts`) and `<html dir>` follow it. Month, day and currency names come from `Intl`, so they need no translation.
 - Arabic uses the `ar-MA` locale (Latin digits) and RTL layout; templates use start/end Tailwind classes (`ms-`, `me-`, `text-start`…).
 - User content (gym names, plan names, reviews…) is not translated; sport names are stored in English and translated for display.
@@ -148,14 +159,15 @@ src/app/
   app.routes.ts, app.config.ts
   core/        models.ts, seed.ts, store.service.ts (mock backend, localStorage), auth.service.ts,
                guards.ts, theme.service.ts (white-label palette), schedule.ts, currency.ts (+ money pipe), icons.ts,
-               i18n/ (t pipe + translations fr / es / ar, PrimeNG locale)
+               i18n/ (t pipe + lazy translations fr / es / ar / pt / de / tr, PrimeNG locale),
+               api.service.ts + mock-backend.interceptor.ts (HTTP layer), offline-queue.service.ts, undo.service.ts
   layout/
     shell/                         role-based sidebar, gym switcher, dark mode
   shared/
     page-header/  stat-card/  stars/  coach-card/
     audience-tag/  open-status/  week-schedule/  week-calendar/
     payment-calendar/  language-switcher/  chart-card/  sport-dialog/
-    gym-logo/  logo-upload/  surface-picker/  appearance-switcher/
+    gym-logo/  logo-upload/  surface-picker/  appearance-switcher/  command-palette/
   pages/
     public/       landing/  login/  signup/
     super-admin/  sa-dashboard/  sa-gyms/  sa-plans/  sa-users/  sa-currencies/  sa-settings/
@@ -168,7 +180,8 @@ src/app/
 
 ### Wiring a real backend
 All data goes through `StoreService`. Replace its methods with `HttpClient` calls (or resources)
-and replace `AuthService.login` with your JWT flow. Payment in sign-up/billing is a mock: plug in Stripe or your payment provider there.
+and replace `AuthService.login` with your JWT flow.
+`core/api.service.ts` is the start of that HTTP layer: typed calls to `/api/...` (gyms, classes, members, check-ins, notifications) that `core/mock-backend.interceptor.ts` answers from the store for now. Point `API_BASE` at your server and remove the interceptor from `app.config.ts`; pages written against `ApiService` keep working. Check-ins already go through it, via the offline queue. Payment in sign-up/billing is a mock: plug in Stripe or your payment provider there.
 
 ### Theming
 `ThemeService` builds a 50–950 palette from the gym's hex color and calls PrimeNG `updatePrimaryPalette`.
