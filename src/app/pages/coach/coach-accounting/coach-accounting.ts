@@ -9,7 +9,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from '../../../core/auth.service';
-import { MoneyPipe, formatTotals } from '../../../core/currency';
+import { MoneyPipe, formatMoney } from '../../../core/currency';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { BankDetails, PayoutMethod, PrivateSession } from '../../../core/models';
 import { isoDate } from '../../../core/schedule';
@@ -30,7 +30,8 @@ export class CoachAccounting {
   private readonly toast = inject(MessageService);
   protected readonly me = computed(() => this.auth.user()?.id ?? '');
   protected readonly profile = computed(() => this.store.coachProfile(this.me()));
-  protected readonly cur = computed(() => this.profile()?.currency ?? 'USD');
+  /** Accounting currency: from the coach's country. */
+  protected readonly cur = computed(() => this.store.accountingCurrency(this.me()));
   protected readonly tab = signal<'overview' | 'books'>('overview');
   protected readonly tabs = [{ label: t('Overview'), value: 'overview' }, { label: t('My books'), value: 'books' }];
   protected readonly month = isoDate().slice(0, 7);
@@ -38,15 +39,15 @@ export class CoachAccounting {
   protected readonly gyms = computed(() => this.store.gymsOfCoach(this.me()).map((g) => ({
     gym: g, month: this.store.coachStatement(g.id, this.me(), this.month), total: this.store.coachStatement(g.id, this.me()),
   })));
-  protected readonly owedTotal = computed(() => formatTotals(this.gyms().filter((x) => x.total.due > 0).map((x) => ({ amount: x.total.due, currency: x.total.currency })), this.cur()));
+  protected readonly owedTotal = computed(() => formatMoney(this.gyms().filter((x) => x.total.due > 0).reduce((s, x) => s + this.store.convert(x.total.due, x.total.currency, this.cur()), 0), this.cur()));
   /** Lessons given (or confirmed and past) that the member has not paid yet. */
   protected readonly toCollect = computed(() => this.store.sessions()
     .filter((s) => s.coachId === this.me() && !s.paid && (s.status === 'DONE' || (s.status === 'CONFIRMED' && s.date < isoDate())))
     .sort((a, b) => a.date.localeCompare(b.date)));
-  protected readonly toCollectTotal = computed(() => formatTotals(this.toCollect().map((s) => ({ amount: s.price, currency: s.currency })), this.cur()));
+  protected readonly toCollectTotal = computed(() => formatMoney(this.toCollect().reduce((t, s) => t + this.store.convert(s.price, s.currency, this.cur()), 0), this.cur()));
   protected readonly recentPaid = computed(() => this.store.sessions().filter((s) => s.coachId === this.me() && s.paid).sort((a, b) => b.paid!.at.localeCompare(a.paid!.at)).slice(0, 6));
   protected readonly payouts = computed(() => this.store.payoutsOf({ coachId: this.me() }).slice(0, 8));
-  protected readonly lines = computed(() => this.store.coachLedger(this.me()));
+  protected readonly lines = computed(() => this.store.coachLedger(this.me(), this.cur()));
 
   // ---------- collect a lesson ----------
   protected readonly refFor = signal<string | null>(null);

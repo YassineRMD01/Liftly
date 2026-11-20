@@ -1302,4 +1302,10 @@ export const ES: Record<string, string> = {
   "Coach payout edited": "Pago al entrenador editado",
   "Expense recorded": "Gasto registrado",
   "Expense edited": "Gasto editado",
+  "Amounts in": "Importes en",
+  "My country": "Mi país",
+  "Accounting currency: {0}": "Moneda contable: {0}",
+  "Amounts in another currency are converted to {currency} with the platform exchange rates; the original amount is shown below.": "Los importes en otra moneda se convierten a {currency} con los tipos de cambio de la plataforma; el importe original se muestra debajo.",
+  "Coach pay is in the gym currency ({currency}).": "El pago a entrenadores está en la moneda del gimnasio ({currency}).",
+  "Liftly revenue from gym subscriptions, platform costs and VAT.": "Ingresos de Liftly por suscripciones de gimnasios, costes de la plataforma e IVA.",
 };

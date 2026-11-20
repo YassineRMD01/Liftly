@@ -92,7 +92,7 @@ export class Signup implements OnInit {
     if (this.role() === 'ADMIN' && !f.gymName) return this.error.set(t('Please give your gym a name.'));
     if (this.role() === 'ADMIN' && !f.sportIds.length) return this.error.set(t('Pick at least one sport.'));
 
-    const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password, ...(f.gender ? { gender: f.gender } : {}) });
+    const user = this.store.addUser({ role: this.role(), firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password, country: f.country, ...(f.gender ? { gender: f.gender } : {}) });
     if (this.role() === 'ADMIN') {
       const now = new Date();
       this.store.addGym({

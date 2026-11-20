@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { AuthService } from '../../../core/auth.service';
 import { countryName, MoneyPipe } from '../../../core/currency';
 import { TranslatePipe } from '../../../core/i18n/i18n';
 import { StoreService } from '../../../core/store.service';
@@ -14,7 +15,10 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 })
 export class SaAccounting {
   private readonly store = inject(StoreService);
-  protected readonly lines = computed(() => this.store.platformLedger());
+  private readonly auth = inject(AuthService);
+  /** Accounting currency: from the super-admin's country. */
+  protected readonly cur = computed(() => this.store.accountingCurrency(this.auth.user()?.id));
+  protected readonly lines = computed(() => this.store.platformLedger(this.cur()));
   protected readonly year = new Date().getFullYear();
   /** VAT collected per country this year (to declare in each country). */
   protected readonly vatByCountry = computed(() => {

@@ -1,5 +1,5 @@
-<app-page-header [title]="'Accounting' | t" [subtitle]="'Liftly revenue from gym subscriptions, platform costs and VAT, in US dollars.' | t" />
-<app-accounting-view [lines]="lines()" currency="USD" owner="PLATFORM" [categories]="['HOSTING', 'SOFTWARE', 'SALARIES', 'MARKETING', 'FEES', 'TAXES', 'RENT', 'OTHER']" fileName="liftly-accounting" />
+<app-page-header [title]="'Accounting' | t" [subtitle]="'Liftly revenue from gym subscriptions, platform costs and VAT.' | t" />
+<app-accounting-view [lines]="lines()" [currency]="cur()" owner="PLATFORM" [categories]="['HOSTING', 'SOFTWARE', 'SALARIES', 'MARKETING', 'FEES', 'TAXES', 'RENT', 'OTHER']" fileName="liftly-accounting" />
 
 <div class="card mt-6">
   <h2 class="font-semibold">{{ 'VAT by country' | t }} · {{ year }}</h2>
@@ -9,7 +9,7 @@
       <thead><tr class="text-xs muted border-b border-surface-200 dark:border-surface-700"><th class="text-start py-2 font-medium">{{ 'Country' | t }}</th><th class="text-end font-medium">{{ 'VAT %' | t }}</th><th class="text-end font-medium">{{ 'Invoices' | t }}</th><th class="text-end font-medium">{{ 'Revenue' | t }}</th><th class="text-end font-medium">{{ 'VAT' | t }}</th></tr></thead>
       <tbody>
         @for (r of vatByCountry(); track r.code) {
-          <tr class="border-b border-surface-100 dark:border-surface-800"><td class="py-2">{{ r.name }}</td><td class="text-end tabular-nums">{{ r.rate }}%</td><td class="text-end tabular-nums">{{ r.invoices }}</td><td class="text-end tabular-nums">{{ r.revenue | money: 'USD' }}</td><td class="text-end tabular-nums font-semibold">{{ r.vat | money: 'USD' }}</td></tr>
+          <tr class="border-b border-surface-100 dark:border-surface-800"><td class="py-2">{{ r.name }}</td><td class="text-end tabular-nums">{{ r.rate }}%</td><td class="text-end tabular-nums">{{ r.invoices }}</td><td class="text-end tabular-nums">{{ r.revenue | money: cur() }}</td><td class="text-end tabular-nums font-semibold">{{ r.vat | money: cur() }}</td></tr>
         } @empty { <tr><td colspan="5" class="text-center muted py-6">{{ 'No invoices this year.' | t }}</td></tr> }
       </tbody>
     </table>

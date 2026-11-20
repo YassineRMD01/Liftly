@@ -36,7 +36,8 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
   - a searchable **journal** with a type filter;
   - CSV export;
   - recording, editing and deleting expenses (category, currency, cash/card/transfer, VAT included).
-- **Gym accounting** (`/admin/accounting`), in the gym currency:
+- **Accounting currency per user:** every user has a **country** (`User.country`), and each person's accounting is shown in **their country's currency** (`StoreService.accountingCurrency`). Each user picks the country in the accounting header ("Amounts in … / My country"). Gym owners get their gym's country at sign-up. Without a country it falls back to the gym currency (admin/staff), the rate currency (coach) or USD (super-admin). The journals convert every entry with the platform exchange rates and show the original amount underneath. Coach pay is still recorded in the gym currency, because that is the money actually paid.
+- **Gym accounting** (`/admin/accounting`):
   - member payments in;
   - out: expenses, coach pay and the Liftly subscription invoices.
   - **Coach pay** tab:
@@ -44,14 +45,14 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
     - see classes, earned, paid and balance due per month;
     - **pay a coach in cash or by bank transfer** (the coach's bank details are shown, and a transfer needs a reference); the coach is notified;
     - payment history.
-- **Platform accounting** (`/super-admin/accounting`), in USD: subscription invoices of every gym (converted with the exchange rates) against platform costs (hosting, fees, marketing…), plus **VAT by country** for the year.
+- **Platform accounting** (`/super-admin/accounting`): subscription invoices of every gym (converted with the exchange rates) against platform costs (hosting, fees, marketing…), plus **VAT by country** for the year.
 - **Coach scheduler** (`/coach/schedule`):
   - a week planner with the classes the coach teaches at **every gym** (in each gym's colour), private lessons (requests dashed) and availability windows shaded;
   - overlapping items sit side by side and are flagged as clashes;
   - click an empty slot (or *New private lesson*) to book a lesson with a member, which is confirmed and the member notified; bookings that clash with a class or another lesson are refused;
   - open any item to confirm/decline, mark done, reschedule, cancel, mark as paid or message the member;
   - a day list on phones.
-- **Coach accounting** (`/coach/accounting`, coach currency):
+- **Coach accounting** (`/coach/accounting`):
   - what each gym owes (rate, classes this month, balance due);
   - **private lessons to collect**, marked as paid in **cash** or by **bank transfer** (with a reference), with undo;
   - payments received from gyms;

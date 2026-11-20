@@ -14,6 +14,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { downloadCsv } from '../../core/csv';
+import { AuthService } from '../../core/auth.service';
 import { MoneyPipe, formatMoney } from '../../core/currency';
 import { CURRENT_LANGUAGE, TranslatePipe, t } from '../../core/i18n/i18n';
 import { Expense, ExpenseCategory, ExpenseOwner, PaymentMethod } from '../../core/models';
@@ -42,6 +43,7 @@ export const METHOD_LABEL: Record<string, string> = { CASH: 'Cash', CARD: 'Card'
 })
 export class AccountingView {
   private readonly store = inject(StoreService);
+  private readonly auth = inject(AuthService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
 
@@ -55,6 +57,15 @@ export class AccountingView {
   readonly fileName = input('accounting');
 
   protected readonly cat = LEDGER_CATEGORY;
+  /** The signed-in user's country decides the accounting currency. */
+  protected readonly country = computed(() => this.auth.user()?.country ?? null);
+  protected readonly countries = computed(() => this.store.countryOptions().map((c) => ({ ...c, label: `${c.label} · ${c.currency}` })));
+  setCountry(code: string | null) {
+    const u = this.auth.user();
+    if (!u || !code) return;
+    this.store.setUserCountry(u.id, code);
+    this.toast.add({ severity: 'info', summary: t('Accounting currency: {0}', { 0: this.store.accountingCurrency(u.id) }), life: 2000 });
+  }
   protected readonly methodLabel = METHOD_LABEL;
   protected readonly year = signal(new Date().getFullYear());
   /** 0 = whole year, 1..12 = one month */

@@ -4,13 +4,14 @@
 
 @if (gym(); as g) {
   @if (tab() === 'books') {
-    <app-accounting-view [lines]="lines()" [currency]="cur()" owner="GYM" [ownerId]="g.id" [fileName]="'accounting-' + g.name" />
+    <app-accounting-view [lines]="lines()" [currency]="accCur()" owner="GYM" [ownerId]="g.id" [fileName]="'accounting-' + g.name" />
   } @else {
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shiftMonth(-1)" [attr.aria-label]="'Previous month' | t"><fa-icon icon="chevron-left" class="rtl:rotate-180" /></button>
       <span class="font-semibold w-36 text-center">{{ monthLabel() | date: 'MMMM y' }}</span>
       <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shiftMonth(1)" [attr.aria-label]="'Next month' | t"><fa-icon icon="chevron-right" class="rtl:rotate-180" /></button>
       <span class="flex-1"></span>
+      <span class="text-xs muted me-4">{{ 'Coach pay is in the gym currency ({currency}).' | t: { currency: cur() } }}</span>
       <span class="text-sm muted">{{ 'Owed to coaches in total' | t }}</span><span class="text-xl font-bold tabular-nums" data-testid="total-due">{{ totalDue() | money: cur() }}</span>
     </div>
 

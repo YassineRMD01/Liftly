@@ -213,4 +213,24 @@ describe('StoreService', () => {
       expect(store.expensesOf('GYM', 'g-wave').map((x) => x.id)).not.toContain(e.id);
     });
   });
+  describe('accounting currency', () => {
+    it('follows the country of the user', () => {
+      expect(store.accountingCurrency('u-a2')).toBe('EUR'); // Spain
+      expect(store.accountingCurrency('u-c3')).toBe('MAD'); // Morocco
+      store.setUserCountry('u-sa', 'MA');
+      expect(store.accountingCurrency('u-sa')).toBe('MAD');
+    });
+    it('falls back to the gym or rate currency without a country', () => {
+      store.updateUser({ ...store.user('u-a2')!, country: undefined });
+      expect(store.accountingCurrency('u-a2')).toBe(store.gymsOfAdmin('u-a2')[0].currency);
+    });
+    it('converts the journals into the chosen currency', () => {
+      const usd = store.platformLedger('USD');
+      const mad = store.platformLedger('MAD');
+      const sum = (l: typeof usd) => l.filter((x) => x.type === 'INCOME').reduce((s, x) => s + x.amount, 0);
+      expect(sum(mad)).toBeCloseTo(store.convert(sum(usd), 'USD', 'MAD'), 0);
+      const gym = store.gymLedger('g-iron', 'EUR').find((l) => l.source === 'PAYMENT')!;
+      expect(gym.original?.currency).toBe('USD');
+    });
+  });
 });

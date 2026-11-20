@@ -8,7 +8,7 @@ import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v14';
+const STORAGE_KEY = 'liftly-db-v15';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -1135,6 +1135,30 @@ export class StoreService {
     if (p) this.upsertCoachProfile({ ...p, payoutMethod, bank });
   }
 
+  // ---------- accounting currency ----------
+  /** Currency of a country (its default currency, when that currency is enabled). */
+  countryCurrency(code: string | undefined) {
+    const c = this.countries().find((x) => x.code === code)?.currency;
+    return c && this.currencySetting(c)?.active !== false ? c : undefined;
+  }
+  /**
+   * Currency a user's accounting is shown in: the currency of their country, or — when no country is set —
+   * their gym's currency (admin / staff), their rate currency (coach) or USD (super-admin).
+   */
+  accountingCurrency(userId: string | undefined): string {
+    const u = this.user(userId);
+    if (!u) return DEFAULT_CURRENCY;
+    const fromCountry = this.countryCurrency(u.country);
+    if (fromCountry) return fromCountry;
+    if (u.role === 'ADMIN') return this.gymsOfAdmin(u.id)[0]?.currency ?? DEFAULT_CURRENCY;
+    if (u.role === 'STAFF') return this.gymsOfStaff(u.id)[0]?.currency ?? DEFAULT_CURRENCY;
+    if (u.role === 'COACH') return this.coachProfile(u.id)?.currency ?? DEFAULT_CURRENCY;
+    return 'USD';
+  }
+  setUserCountry(userId: string, country: string) {
+    this.patch((s) => ({ users: s.users.map((u) => (u.id === userId ? { ...u, country } : u)) }));
+  }
+
   // ---------- expenses & ledgers ----------
   expensesOf(owner: ExpenseOwner, ownerId?: string) { return this.expenses().filter((e) => e.owner === owner && (owner === 'PLATFORM' || e.ownerId === ownerId)); }
   saveExpense(e: Expense) {
@@ -1153,10 +1177,10 @@ export class StoreService {
     });
   }
   /** Journal of a gym (gym currency): member payments in; expenses, coach pay and the Liftly subscription out. */
-  gymLedger(gymId: string): LedgerLine[] {
+  gymLedger(gymId: string, currency?: string): LedgerLine[] {
     const g = this.gym(gymId);
     if (!g) return [];
-    const cur = g.currency, vat = this.vatRate(g.country);
+    const cur = currency ?? g.currency, vat = this.vatRate(g.country);
     const lines: LedgerLine[] = this.payments().filter((p) => p.gymId === gymId).map((p) => {
       const amount = this.convert(p.amount, this.paymentCurrency(p), cur);
       return { id: p.id, date: p.date, type: 'INCOME', category: 'MEMBERSHIPS', label: p.note || t('Membership payment'), counterparty: this.fullName(p.clientId), amount, vat: this.vatSplit(amount, vat).vat, method: p.method, source: 'PAYMENT', ...(this.paymentCurrency(p) !== cur ? { original: { amount: p.amount, currency: this.paymentCurrency(p) } } : {}) };
@@ -1172,21 +1196,21 @@ export class StoreService {
     return lines.sort((a, b) => b.date.localeCompare(a.date));
   }
   /** Journal of the platform (USD): subscription invoices of every gym in, platform expenses out. */
-  platformLedger(): LedgerLine[] {
+  platformLedger(cur = 'USD'): LedgerLine[] {
     const lines: LedgerLine[] = [];
     for (const g of this.gyms()) {
       const rate = this.vatRate(g.country);
       for (const i of this.saasInvoices(g.id)) {
-        const amount = this.toUsd(i.amount, i.currency);
-        lines.push({ id: `${g.id}-${i.number}`, date: i.date, type: 'INCOME', category: 'SUBSCRIPTIONS', label: t('Liftly {plan} plan', { plan: i.plan }), counterparty: g.name, country: g.country, amount, vat: this.vatSplit(amount, rate).vat, method: 'CARD', reference: i.number, source: 'INVOICE', ...(i.currency !== 'USD' ? { original: { amount: i.amount, currency: i.currency } } : {}) });
+        const amount = this.convert(i.amount, i.currency, cur);
+        lines.push({ id: `${g.id}-${i.number}`, date: i.date, type: 'INCOME', category: 'SUBSCRIPTIONS', label: t('Liftly {plan} plan', { plan: i.plan }), counterparty: g.name, country: g.country, amount, vat: this.vatSplit(amount, rate).vat, method: 'CARD', reference: i.number, source: 'INVOICE', ...(i.currency !== cur ? { original: { amount: i.amount, currency: i.currency } } : {}) });
       }
     }
-    lines.push(...this.expenseLines('PLATFORM', undefined, 'USD'));
+    lines.push(...this.expenseLines('PLATFORM', undefined, cur));
     return lines.sort((a, b) => b.date.localeCompare(a.date));
   }
   /** Journal of a coach (coach currency): gym pay and paid private sessions in, own expenses out. */
-  coachLedger(coachId: string): LedgerLine[] {
-    const cur = this.coachProfile(coachId)?.currency ?? DEFAULT_CURRENCY;
+  coachLedger(coachId: string, currency?: string): LedgerLine[] {
+    const cur = currency ?? this.coachProfile(coachId)?.currency ?? DEFAULT_CURRENCY;
     const lines: LedgerLine[] = this.payoutsOf({ coachId }).map((p) => ({
       id: p.id, date: p.date, type: 'INCOME' as const, category: 'GYM_PAY', label: t('Classes') + (p.period ? ` · ${p.period}` : ''), counterparty: this.gym(p.gymId)?.name, amount: this.convert(p.amount, p.currency, cur), vat: 0, method: p.method, reference: p.reference, source: 'PAYOUT' as const,
       ...(p.currency !== cur ? { original: { amount: p.amount, currency: p.currency } } : {}),

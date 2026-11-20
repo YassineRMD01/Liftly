@@ -2,6 +2,12 @@
   <p-select [options]="years()" optionLabel="label" optionValue="value" [ngModel]="year()" (ngModelChange)="year.set($event)" class="w-28" [attr.aria-label]="'Year' | t" />
   <p-select [options]="months()" optionLabel="label" optionValue="value" [ngModel]="month()" (ngModelChange)="month.set($event)" class="w-40" [attr.aria-label]="'Month' | t" data-testid="acc-month" />
   <span class="flex-1"></span>
+  <div class="flex items-center gap-2 text-sm" data-testid="acc-currency">
+    <span class="muted">{{ 'Amounts in' | t }}</span>
+    <span class="font-mono font-semibold px-2 py-1 rounded-md bg-surface-100 dark:bg-surface-800">{{ currency() }}</span>
+    <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="country()" (ngModelChange)="setCountry($event)" [filter]="true" filterBy="label"
+      [placeholder]="'My country' | t" class="w-56" appendTo="body" [attr.aria-label]="'My country' | t" data-testid="acc-country" />
+  </div>
   <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
   <button pButton type="button" (click)="newExpense()" data-testid="add-expense"><fa-icon icon="plus" />{{ 'Add expense' | t }}</button>
 </div>
@@ -25,7 +31,8 @@
 
 <div class="card">
   <div class="flex flex-wrap items-center gap-3 mb-3">
-    <h2 class="font-semibold flex-1">{{ 'Journal' | t }}</h2>
+    <div class="flex-1"><h2 class="font-semibold">{{ 'Journal' | t }}</h2>
+      <p class="text-xs muted">{{ 'Amounts in another currency are converted to {currency} with the platform exchange rates; the original amount is shown below.' | t: { currency: currency() } }}</p></div>
     <p-iconfield class="w-64">
       <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
       <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Search' | t" />

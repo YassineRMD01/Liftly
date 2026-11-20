@@ -11,6 +11,8 @@ export interface User {
   phone?: string;
   avatarUrl?: string;
   gender?: Gender;
+  /** ISO 3166 alpha-2 — sets the currency the user's accounting is shown in. */
+  country?: string;
   createdAt: string;
   active: boolean;
   /** Pending invitation: the account is activated from a link and the user picks a password. */

@@ -34,7 +34,9 @@ export class AdminAccounting {
   protected readonly gym = this.auth.activeGym;
   protected readonly tab = signal<'books' | 'coaches'>('books');
   protected readonly tabs = [{ label: t('Books'), value: 'books' }, { label: t('Coach pay'), value: 'coaches' }];
-  protected readonly lines = computed(() => this.store.gymLedger(this.gym()?.id ?? ''));
+  /** Accounting currency: from the admin's country. Coach pay stays in the gym currency (it is what is paid). */
+  protected readonly accCur = computed(() => this.store.accountingCurrency(this.auth.user()?.id));
+  protected readonly lines = computed(() => this.store.gymLedger(this.gym()?.id ?? '', this.accCur()));
   protected readonly cur = computed(() => this.gym()?.currency ?? 'USD');
   protected readonly month = signal(isoDate().slice(0, 7));
 
