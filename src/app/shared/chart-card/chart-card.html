@@ -27,7 +27,7 @@
     </div>
   } @else {
     <div class="flex-1 min-h-0" role="img" [attr.aria-label]="title()">
-      <p-chart [type]="type()" [data]="data()" [options]="options()" [height]="height()" />
+      <div class="relative w-full" [style.height]="height()"><canvas #canvas></canvas></div>
     </div>
   }
 </section>

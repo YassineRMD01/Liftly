@@ -1,6 +1,8 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { UIChart } from 'primeng/chart';
-import type { ChartData, ChartOptionsBase } from 'primeng/types/chart';
+import { Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import {
+  BarController, BarElement, CategoryScale, Chart, type ChartConfiguration, type ChartData, type ChartOptions,
+  Filler, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip as ChartTooltip,
+} from 'chart.js';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
 import { Tooltip } from 'primeng/tooltip';
@@ -17,6 +19,9 @@ export const CHART_COLORS = {
   status: { good: '#0ca30c', warning: '#fab219', critical: '#d03b3b', neutral: '#898781' },
 };
 
+// Chart.js is tree-shakable: register only what bar and line charts use.
+Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Legend, ChartTooltip);
+
 export interface ChartSeries {
   label: string;
   data: number[];
@@ -27,7 +32,7 @@ export interface ChartSeries {
 /** A titled card with a bar or line chart, a hover tooltip and an accessible table view. */
 @Component({
   selector: 'app-chart-card',
-  imports: [UIChart, FaIconComponent, ButtonDirective, Tooltip, TranslatePipe],
+  imports: [FaIconComponent, ButtonDirective, Tooltip, TranslatePipe],
   templateUrl: './chart-card.html',
   styleUrl: './chart-card.css',
 })
@@ -49,6 +54,8 @@ export class ChartCard {
   readonly timeAxis = input(false);
 
   protected readonly showTable = signal(false);
+  private readonly canvas = viewChild<ElementRef<HTMLCanvasElement>>('canvas');
+  private chart?: Chart;
   private readonly rtl = CURRENT_LANGUAGE.dir === 'rtl';
 
   protected readonly data = computed<ChartData>(() => {
@@ -71,10 +78,10 @@ export class ChartCard {
               maxBarThickness: 24, categoryPercentage: 0.7, barPercentage: 0.9,
             };
       }),
-    }) as unknown as ChartData;
+    }) as ChartData;
   });
 
-  protected readonly options = computed<ChartOptionsBase>(() => {
+  protected readonly options = computed<ChartOptions>(() => {
     const c = this.theme.dark() ? CHART_COLORS.dark : CHART_COLORS.light;
     const fmt = this.format();
     const horizontal = this.horizontal();
@@ -108,8 +115,30 @@ export class ChartCard {
         },
       },
       scales: horizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis },
-    }) as unknown as ChartOptionsBase;
+    }) as ChartOptions;
   });
+
+  constructor() {
+    // (Re)create the chart when the canvas appears (also after leaving the table view); update it in place otherwise.
+    effect(() => {
+      const el = this.canvas()?.nativeElement;
+      const config = { type: this.type(), data: this.data(), options: this.options() } as ChartConfiguration;
+      untracked(() => {
+        if (!el) { this.destroy(); return; }
+        if (this.chart && this.chart.canvas === el && (this.chart.config as ChartConfiguration).type === config.type) {
+          this.chart.data = config.data;
+          this.chart.options = config.options ?? {};
+          this.chart.update();
+        } else {
+          this.destroy();
+          this.chart = new Chart(el, config);
+        }
+      });
+    });
+    inject(DestroyRef).onDestroy(() => this.destroy());
+  }
+
+  private destroy() { this.chart?.destroy(); this.chart = undefined; }
 
   /** Table rows for the accessible table view. */
   protected readonly rows = computed(() => this.labels().map((label, i) => ({ label, values: this.series().map((s) => this.format()(s.data[i] ?? 0)) })));

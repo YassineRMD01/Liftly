@@ -60,7 +60,7 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 - **Gym reviews**: one rating + comment per client and gym, shown on gym cards, gym details, the admin dashboard and the super-admin gym list.
 
 ### Charts
-- `shared/chart-card` wraps PrimeNG's chart (Chart.js) with the data-viz rules: validated color-blind-safe palette (separate light/dark steps), status colors only for states, ≤24px bars with 4px rounded ends, 2px lines, legend only for 2+ series, hover tooltips, an accessible **table view** toggle, and mirrored axes in Arabic.
+- `shared/chart-card` draws with Chart.js directly with the data-viz rules: validated color-blind-safe palette (separate light/dark steps), status colors only for states, ≤24px bars with 4px rounded ends, 2px lines, legend only for 2+ series, hover tooltips, an accessible **table view** toggle, and mirrored axes in Arabic.
 
 ### Languages
 - English, Français, Español and العربية (right-to-left), picked from the language menu in the header, landing, login and sign-up pages.
@@ -153,7 +153,7 @@ and replace `AuthService.login` with your JWT flow. Payment in sign-up/billing i
 - **Passwords:** `<input pInputPassword [(mask)]="masked">` in a `p-iconfield` with a show/hide toggle (`<p-password>` is deprecated).
 - **Multiple choice:** `<p-select [multiple]="true">` (`<p-multiselect>` is deprecated).
 - **Colours:** `shared/color-field` wraps the composable `p-inputcolor` (area, hue slider, swatch, hex input) in a popover (`<p-colorpicker>` is deprecated).
-- **Charts:** `p-chart` is deprecated in favour of the paid PrimeUI PRO Charts with no free replacement, so `shared/chart-card` keeps using it. It is the only place to change if it is removed.
+- **Charts:** `p-chart` is deprecated, so `shared/chart-card` uses **Chart.js directly** on a `<canvas>`. It registers only the bar and line pieces it needs (tree-shaken), updates the chart in place when data, theme or language change, and destroys it when the card goes away.
 
 ### Icons
 Font Awesome icons are registered in `core/icons.ts` (tree-shaken). Add new ones there before using `<fa-icon icon="name" />`.
