@@ -1,8 +1,9 @@
+import { HEALTH_LABEL, HEALTH_SEV, HealthDialog } from '../../../shared/health-dialog/health-dialog';
 import { GymLogo } from '../../../shared/gym-logo/gym-logo';
 import { Stars } from '../../../shared/stars/stars';
 import { countryName } from '../../../core/currency';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal , viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -25,11 +26,14 @@ export const statusSeverity = (s: string) =>
 
 @Component({
   selector: 'app-sa-gyms',
-  imports: [GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
+  imports: [HealthDialog, GymLogo, Stars, TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, IconField, InputIcon, InputText, Select, TableModule, Tag, PageHeader],
   templateUrl: './sa-gyms.html',
   styleUrl: './sa-gyms.css',
 })
 export class SaGyms {
+  protected readonly health = viewChild.required(HealthDialog);
+  protected readonly healthSev = HEALTH_SEV;
+  protected readonly healthLabel = HEALTH_LABEL;
   protected readonly countryName = countryName;
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);

@@ -25,6 +25,7 @@ export class PlanView {
     for (const i of this.plan().items) map.set(i.group || '—', [...(map.get(i.group || '—') ?? []), i]);
     return [...map.entries()].map(([name, items]) => ({ name, items }));
   });
+  info(name: string) { return this.store.exerciseInfo(this.plan().coachId, name); }
   protected readonly pct = computed(() => {
     const items = this.plan().items;
     return items.length ? Math.round((items.filter((i) => i.done).length / items.length) * 100) : 0;

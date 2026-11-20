@@ -1,3 +1,6 @@
+import { Checkbox } from 'primeng/checkbox';
+import { MODULE_INFO } from '../../admin/admin-upgrade/admin-upgrade';
+import { GymModule } from '../../../core/models';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
@@ -21,11 +24,19 @@ const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, ye
 
 @Component({
   selector: 'app-sa-plans',
-  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [Checkbox, Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './sa-plans.html',
   styleUrl: './sa-plans.css',
 })
 export class SaPlans {
+  protected readonly info = MODULE_INFO;
+  protected readonly modules = Object.keys(MODULE_INFO) as GymModule[];
+  hasModule(m: GymModule) { const mods = this.draft().modules; return !mods || mods.includes(m); }
+  toggleModule(m: GymModule) {
+    const current = this.draft().modules ?? [...this.modules];
+    const next = current.includes(m) ? current.filter((x) => x !== m) : [...current, m];
+    this.draft.update((d) => ({ ...d, modules: next.length === this.modules.length ? undefined : next }));
+  }
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);

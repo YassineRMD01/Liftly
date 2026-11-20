@@ -305,4 +305,40 @@ describe('StoreService', () => {
       expect(store.saveShift({ ...day, id: '', start: '15:00', end: '18:00' }).ok).toBe(true);
     });
   });
+  describe('coach tools & platform', () => {
+    it('limits modules by Liftly plan', () => {
+      expect(store.hasModule('g-iron', 'KIOSK')).toBe(true); // Pro
+      expect(store.hasModule('g-kumite', 'KIOSK')).toBe(false); // Starter
+      expect(store.planWithModule('KIOSK')?.name).toBe('Pro');
+    });
+    it('assigns a template to athletes as their own plans', () => {
+      const before = store.plansOfClient('u-k2').length;
+      expect(store.assignTemplate('pt-1', ['u-k2'])).toBe(1);
+      const p = store.plansOfClient('u-k2')[0];
+      expect(store.plansOfClient('u-k2').length).toBe(before + 1);
+      expect(p.title).toBe('Beginner full body — 3 days');
+      expect(p.items.every((i) => !i.done)).toBe(true);
+    });
+    it('has no free slots on days off and can cancel booked sessions', () => {
+      const monday = future(1);
+      const s = store.requestSession({ coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: monday, start: '10:00', end: '11:00' })!;
+      store.addTimeOff({ coachId: 'u-c1', start: monday, end: monday }, true);
+      expect(store.freeSlots('u-c1', 'g-iron', monday)).toEqual([]);
+      expect(store.sessions().find((x) => x.id === s.id)?.status).toBe('CANCELLED');
+    });
+    it('scores gym health between 0 and 100 with explained factors', () => {
+      const h = store.gymHealth('g-iron');
+      expect(h.score).toBeGreaterThanOrEqual(0);
+      expect(h.score).toBeLessThanOrEqual(100);
+      expect(h.factors.map((f) => f.key)).toEqual(['activity', 'growth', 'retention', 'engagement', 'account']);
+    });
+    it('shows platform banners to the right audience until dismissed', () => {
+      store.postPlatformAnnouncement({ title: 'Maintenance', body: 'Sunday 2–4 am', level: 'MAINTENANCE', audience: 'ADMINS' });
+      expect(store.platformBannersFor('u-a1').some((b) => b.title === 'Maintenance')).toBe(true);
+      expect(store.platformBannersFor('u-k1').some((b) => b.title === 'Maintenance')).toBe(false);
+      const id = store.platformBannersFor('u-a1').find((b) => b.title === 'Maintenance')!.id;
+      store.dismissPlatformAnnouncement(id, 'u-a1');
+      expect(store.platformBannersFor('u-a1').some((b) => b.id === id)).toBe(false);
+    });
+  });
 });

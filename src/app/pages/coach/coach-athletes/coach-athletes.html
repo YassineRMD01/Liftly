@@ -35,6 +35,21 @@
               </div>
             } @empty { <div class="card text-center muted py-10">{{ 'No plan yet for this athlete.' | t }}</div> }
           </div>
+        } @else if (tab() === 'notes') {
+          <div class="card space-y-3" data-testid="athlete-notes">
+            <p class="text-xs muted"><fa-icon icon="lock" /> {{ 'Private: only you see these notes.' | t }}</p>
+            <div class="flex gap-2">
+              <textarea pTextarea rows="2" class="flex-1" [(ngModel)]="noteText" [placeholder]="'Injuries, goals, what to work on next…' | t" data-testid="note-text"></textarea>
+              <button pButton type="button" (click)="addNote()" [disabled]="!noteText.trim()" data-testid="add-note">{{ 'Add' | t }}</button>
+            </div>
+            @for (n of notes(); track n.id) {
+              <div class="p-3 rounded-xl flex items-start gap-2" [class]="n.pinned ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-surface-50 dark:bg-surface-800'" data-testid="note">
+                <div class="flex-1 min-w-0"><div class="text-xs muted">{{ n.date | date: 'mediumDate' }}</div><p class="text-sm whitespace-pre-line">{{ n.text }}</p></div>
+                <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [severity]="n.pinned ? 'warn' : 'secondary'" (click)="togglePin(n)" [attr.aria-label]="(n.pinned ? 'Unpin' : 'Pin to top') | t"><fa-icon icon="thumbtack" /></button>
+                <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteNote(n.id)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
+              </div>
+            } @empty { <p class="text-sm muted">{{ 'No notes yet.' | t }}</p> }
+          </div>
         } @else {
           <app-progress-view [clientId]="c.id" />
         }

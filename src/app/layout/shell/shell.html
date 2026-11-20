@@ -38,6 +38,7 @@
         >
           <fa-icon [icon]="item.icon" class="w-5 text-center" />
           <span class="flex-1">{{ item.label }}</span>
+          @if (locked(item)) { <fa-icon icon="lock" class="text-xs text-amber-500" [attr.aria-label]="'Not in your plan' | t" data-testid="nav-lock" /> }
           @if (item.badge === 'requests' && newRequests()) { <span class="min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-contrast text-[11px] font-bold grid place-items-center">{{ newRequests() }}</span> }
           @if (item.badge === 'messages' && unread()) { <span class="min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold grid place-items-center" data-testid="unread-badge">{{ unread() }}</span> }
         </a>
@@ -68,6 +69,13 @@
       <app-appearance-switcher />
     </header>
     <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+      @for (b of banners(); track b.id) {
+        <div class="mb-4 p-3 rounded-2xl flex items-start gap-3 text-sm" [class]="b.level === 'MAINTENANCE' ? 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200' : b.level === 'FEATURE' ? 'bg-green-50 text-green-900 dark:bg-green-950/40 dark:text-green-200' : 'bg-sky-50 text-sky-900 dark:bg-sky-950/40 dark:text-sky-200'" role="status" data-testid="platform-banner">
+          <fa-icon [icon]="b.level === 'MAINTENANCE' ? 'screwdriver-wrench' : b.level === 'FEATURE' ? 'wand-magic-sparkles' : 'circle-info'" class="mt-0.5" />
+          <div class="flex-1"><b>{{ b.title }}</b> — {{ b.body }}</div>
+          <button type="button" class="cursor-pointer opacity-70 hover:opacity-100" (click)="dismissBanner(b.id)" [attr.aria-label]="'Dismiss' | t" data-testid="dismiss-banner"><fa-icon icon="xmark" /></button>
+        </div>
+      }
       <router-outlet />
     </main>
   </div>

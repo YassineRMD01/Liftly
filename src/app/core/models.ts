@@ -61,7 +61,11 @@ export interface SaasPlan {
   active: boolean;
   /** Local prices per country, in that country's currency. Countries without one pay the USD price. */
   countryPrices: CountryPrice[];
+  /** App modules included (all when not set). */
+  modules?: GymModule[];
 }
+
+export type GymModule = 'CLASSES' | 'CHECKIN' | 'KIOSK' | 'ACCOUNTING' | 'WAIVERS' | 'EQUIPMENT' | 'SHIFTS' | 'CHALLENGES' | 'IMPORT' | 'LOCATIONS';
 
 export interface CountryPrice {
   country: string; // ISO 3166 alpha-2, e.g. 'MA'
@@ -642,6 +646,64 @@ export interface DbState {
   equipment: Equipment[];
   lockers: Locker[];
   shifts: StaffShift[];
+  exercises: Exercise[];
+  planTemplates: PlanTemplate[];
+  timeOff: CoachTimeOff[];
+  athleteNotes: AthleteNote[];
+  platformAnnouncements: PlatformAnnouncement[];
+}
+
+/** An exercise in a coach's library (reused in plans; members see the video link). */
+export interface Exercise {
+  id: string;
+  coachId: string;
+  name: string;
+  category: string;
+  equipment?: string;
+  videoUrl?: string;
+  /** Coaching cues shown to members. */
+  cues?: string;
+}
+/** A reusable workout / nutrition plan a coach assigns to several athletes. */
+export interface PlanTemplate {
+  id: string;
+  coachId: string;
+  kind: TrainingPlanKind;
+  title: string;
+  notes?: string;
+  items: TrainingPlanItem[];
+  createdAt: string;
+}
+/** Days a coach is away (no private lessons can be booked). */
+export interface CoachTimeOff {
+  id: string;
+  coachId: string;
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
+  reason?: string;
+}
+/** A private note a coach keeps about one athlete. */
+export interface AthleteNote {
+  id: string;
+  coachId: string;
+  clientId: string;
+  date: string;
+  text: string;
+  pinned?: boolean;
+}
+export type AnnouncementLevel = 'INFO' | 'FEATURE' | 'MAINTENANCE';
+export type AnnouncementAudience = 'ADMINS' | 'STAFF' | 'EVERYONE';
+/** A message from the Liftly team to gyms (banner + notification). */
+export interface PlatformAnnouncement {
+  id: string;
+  title: string;
+  body: string;
+  level: AnnouncementLevel;
+  audience: AnnouncementAudience;
+  at: string;
+  /** Banner hidden after this date (YYYY-MM-DD). */
+  until?: string;
+  dismissedBy: string[];
 }
 
 export interface WorkoutSet { reps: number; weight: number; }

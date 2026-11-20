@@ -207,8 +207,8 @@ export const SEED: DbState = {
     { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35, currency: 'USD', payoutMethod: 'CASH' },
   ],
   saasPlans: [
-    { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], customTheme: false, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 249, yearly: 2490 }, { country: 'FR', monthly: 27, yearly: 270 }, { country: 'ES', monthly: 25, yearly: 250 }] },
-    { id: 'sp-pro', name: 'Pro', description: 'For growing gyms that want their own brand.', monthlyPrice: 79, yearlyPrice: 790, maxCoaches: 15, maxClients: 1000, features: ['Everything in Starter', 'Custom brand colors & logo', 'Advanced analytics', 'Priority support'], customTheme: true, highlighted: true, active: true, countryPrices: [{ country: 'MA', monthly: 690, yearly: 6900 }, { country: 'FR', monthly: 72, yearly: 720 }, { country: 'ES', monthly: 69, yearly: 690 }] },
+    { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], modules: ['CLASSES', 'CHECKIN', 'CHALLENGES', 'IMPORT'], customTheme: false, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 249, yearly: 2490 }, { country: 'FR', monthly: 27, yearly: 270 }, { country: 'ES', monthly: 25, yearly: 250 }] },
+    { id: 'sp-pro', name: 'Pro', description: 'For growing gyms that want their own brand.', monthlyPrice: 79, yearlyPrice: 790, maxCoaches: 15, maxClients: 1000, features: ['Everything in Starter', 'Custom brand colors & logo', 'Advanced analytics', 'Priority support'], modules: ['CLASSES', 'CHECKIN', 'KIOSK', 'ACCOUNTING', 'WAIVERS', 'EQUIPMENT', 'SHIFTS', 'CHALLENGES', 'IMPORT', 'LOCATIONS'], customTheme: true, highlighted: true, active: true, countryPrices: [{ country: 'MA', monthly: 690, yearly: 6900 }, { country: 'FR', monthly: 72, yearly: 720 }, { country: 'ES', monthly: 69, yearly: 690 }] },
     { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 1790, yearly: 17900 }, { country: 'FR', monthly: 185, yearly: 1850 }, { country: 'ES', monthly: 179, yearly: 1790 }] },
   ],
   gyms: [
@@ -467,5 +467,34 @@ export const SEED: DbState = {
   ].map((l) => (l.id === 'lk-d3' ? { ...l, clientId: 'u-k1', until: isoDay(40) } : l.id === 'lk-d7' ? { ...l, clientId: 'u-k3', until: isoDay(10) } : l)),
   shifts: [
     ...[-7, 0, 7].flatMap((w) => [1, 2, 3, 4, 5].map((day) => ({ id: `sh-${w}-${day}`, gymId: 'g-iron', userId: 'u-s1', date: nextDateOffset(day, w), start: '06:00', end: '14:00', locationId: 'loc-downtown' }))),
+  ],
+  exercises: [
+    ['Back squat', 'Legs', 'Barbell', 'https://www.youtube.com/watch?v=ultWZbUMPL8', 'Brace, knees out, hips below knees.'],
+    ['Romanian deadlift', 'Hamstrings', 'Barbell', 'https://www.youtube.com/watch?v=jEy_czb3RKA', 'Soft knees, push hips back, flat back.'],
+    ['Walking lunges', 'Legs', 'Dumbbells', '', 'Long steps, back knee kisses the floor.'],
+    ['Bench press', 'Chest', 'Barbell', 'https://www.youtube.com/watch?v=rT7DgCr-3pg', 'Shoulder blades pinched, feet planted.'],
+    ['Barbell row', 'Back', 'Barbell', '', 'Torso at 45°, pull to the belly button.'],
+    ['Pull-ups', 'Back', 'Bodyweight', '', 'Full hang, chest to the bar.'],
+    ['Deadlift', 'Full body', 'Barbell', 'https://www.youtube.com/watch?v=op9kVnSso6Q', 'Bar over mid-foot, push the floor away.'],
+    ['Overhead press', 'Shoulders', 'Barbell', '', 'Squeeze glutes, bar path close to the face.'],
+  ].map(([name, category, equipment, videoUrl, cues], i) => ({ id: `ex-${i}`, coachId: 'u-c1', name, category, equipment, ...(videoUrl ? { videoUrl } : {}), cues })),
+  planTemplates: [
+    { id: 'pt-1', coachId: 'u-c1', kind: 'WORKOUT', title: 'Beginner full body — 3 days', notes: 'Start light, add 2.5 kg each week when all reps feel easy.', createdAt: d(-40), items: [
+      { id: 't1', group: 'Day A', name: 'Back squat', detail: '3 × 8' }, { id: 't2', group: 'Day A', name: 'Bench press', detail: '3 × 8' }, { id: 't3', group: 'Day A', name: 'Barbell row', detail: '3 × 10' },
+      { id: 't4', group: 'Day B', name: 'Deadlift', detail: '3 × 5' }, { id: 't5', group: 'Day B', name: 'Overhead press', detail: '3 × 8' }, { id: 't6', group: 'Day B', name: 'Pull-ups', detail: '3 × max' },
+    ] },
+    { id: 'pt-2', coachId: 'u-c1', kind: 'NUTRITION', title: 'Cutting — 2 000 kcal', createdAt: d(-30), items: [
+      { id: 'u1', group: 'Breakfast', name: 'Eggs and toast', detail: '3 eggs · 1 slice' }, { id: 'u2', group: 'Lunch', name: 'Chicken salad', detail: '180 g chicken' }, { id: 'u3', group: 'Dinner', name: 'Fish and vegetables', detail: '200 g fish' },
+    ] },
+  ],
+  timeOff: [
+    { id: 'to-1', coachId: 'u-c1', start: nextDateOffset(4, 14), end: nextDateOffset(6, 14), reason: 'Powerlifting competition' },
+  ],
+  athleteNotes: [
+    { id: 'an-n1', coachId: 'u-c1', clientId: 'u-k1', date: isoDay(-20), text: 'Old left shoulder injury — avoid behind-the-neck press.', pinned: true },
+    { id: 'an-n2', coachId: 'u-c1', clientId: 'u-k1', date: isoDay(-6), text: 'Squat depth much better. Next block: add pause squats.' },
+  ],
+  platformAnnouncements: [
+    { id: 'pa-1', title: 'New: workout logging & challenges', body: 'Members can now log their workouts and join your gym challenges. Start one from Challenges in your menu.', level: 'FEATURE', audience: 'ADMINS', at: d(-2), until: isoDay(12), dismissedBy: [] },
   ],
 };

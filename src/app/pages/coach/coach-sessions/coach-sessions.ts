@@ -53,6 +53,16 @@ export class CoachSessions {
   ]);
   protected readonly shown = computed(() => ({ requests: this.requests(), upcoming: this.upcoming(), past: this.past() })[this.tab()]);
 
+  protected readonly timeOff = computed(() => this.store.timeOffOf(this.me()).filter((o) => o.end >= isoDate()));
+  protected off = { start: isoDate(), end: isoDate(), reason: '', cancel: true };
+  clashing() { return this.off.start && this.off.end >= this.off.start ? this.store.sessionsInPeriod(this.me(), this.off.start, this.off.end) : []; }
+  addOff() {
+    if (!this.off.start || this.off.end < this.off.start) { this.toast.add({ severity: 'error', summary: t('The end must be after the start.') }); return; }
+    const n = this.clashing().length;
+    this.store.addTimeOff({ coachId: this.me(), start: this.off.start, end: this.off.end, ...(this.off.reason.trim() ? { reason: this.off.reason.trim() } : {}) }, this.off.cancel);
+    this.toast.add({ severity: 'success', summary: t('Days off saved'), detail: n && this.off.cancel ? t('{n} lessons cancelled and members told.', { n }) : t('Members cannot book you on these days.') });
+    this.off = { start: isoDate(), end: isoDate(), reason: '', cancel: true };
+  }
   addWindow() {
     if (toMin(this.form.end) - toMin(this.form.start) < this.form.slotMin) {
       this.toast.add({ severity: 'error', summary: t('The window is shorter than one session.') });

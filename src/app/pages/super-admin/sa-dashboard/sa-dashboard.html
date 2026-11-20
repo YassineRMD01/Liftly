@@ -48,7 +48,15 @@
   </div>
 </div>
 
-<div class="grid lg:grid-cols-3 gap-6 mt-6">
+<div class="grid lg:grid-cols-4 gap-6 mt-6">
+  <div class="card" data-testid="health-card">
+    <h2 class="font-semibold mb-3">{{ 'Gym health' | t }}</h2>
+    @for (x of toWatch(); track x.g.id) {
+      <button type="button" class="w-full flex items-center gap-2 py-1.5 text-sm cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800 rounded-lg px-1" (click)="healthDialog().open(x.g.id)">
+        <span class="flex-1 text-start font-medium">{{ x.g.name }}</span><p-tag [value]="x.h.score + ' · ' + (healthLabel[x.h.level] | t)" [severity]="healthSev[x.h.level]" />
+      </button>
+    }
+  </div>
   <div class="card" data-testid="trials-card">
     <div class="flex items-center justify-between gap-2 mb-3">
       <h2 class="font-semibold">{{ 'Trials ending this week' | t }}</h2>
@@ -60,3 +68,5 @@
   </div>
   <div class="lg:col-span-2"><app-cohort-table /></div>
 </div>
+
+<app-health-dialog />

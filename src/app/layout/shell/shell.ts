@@ -15,11 +15,11 @@ import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from '../../core/auth.service';
-import { Role } from '../../core/models';
+import { GymModule, Role } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 import { ThemeService } from '../../core/theme.service';
 
-interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; /** Heading shown above this item. */ section?: string; badge?: 'messages' | 'requests'; }
+interface NavItem { label: string; icon: IconProp; link: string; exact?: boolean; /** Heading shown above this item. */ section?: string; badge?: 'messages' | 'requests'; /** Hidden behind a padlock when the gym's plan lacks it. */ module?: GymModule; }
 
 const NAV: Record<Role, NavItem[]> = {
   SUPER_ADMIN: [
@@ -30,6 +30,7 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Currencies & countries'), icon: 'coins', link: '/super-admin/currencies' },
     { label: t('Reports'), icon: 'flag', link: '/super-admin/reports' },
     { label: t('Accounting'), icon: 'calculator', link: '/super-admin/accounting' },
+    { label: t('Announcements'), icon: 'bullhorn', link: '/super-admin/announcements' },
     { label: t('Activity log'), icon: 'clock-rotate-left', link: '/super-admin/activity' },
     { label: t('Settings'), icon: 'gear', link: '/super-admin/settings' },
   ],
@@ -39,23 +40,23 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Join requests'), icon: 'user-clock', link: '/admin/requests', badge: 'requests' },
     { label: t('Memberships'), icon: 'id-card', link: '/admin/memberships' },
     { label: t('Promo codes'), icon: 'ticket', link: '/admin/promos' },
-    { label: t('Check-in'), icon: 'qrcode', link: '/admin/checkin' },
-    { label: t('Attendance'), icon: 'chart-column', link: '/admin/attendance' },
-    { label: t('Classes'), icon: 'calendar-check', link: '/admin/classes', section: t('Training') },
+    { label: t('Check-in'), icon: 'qrcode', link: '/admin/checkin', module: 'CHECKIN' },
+    { label: t('Attendance'), icon: 'chart-column', link: '/admin/attendance', module: 'CHECKIN' },
+    { label: t('Classes'), icon: 'calendar-check', link: '/admin/classes', section: t('Training'), module: 'CLASSES' },
     { label: t('Schedule'), icon: 'clock', link: '/admin/schedule' },
     { label: t('Sports'), icon: 'medal', link: '/admin/sports' },
     { label: t('Coaches'), icon: 'user-tie', link: '/admin/coaches' },
     { label: t('Messages'), icon: 'comments', link: '/admin/messages', section: t('Communication'), badge: 'messages' },
     { label: t('Announcements'), icon: 'bullhorn', link: '/admin/announcements' },
-    { label: t('Challenges'), icon: 'trophy', link: '/admin/challenges' },
+    { label: t('Challenges'), icon: 'trophy', link: '/admin/challenges', module: 'CHALLENGES' },
     { label: t('Reports'), icon: 'flag', link: '/admin/reports' },
     { label: t('Staff'), icon: 'id-badge', link: '/admin/staff', section: t('Gym') },
-    { label: t('Locations'), icon: 'location-dot', link: '/admin/locations' },
-    { label: t('Equipment & lockers'), icon: 'screwdriver-wrench', link: '/admin/equipment' },
-    { label: t('Staff shifts'), icon: 'business-time', link: '/admin/shifts' },
-    { label: t('Waiver'), icon: 'file-signature', link: '/admin/waiver' },
+    { label: t('Locations'), icon: 'location-dot', link: '/admin/locations', module: 'LOCATIONS' },
+    { label: t('Equipment & lockers'), icon: 'screwdriver-wrench', link: '/admin/equipment', module: 'EQUIPMENT' },
+    { label: t('Staff shifts'), icon: 'business-time', link: '/admin/shifts', module: 'SHIFTS' },
+    { label: t('Waiver'), icon: 'file-signature', link: '/admin/waiver', module: 'WAIVERS' },
     { label: t('Branding'), icon: 'palette', link: '/admin/branding' },
-    { label: t('Accounting'), icon: 'calculator', link: '/admin/accounting' },
+    { label: t('Accounting'), icon: 'calculator', link: '/admin/accounting', module: 'ACCOUNTING' },
     { label: t('Billing'), icon: 'credit-card', link: '/admin/billing' },
   ],
   COACH: [
@@ -64,6 +65,7 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('Athletes'), icon: 'users', link: '/coach/athletes' },
     { label: t('Private sessions'), icon: 'handshake', link: '/coach/sessions' },
     { label: t('My classes'), icon: 'calendar-check', link: '/coach/classes' },
+    { label: t('Library'), icon: 'book-open', link: '/coach/library' },
     { label: t('Messages'), icon: 'comments', link: '/coach/messages', badge: 'messages' },
     { label: t('Announcements'), icon: 'bullhorn', link: '/coach/announcements' },
     { label: t('Accounting'), icon: 'calculator', link: '/coach/accounting' },
@@ -71,11 +73,11 @@ const NAV: Record<Role, NavItem[]> = {
     { label: t('My profile'), icon: 'user-pen', link: '/coach/profile' },
   ],
   STAFF: [
-    { label: t('Check-in'), icon: 'qrcode', link: '/staff', exact: true },
-    { label: t('Classes'), icon: 'calendar-check', link: '/staff/classes' },
+    { label: t('Check-in'), icon: 'qrcode', link: '/staff', exact: true, module: 'CHECKIN' },
+    { label: t('Classes'), icon: 'calendar-check', link: '/staff/classes', module: 'CLASSES' },
     { label: t('Clients'), icon: 'users', link: '/staff/clients' },
-    { label: t('Attendance'), icon: 'chart-column', link: '/staff/attendance' },
-    { label: t('My shifts'), icon: 'business-time', link: '/staff/shifts' },
+    { label: t('Attendance'), icon: 'chart-column', link: '/staff/attendance', module: 'CHECKIN' },
+    { label: t('My shifts'), icon: 'business-time', link: '/staff/shifts', module: 'SHIFTS' },
     { label: t('Messages'), icon: 'comments', link: '/staff/messages', badge: 'messages' },
     { label: t('Announcements'), icon: 'bullhorn', link: '/staff/announcements' },
   ],
@@ -120,5 +122,9 @@ export class Shell {
   });
   protected readonly unread = computed(() => this.store.unreadMessages(this.auth.user()?.id ?? ''));
   protected readonly newRequests = computed(() => this.store.joinRequestsOf(this.auth.activeGym()?.id ?? '').filter((r) => r.status === 'NEW').length);
+  locked(item: NavItem) { return !!item.module && !!this.auth.activeGym() && !this.store.hasModule(this.auth.activeGym()!.id, item.module); }
+  /** Liftly team messages for this user (banner). */
+  protected readonly banners = computed(() => this.store.platformBannersFor(this.auth.user()?.id ?? ''));
+  dismissBanner(id: string) { this.store.dismissPlatformAnnouncement(id, this.auth.user()!.id); }
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
 }

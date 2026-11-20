@@ -20,6 +20,7 @@
       <ul class="mt-4 space-y-1.5 text-sm flex-1">
         <li>{{ p.maxCoaches === -1 ? ('Unlimited' | t) : p.maxCoaches }} {{ 'coaches ·' | t }} {{ p.maxClients === -1 ? ('Unlimited' | t) : p.maxClients }} {{ 'clients' | t }}</li>
         <li>{{ 'Custom theme:' | t }} <b>{{ p.customTheme ? ('Yes' | t) : 'No' }}</b></li>
+        <li>{{ 'Modules:' | t }} <b>{{ p.modules ? p.modules.length + '/' + modules.length : ('All' | t) }}</b></li>
         @for (f of p.features; track f) { <li class="flex gap-2"><fa-icon icon="check" class="text-primary" />{{ f }}</li> }
       </ul>
       @if (p.countryPrices.length) {
@@ -80,6 +81,13 @@
     <div class="field sm:col-span-2"><label>{{ 'Features (one per line)' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="featuresText"></textarea></div>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().customTheme" /> {{ 'Custom theme allowed' | t }}</label>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().highlighted" /> {{ 'Highlight as popular' | t }}</label>
+    <div class="field" data-testid="plan-modules"><label>{{ 'Modules included' | t }}</label>
+      <div class="grid sm:grid-cols-2 gap-2">
+        @for (m of modules; track m) {
+          <label class="flex items-center gap-2 text-sm p-2 rounded-lg border border-surface-200 dark:border-surface-700 cursor-pointer">
+            <p-checkbox [binary]="true" [ngModel]="hasModule(m)" (ngModelChange)="toggleModule(m)" /> <fa-icon [icon]="$any(info[m].icon)" class="muted w-4" /> {{ info[m].label | t }}</label>
+        }
+      </div></div>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'Visible on pricing page' | t }}</label>
   </div>
   <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>

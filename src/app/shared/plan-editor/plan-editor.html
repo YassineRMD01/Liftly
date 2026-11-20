@@ -1,10 +1,13 @@
-<app-modal [header]="(plan()?.id ? 'Edit plan' : 'New plan') | t" [visible]="!!plan()" (visibleChange)="close($event)" width="46rem" [tone]="plan()?.id ? 'edit' : 'primary'" [icon]="plan()?.id ? 'pen' : 'clipboard-list'">
+<app-modal [header]="(templateMode() ? (plan()?.id ? 'Edit template' : 'New template') : plan()?.id ? 'Edit plan' : 'New plan') | t" [visible]="!!plan()" (visibleChange)="close($event)" width="46rem" [tone]="plan()?.id ? 'edit' : 'primary'" [icon]="plan()?.id ? 'pen' : 'clipboard-list'">
   @if (plan(); as p) {
     <div class="space-y-4">
       <div class="flex flex-wrap gap-3">
         <p-selectbutton [options]="kinds" optionLabel="label" optionValue="value" [(ngModel)]="p.kind" [allowEmpty]="false" [disabled]="!!p.id" />
         <input pInputText class="flex-1 min-w-48" [(ngModel)]="p.title" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Strength block — 4 weeks' : 'e.g. Lean bulk — 2 800 kcal') | t" data-testid="plan-title" />
       </div>
+      @if (!templateMode() && !p.id && templates().length) {
+        <p-select [options]="templates()" optionLabel="title" optionValue="id" [ngModel]="null" (ngModelChange)="useTemplate($event)" [placeholder]="'Start from a template' | t" class="w-full" appendTo="body" data-testid="use-template" />
+      }
       <textarea pTextarea class="w-full" rows="2" [(ngModel)]="p.notes" [placeholder]="'Notes for the member (optional)' | t"></textarea>
       <div class="space-y-2">
         <div class="hidden sm:grid grid-cols-[9rem_1fr_1fr_4.5rem] gap-2 text-xs muted px-1">
@@ -13,7 +16,7 @@
         @for (i of p.items; track $index) {
           <div class="grid grid-cols-2 sm:grid-cols-[9rem_1fr_1fr_4.5rem] gap-2 items-center" data-testid="plan-line">
             <input pInputText [(ngModel)]="i.group" [placeholder]="(p.kind === 'WORKOUT' ? 'Day 1' : 'Breakfast') | t" />
-            <input pInputText [(ngModel)]="i.name" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Back squat' : 'e.g. Oats and banana') | t" />
+            <input pInputText [(ngModel)]="i.name" list="library-names" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Back squat' : 'e.g. Oats and banana') | t" />
             <input pInputText [(ngModel)]="i.detail" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. 5 × 5 @ 75%' : 'e.g. 80 g') | t" />
             <span class="flex">
               <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="addItem(i)"><fa-icon icon="plus" /></button>
@@ -25,6 +28,8 @@
       </div>
     </div>
   }
+  <datalist id="library-names">@for (e of library(); track e.id) { <option [value]="e.name">{{ e.category }}</option> }</datalist>
   <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="plan.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()">{{ 'Save and notify' | t }}</button></div>
+    @if (!templateMode()) { <button pButton type="button" severity="secondary" [outlined]="true" (click)="saveAsTemplate()" data-testid="save-as-template"><fa-icon icon="copy" />{{ 'Save as template' | t }}</button> }
+    <button pButton type="button" (click)="save()" data-testid="plan-save">{{ (templateMode() ? 'Save template' : 'Save and notify') | t }}</button></div>
 </app-modal>

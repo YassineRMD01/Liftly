@@ -1,3 +1,4 @@
+import { HEALTH_LABEL, HEALTH_SEV, HealthDialog } from '../../../shared/health-dialog/health-dialog';
 import { CohortTable } from '../../../shared/cohort-table/cohort-table';
 import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
@@ -5,7 +6,7 @@ import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { lastMonths } from '../../../core/stats';
 import { countryName, formatMoney } from '../../../core/currency';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ProgressBar } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
@@ -17,7 +18,7 @@ import { statusSeverity } from '../sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-sa-dashboard',
-  imports: [ChartCard, CohortTable, TranslatePipe, DatePipe, ButtonDirective, ProgressBar, TableModule, Tag, PageHeader, StatCard],
+  imports: [HealthDialog, ChartCard, CohortTable, TranslatePipe, DatePipe, ButtonDirective, ProgressBar, TableModule, Tag, PageHeader, StatCard],
   templateUrl: './sa-dashboard.html',
   styleUrl: './sa-dashboard.css',
 })
@@ -25,6 +26,11 @@ export class SaDashboard {
   private readonly toast = inject(MessageService);
   /** Trials ending in the next 7 days. */
   protected readonly trialsSoon = computed(() => this.store.trialsEnding(7));
+  protected readonly healthDialog = viewChild.required(HealthDialog);
+  protected readonly healthSev = HEALTH_SEV;
+  protected readonly healthLabel = HEALTH_LABEL;
+  /** Gyms that need attention, worst first. */
+  protected readonly toWatch = computed(() => this.store.gyms().map((g) => ({ g, h: this.store.gymHealth(g.id) })).sort((a, b) => a.h.score - b.h.score));
   sendTrialReminders() {
     const n = this.store.sendTrialReminders(7);
     this.toast.add({ severity: n ? 'success' : 'info', summary: n ? t('{0} reminders sent', { 0: n }) : t('Everyone was already reminded') });

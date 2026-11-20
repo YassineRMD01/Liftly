@@ -12,7 +12,7 @@
     <ng-template #header>
       <tr>
         <th pSortableColumn="name">{{ 'Gym' | t }} <p-sorticon field="name" /></th>
-        <th>{{ 'Owner' | t }}</th><th>{{ 'Country' | t }}</th><th>{{ 'Rating' | t }}</th><th>{{ 'Plan' | t }}</th><th>{{ 'Coaches / Clients' | t }}</th><th>{{ 'Revenue' | t }}</th><th>{{ 'Renews' | t }}</th><th>{{ 'Status' | t }}</th>
+        <th>{{ 'Health' | t }}</th><th>{{ 'Owner' | t }}</th><th>{{ 'Country' | t }}</th><th>{{ 'Rating' | t }}</th><th>{{ 'Plan' | t }}</th><th>{{ 'Coaches / Clients' | t }}</th><th>{{ 'Revenue' | t }}</th><th>{{ 'Renews' | t }}</th><th>{{ 'Status' | t }}</th>
       </tr>
     </ng-template>
     <ng-template #body let-g>
@@ -23,6 +23,8 @@
             <div><div class="font-medium">{{ g.name }}</div><div class="text-xs muted">{{ store.sportNames(g) }} · {{ g.city }}</div></div>
           </div>
         </td>
+        <td>@let h = store.gymHealth(g.id);
+          <button type="button" class="cursor-pointer" (click)="health().open(g.id)" data-testid="health-btn"><p-tag [value]="h.score + ' · ' + (healthLabel[h.level] | t)" [severity]="healthSev[h.level]" /></button></td>
         <td>{{ store.fullName(g.ownerId) }}</td>
         <td class="whitespace-nowrap">{{ countryName(g.country) }}</td>
         <td><app-stars [value]="store.gymRating(g.id).avg" [count]="store.gymRating(g.id).count" /></td>
@@ -43,3 +45,5 @@
     </ng-template>
   </p-table>
 </div>
+
+<app-health-dialog />

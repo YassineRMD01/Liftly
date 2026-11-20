@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService, HOME_BY_ROLE } from './auth.service';
+import { StoreService } from './store.service';
 import { Role } from './models';
 
 export const roleGuard = (...roles: Role[]): CanActivateFn => () => {
@@ -19,3 +20,11 @@ export const guestGuard: CanActivateFn = () => {
 
 /** Any signed-in user. */
 export const authGuard: CanActivateFn = () => (inject(AuthService).role() ? true : inject(Router).createUrlTree(['/login']));
+
+/** The gym's Liftly plan must include the module; otherwise show the upgrade page. */
+export const moduleGuard = (mod: import('./models').GymModule): CanActivateFn => () => {
+  const auth = inject(AuthService);
+  const store = inject(StoreService);
+  const gym = auth.activeGym();
+  return !gym || store.hasModule(gym.id, mod) ? true : inject(Router).createUrlTree([auth.role() === 'STAFF' ? '/staff/upgrade' : '/admin/upgrade'], { queryParams: { feature: mod } });
+};

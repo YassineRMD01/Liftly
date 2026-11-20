@@ -77,6 +77,7 @@ export class CoachSchedule {
   shift(weeks: number) { const d = new Date(this.weekStart()); d.setDate(d.getDate() + weeks * 7); this.weekStart.set(d); }
   today() { this.weekStart.set(this.monday(new Date())); }
   itemsOn(date: string) { return this.items().filter((i) => i.date === date); }
+  offOn(date: string) { return this.store.timeOffOf(this.me()).find((o) => o.start <= date && date <= o.end); }
   /** Items of each day placed in side-by-side lanes when they overlap (and flagged as clashes). */
   protected readonly laid = computed(() => {
     const out = new Map<string, { item: AgendaItem; lane: number; lanes: number; clash: boolean }[]>();

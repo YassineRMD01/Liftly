@@ -1,6 +1,26 @@
 <app-page-header [title]="'Private sessions' | t" [subtitle]="'Set when members can book you one-to-one, then confirm or decline their requests.' | t" />
 
 <div class="grid xl:grid-cols-[24rem_minmax(0,1fr)] gap-6">
+  <div class="space-y-6">
+  <div class="card space-y-3" data-testid="days-off">
+    <h2 class="font-semibold flex items-center gap-2"><fa-icon icon="umbrella-beach" class="text-sky-500" />{{ 'Days off' | t }}</h2>
+    @for (o of timeOff(); track o.id) {
+      <div class="flex items-center gap-2 text-sm" data-testid="time-off">
+        <span class="flex-1"><b>{{ o.start | date: 'd MMM' }}@if (o.end !== o.start) { → {{ o.end | date: 'd MMM' }} }</b>@if (o.reason) { <span class="muted"> · {{ o.reason }}</span> }</span>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteTimeOff(o.id)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
+      </div>
+    } @empty { <p class="text-sm muted">{{ 'No days off planned.' | t }}</p> }
+    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+      <div class="field"><label>{{ 'From' | t }}</label><input pInputText type="date" [(ngModel)]="off.start" data-testid="off-start" /></div>
+      <div class="field"><label>{{ 'To' | t }}</label><input pInputText type="date" [(ngModel)]="off.end" data-testid="off-end" /></div>
+      <div class="field col-span-2"><label>{{ 'Reason (optional)' | t }}</label><input pInputText [(ngModel)]="off.reason" /></div>
+      @if (clashing().length) {
+        <p class="col-span-2 text-xs text-amber-700 dark:text-amber-400" data-testid="off-clash"><fa-icon icon="triangle-exclamation" /> {{ '{n} lessons are booked in this period.' | t: { n: clashing().length } }}</p>
+        <label class="col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" [(ngModel)]="off.cancel" /> {{ 'Cancel them and tell the members' | t }}</label>
+      }
+      <button pButton type="button" class="col-span-2" (click)="addOff()" data-testid="add-off"><fa-icon icon="plus" />{{ 'Add days off' | t }}</button>
+    </div>
+  </div>
   <div class="card space-y-4">
     <h2 class="font-semibold">{{ 'My availability' | t }}</h2>
     @if (gyms().length > 1) {
@@ -23,6 +43,7 @@
       <div class="field col-span-2"><label>{{ 'Session length' | t }}</label><p-selectbutton [options]="lengths" optionLabel="label" optionValue="value" [(ngModel)]="form.slotMin" [allowEmpty]="false" /></div>
       <button pButton type="button" (click)="addWindow()" [disabled]="!gym()" class="w-full col-span-2"><fa-icon icon="plus" />{{ 'Add' | t }}</button>
     </div>
+  </div>
   </div>
 
   <div class="card">

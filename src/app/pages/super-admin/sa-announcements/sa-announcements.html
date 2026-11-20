@@ -1,0 +1,22 @@
+<app-page-header [title]="'Announcements' | t" [subtitle]="'Tell gyms about new features or maintenance. They see a banner in the app and get a notification.' | t" />
+<div class="card space-y-3 mb-6">
+  <input pInputText class="w-full" [ngModel]="form().title" (ngModelChange)="patch({ title: $event })" [placeholder]="'Title' | t" data-testid="pa-title" />
+  <textarea pTextarea class="w-full" rows="3" [ngModel]="form().body" (ngModelChange)="patch({ body: $event })" [placeholder]="'Message' | t" data-testid="pa-body"></textarea>
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="field"><label>{{ 'Type' | t }}</label><p-selectbutton [options]="levels" optionLabel="label" optionValue="value" [ngModel]="form().level" (ngModelChange)="patch({ level: $event })" [allowEmpty]="false" /></div>
+    <div class="field"><label>{{ 'Who sees it' | t }}</label><p-selectbutton [options]="audiences" optionLabel="label" optionValue="value" [ngModel]="form().audience" (ngModelChange)="patch({ audience: $event })" [allowEmpty]="false" /></div>
+    <div class="field"><label>{{ 'Banner until (optional)' | t }}</label><input pInputText type="date" [ngModel]="form().until" (ngModelChange)="patch({ until: $event })" /></div>
+    <span class="flex-1"></span>
+    <button pButton type="button" (click)="post()" [disabled]="!form().title.trim() || !form().body.trim()" data-testid="pa-send"><fa-icon icon="bullhorn" />{{ 'Send' | t }}</button>
+  </div>
+</div>
+<div class="space-y-3">
+  @for (a of list(); track a.id) {
+    <div class="card flex items-start gap-3" data-testid="pa-row">
+      <p-tag [value]="(a.level === 'FEATURE' ? 'New feature' : a.level === 'MAINTENANCE' ? 'Maintenance' : 'Info') | t" [severity]="sev[a.level]" />
+      <div class="flex-1 min-w-0"><div class="font-semibold">{{ a.title }}</div><p class="text-sm">{{ a.body }}</p>
+        <div class="text-xs muted mt-1">{{ a.at | date: 'medium' }} · {{ audienceLabel(a.audience) }}@if (a.until) { · {{ 'until' | t }} {{ a.until | date: 'mediumDate' }} } · {{ a.dismissedBy.length }} {{ 'dismissed' | t }}</div></div>
+      <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="remove(a)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
+    </div>
+  } @empty { <div class="card text-center muted py-10">{{ 'No announcements yet.' | t }}</div> }
+</div>

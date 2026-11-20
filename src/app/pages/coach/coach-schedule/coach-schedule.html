@@ -47,6 +47,10 @@
     @for (d of days(); track d.date) {
       <div class="relative border-s border-surface-200 dark:border-surface-700 cursor-copy" [style.height.px]="hours().length * hourPx" (click)="onColumnClick(d.date, $event)" data-testid="day-column">
         @for (h of hours(); track h; let i = $index) { <div class="absolute inset-x-0 border-t border-surface-100 dark:border-surface-800" [style.top.px]="i * hourPx"></div> }
+        @if (offOn(d.date); as o) {
+          <div class="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(14,165,233,.12)_6px,rgba(14,165,233,.12)_12px)] pointer-events-none grid place-items-start justify-center pt-2" data-testid="day-off">
+            <span class="text-[10px] font-semibold text-sky-600 dark:text-sky-300 bg-surface-0/80 dark:bg-surface-900/80 rounded px-1.5"><fa-icon icon="umbrella-beach" /> {{ o.reason || ('Day off' | t) }}</span></div>
+        }
         @for (a of availOn(d.d); track a.id) {
           <div class="absolute inset-x-0 bg-primary-50 dark:bg-primary-950/60 pointer-events-none" [style.top.px]="top(a.start)" [style.height.px]="height(a.start, a.end) + 2"></div>
         }

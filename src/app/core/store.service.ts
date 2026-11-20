@@ -1,14 +1,14 @@
 import { CURRENT_LANGUAGE, t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  Announcement, AppNotification, AuditEntry, Equipment, Locker, StaffShift, WaiverSignature, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, AuditEntry, AthleteNote, CoachTimeOff, Exercise, GymModule, PlanTemplate, PlatformAnnouncement, Equipment, Locker, StaffShift, WaiverSignature, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v18';
+const STORAGE_KEY = 'liftly-db-v19';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -69,6 +69,11 @@ export class StoreService {
   readonly equipment = computed(() => this.state().equipment);
   readonly lockers = computed(() => this.state().lockers);
   readonly shifts = computed(() => this.state().shifts);
+  readonly exercises = computed(() => this.state().exercises);
+  readonly planTemplates = computed(() => this.state().planTemplates);
+  readonly timeOff = computed(() => this.state().timeOff);
+  readonly athleteNotes = computed(() => this.state().athleteNotes);
+  readonly platformAnnouncements = computed(() => this.state().platformAnnouncements);
   /** Signed-in user, set by AuthService: recorded as the actor of audit entries. */
   readonly actorId = signal<string | null>(null);
 
@@ -746,6 +751,7 @@ export class StoreService {
   private busy(s: PrivateSession) { return s.status === 'REQUESTED' || s.status === 'CONFIRMED'; }
   /** Free session slots of a coach at a gym on a date (availability minus booked sessions and the past). */
   freeSlots(coachId: string, gymId: string, date: string) {
+    if (this.isOff(coachId, date)) return [];
     const day = new Date(date + 'T00:00:00').getDay();
     const taken = this.sessions().filter((s) => s.coachId === coachId && s.date === date && this.busy(s));
     const now = new Date();
@@ -1459,6 +1465,125 @@ export class StoreService {
     const map = new Map<string, number>();
     for (const sh of list) map.set(sh.userId, (map.get(sh.userId) ?? 0) + (toMin(sh.end) - toMin(sh.start)) / 60);
     return map;
+  }
+
+  // ---------- plan modules ----------
+  /** Does the gym's Liftly plan include this module? (plans without a list include everything) */
+  hasModule(gymId: string | undefined, mod: GymModule) {
+    const g = this.gym(gymId);
+    const mods = this.saasPlan(g?.saasPlanId)?.modules;
+    return !mods || mods.includes(mod);
+  }
+  /** Cheapest active plan that includes a module. */
+  planWithModule(mod: GymModule) { return this.saasPlans().filter((p) => p.active && (!p.modules || p.modules.includes(mod))).sort((a, b) => a.monthlyPrice - b.monthlyPrice)[0]; }
+
+  // ---------- coach library & templates ----------
+  libraryOf(coachId: string) { return this.exercises().filter((e) => e.coachId === coachId).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); }
+  /** Library entry for an exercise name (any coach of the member's plan). */
+  exerciseInfo(coachId: string, name: string) { const n = name.trim().toLowerCase(); return this.exercises().find((e) => e.coachId === coachId && e.name.toLowerCase() === n); }
+  saveExercise(e: Exercise) {
+    const isNew = !e.id;
+    const saved = isNew ? { ...e, id: uid('ex') } : e;
+    this.patch((s) => ({ exercises: isNew ? [...s.exercises, saved] : s.exercises.map((x) => (x.id === saved.id ? saved : x)) }));
+    return saved;
+  }
+  deleteExercise(id: string) { this.patch((s) => ({ exercises: s.exercises.filter((x) => x.id !== id) })); }
+  templatesOf(coachId: string) { return this.planTemplates().filter((p) => p.coachId === coachId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  savePlanTemplate(t: PlanTemplate) {
+    const isNew = !t.id;
+    const saved: PlanTemplate = { ...t, id: t.id || uid('pt'), createdAt: t.createdAt || new Date().toISOString(), items: t.items.map((i) => ({ ...i, id: i.id || uid('it'), done: false })) };
+    this.patch((s) => ({ planTemplates: isNew ? [...s.planTemplates, saved] : s.planTemplates.map((x) => (x.id === saved.id ? saved : x)) }));
+    return saved;
+  }
+  deletePlanTemplate(id: string) { this.patch((s) => ({ planTemplates: s.planTemplates.filter((x) => x.id !== id) })); }
+  /** Copy a template to athletes as their own plans (each is notified). */
+  assignTemplate(templateId: string, clientIds: string[]) {
+    const tpl = this.planTemplates().find((x) => x.id === templateId);
+    if (!tpl) return 0;
+    for (const clientId of clientIds) {
+      this.savePlan({ id: '', coachId: tpl.coachId, clientId, kind: tpl.kind, title: tpl.title, notes: tpl.notes, items: tpl.items.map((i) => ({ ...i, id: '', done: false })), createdAt: '', updatedAt: '' });
+    }
+    return clientIds.length;
+  }
+
+  // ---------- coach days off ----------
+  timeOffOf(coachId: string) { return this.timeOff().filter((x) => x.coachId === coachId).sort((a, b) => a.start.localeCompare(b.start)); }
+  isOff(coachId: string, date: string) { return this.timeOff().some((x) => x.coachId === coachId && x.start <= date && date <= x.end); }
+  /** Private sessions still planned inside a period. */
+  sessionsInPeriod(coachId: string, start: string, end: string) { return this.sessions().filter((s) => s.coachId === coachId && s.date >= start && s.date <= end && (s.status === 'REQUESTED' || s.status === 'CONFIRMED')); }
+  /** Add days off; optionally cancel the sessions inside them (members are notified). */
+  addTimeOff(t: Omit<CoachTimeOff, 'id'>, cancelSessions: boolean) {
+    if (t.end < t.start) return null;
+    const off: CoachTimeOff = { ...t, id: uid('to') };
+    this.patch((s) => ({ timeOff: [...s.timeOff, off] }));
+    if (cancelSessions) for (const ses of this.sessionsInPeriod(t.coachId, t.start, t.end)) this.setSessionStatus(ses.id, 'CANCELLED', t.coachId);
+    return off;
+  }
+  deleteTimeOff(id: string) { this.patch((s) => ({ timeOff: s.timeOff.filter((x) => x.id !== id) })); }
+
+  // ---------- athlete notes ----------
+  notesOf(coachId: string, clientId: string) { return this.athleteNotes().filter((n) => n.coachId === coachId && n.clientId === clientId).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.date.localeCompare(a.date)); }
+  saveNote(n: AthleteNote) {
+    const isNew = !n.id;
+    const saved = isNew ? { ...n, id: uid('nt') } : n;
+    this.patch((s) => ({ athleteNotes: isNew ? [...s.athleteNotes, saved] : s.athleteNotes.map((x) => (x.id === saved.id ? saved : x)) }));
+    return saved;
+  }
+  deleteNote(id: string) { this.patch((s) => ({ athleteNotes: s.athleteNotes.filter((x) => x.id !== id) })); }
+
+  // ---------- gym health (super-admin) ----------
+  /** 0–100 score from activity, growth, retention, engagement and account state, with each factor explained. */
+  gymHealth(gymId: string) {
+    const g = this.gym(gymId)!;
+    const now = Date.now(), day = 86400000;
+    const iso = (ms: number) => new Date(ms).toISOString();
+    const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
+    const ms = this.membershipsOfGym(gymId);
+    const activeIds = new Set(ms.filter((m) => m.status === 'ACTIVE' && m.endDate >= iso(now)).map((m) => m.clientId));
+    const everIds = new Set(ms.map((m) => m.clientId));
+    const visits = this.checkInsOfGym(gymId).filter((c) => c.ok && c.at >= iso(now - 30 * day)).length;
+    const perMember = activeIds.size ? visits / activeIds.size : 0;
+    const firsts = new Map<string, string>();
+    for (const m of ms) if (!firsts.has(m.clientId) || m.startDate < firsts.get(m.clientId)!) firsts.set(m.clientId, m.startDate);
+    const newRecent = [...firsts.values()].filter((d) => d >= iso(now - 90 * day)).length;
+    const newBefore = [...firsts.values()].filter((d) => d >= iso(now - 180 * day) && d < iso(now - 90 * day)).length;
+    const bookings = this.bookings().filter((b) => b.gymId === gymId && b.createdAt >= iso(now - 30 * day) && b.status !== 'CANCELLED').length;
+    const lastAdmin = this.audit().filter((a) => a.gymId === gymId && a.actorId === g.ownerId).sort((a, b) => b.at.localeCompare(a.at))[0]?.at;
+    const idleDays = lastAdmin ? Math.floor((now - new Date(lastAdmin).getTime()) / day) : 999;
+    let account = g.status === 'ACTIVE' ? 100 : g.status === 'TRIAL' ? (this.trialDaysLeft(g) <= 7 ? 40 : 60) : 0;
+    if (idleDays > 14) account -= 30;
+    const factors = [
+      { key: 'activity', label: 'Activity', weight: 30, score: clamp((perMember / 8) * 100), detail: `${visits} check-ins / 30 d · ${perMember.toFixed(1)} per member` },
+      { key: 'growth', label: 'Growth', weight: 20, score: clamp(newRecent === 0 ? 0 : newBefore === 0 ? 80 : (newRecent / newBefore) * 60), detail: `${newRecent} new members in 90 d (before: ${newBefore})` },
+      { key: 'retention', label: 'Retention', weight: 20, score: clamp(everIds.size ? (activeIds.size / everIds.size) * 100 : 0), detail: `${activeIds.size} active of ${everIds.size} members ever` },
+      { key: 'engagement', label: 'Engagement', weight: 15, score: clamp(activeIds.size ? (bookings / activeIds.size / 4) * 100 : 0), detail: `${bookings} class bookings / 30 d` },
+      { key: 'account', label: 'Account', weight: 15, score: clamp(account), detail: `${g.status}${idleDays < 999 ? ` · admin active ${idleDays} d ago` : ' · no admin activity logged'}` },
+    ];
+    const score = Math.round(factors.reduce((s, f) => s + f.score * f.weight, 0) / 100);
+    return { score, level: (score >= 65 ? 'HEALTHY' : score >= 40 ? 'WATCH' : 'AT_RISK') as 'HEALTHY' | 'WATCH' | 'AT_RISK', factors };
+  }
+
+  // ---------- platform announcements ----------
+  postPlatformAnnouncement(a: Omit<PlatformAnnouncement, 'id' | 'at' | 'dismissedBy'>) {
+    const ann: PlatformAnnouncement = { ...a, id: uid('pa'), at: new Date().toISOString(), dismissedBy: [] };
+    this.patch((s) => ({ platformAnnouncements: [...s.platformAnnouncements, ann] }));
+    const roles = a.audience === 'ADMINS' ? ['ADMIN'] : a.audience === 'STAFF' ? ['ADMIN', 'STAFF', 'COACH'] : ['ADMIN', 'STAFF', 'COACH', 'CLIENT'];
+    let n = 0;
+    for (const u of this.users().filter((x) => roles.includes(x.role) && x.active)) { if (this.notify(u.id, 'Liftly: {title}', a.body, { title: a.title }, undefined, `pa-${ann.id}`)) n++; }
+    this.log('Platform announcement', a.title);
+    return n;
+  }
+  deletePlatformAnnouncement(id: string) { this.patch((s) => ({ platformAnnouncements: s.platformAnnouncements.filter((x) => x.id !== id) })); }
+  /** Banners a user should see now (not dismissed, not expired, audience matches). */
+  platformBannersFor(userId: string) {
+    const u = this.user(userId);
+    if (!u) return [];
+    const today = isoDate();
+    const ok = (a: PlatformAnnouncement) => a.audience === 'EVERYONE' || (a.audience === 'ADMINS' ? u.role === 'ADMIN' : ['ADMIN', 'STAFF', 'COACH'].includes(u.role));
+    return this.platformAnnouncements().filter((a) => ok(a) && !a.dismissedBy.includes(userId) && (!a.until || a.until >= today)).sort((a, b) => b.at.localeCompare(a.at));
+  }
+  dismissPlatformAnnouncement(id: string, userId: string) {
+    this.patch((s) => ({ platformAnnouncements: s.platformAnnouncements.map((a) => (a.id === id ? { ...a, dismissedBy: [...a.dismissedBy, userId] } : a)) }));
   }
 
   // ---------- accounting currency ----------

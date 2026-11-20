@@ -1,3 +1,5 @@
+import { DatePipe } from '@angular/common';
+import { Textarea } from 'primeng/textarea';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,7 +10,7 @@ import { ButtonDirective } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
-import { TrainingPlan } from '../../../core/models';
+import { AthleteNote, TrainingPlan } from '../../../core/models';
 import { StoreService } from '../../../core/store.service';
 import { PageHeader } from '../../../shared/page-header/page-header';
 import { PlanEditor } from '../../../shared/plan-editor/plan-editor';
@@ -18,7 +20,7 @@ import { ProgressView } from '../../../shared/progress-view/progress-view';
 /** Coach: their athletes, with workout / nutrition plans and progress for each. */
 @Component({
   selector: 'app-coach-athletes',
-  imports: [TranslatePipe, FormsModule, RouterLink, FaIconComponent, Avatar, ButtonDirective, SelectButton, PageHeader, PlanEditor, PlanView, ProgressView],
+  imports: [DatePipe, Textarea, TranslatePipe, FormsModule, RouterLink, FaIconComponent, Avatar, ButtonDirective, SelectButton, PageHeader, PlanEditor, PlanView, ProgressView],
   templateUrl: './coach-athletes.html',
   styleUrl: './coach-athletes.css',
 })
@@ -31,8 +33,17 @@ export class CoachAthletes {
   protected readonly athletes = computed(() => this.store.athletesOf(this.me()));
   protected readonly picked = signal<string | null>(null);
   protected readonly current = computed(() => this.store.user(this.picked() ?? this.athletes()[0]?.id));
-  protected readonly tab = signal<'plans' | 'progress'>('plans');
-  protected readonly tabs = [{ label: t('Plans'), value: 'plans' }, { label: t('Progress'), value: 'progress' }];
+  protected readonly tab = signal<'plans' | 'progress' | 'notes'>('plans');
+  protected readonly tabs = [{ label: t('Plans'), value: 'plans' }, { label: t('Progress'), value: 'progress' }, { label: t('Notes'), value: 'notes' }];
+  protected readonly notes = computed(() => (this.current() ? this.store.notesOf(this.me(), this.current()!.id) : []));
+  protected noteText = '';
+  addNote() {
+    const c = this.current();
+    if (!c || !this.noteText.trim()) return;
+    this.store.saveNote({ id: '', coachId: this.me(), clientId: c.id, date: new Date().toISOString().slice(0, 10), text: this.noteText.trim() });
+    this.noteText = '';
+  }
+  togglePin(n: AthleteNote) { this.store.saveNote({ ...n, pinned: !n.pinned }); }
   protected readonly plans = computed(() => (this.current() ? this.store.plansOfClient(this.current()!.id).filter((p) => p.coachId === this.me()) : []));
 
   gymsOf(clientId: string) {
