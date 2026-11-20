@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectButton } from 'primeng/selectbutton';
@@ -19,7 +19,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-coaches',
-  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Dialog, InputText, Message, SelectButton, CoachCard, PageHeader, Stars, InviteDialog],
+  imports: [TranslatePipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Modal, InputText, Message, SelectButton, CoachCard, PageHeader, Stars, InviteDialog],
   templateUrl: './admin-coaches.html',
   styleUrl: './admin-coaches.css',
 })
@@ -28,8 +28,8 @@ export class AdminCoaches {
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-  protected addVisible = false;
-  protected reviewsVisible = false;
+  protected readonly addVisible = signal(false);
+  protected readonly reviewsVisible = signal(false);
   protected mode: 'network' | 'invite' = 'network';
   protected readonly modes = [{ label: t('From Liftly network'), value: 'network' }, { label: t('Invite new coach'), value: 'invite' }];
   protected invite = { firstName: '', lastName: '', email: '' };
@@ -51,7 +51,7 @@ export class AdminCoaches {
     return max !== -1 && this.coaches().length >= max;
   });
 
-  openAdd() { this.invite = { firstName: '', lastName: '', email: '' }; this.q.set(''); this.addVisible = true; }
+  openAdd() { this.invite = { firstName: '', lastName: '', email: '' }; this.q.set(''); this.addVisible.set(true); }
 
   link(c: User) {
     this.store.linkCoach(this.gymId(), c.id);
@@ -67,11 +67,11 @@ export class AdminCoaches {
     }
     const c = this.store.addUser({ role: 'COACH', firstName, lastName, email });
     this.link(c);
-    this.addVisible = false;
+    this.addVisible.set(false);
     this.inviteDialog().open(c);
   }
 
-  showReviews(c: User) { this.reviewCoach.set(c); this.reviewsVisible = true; }
+  showReviews(c: User) { this.reviewCoach.set(c); this.reviewsVisible.set(true); }
 
   unlink(c: User) {
     this.confirm.confirm({

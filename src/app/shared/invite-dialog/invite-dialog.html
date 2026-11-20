@@ -1,4 +1,4 @@
-<p-dialog [header]="'Invitation link' | t" [visible]="!!user()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Invitation link' | t" [visible]="!!user()" (visibleChange)="close($event)" width="30rem" tone="info" icon="link">
   @if (user(); as u) {
     <div class="space-y-4">
       <p class="text-sm">{{ 'Send this link to {name}. They open it, choose a password and their account is ready.' | t: { name: u.firstName + ' ' + u.lastName } }}</p>
@@ -17,5 +17,5 @@
       <p class="text-xs muted">{{ 'Automatic e-mails need a backend; in this demo you share the link yourself.' | t }}</p>
     </div>
   }
-  <ng-template #footer><button pButton type="button" (click)="user.set(null)">{{ 'Done' | t }}</button></ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" (click)="user.set(null)">{{ 'Done' | t }}</button></div>
+</app-modal>

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../modal/modal';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputNumber } from 'primeng/inputnumber';
@@ -37,7 +37,7 @@ export const METHOD_LABEL: Record<string, string> = { CASH: 'Cash', CARD: 'Card'
  */
 @Component({
   selector: 'app-accounting-view',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, IconField, InputIcon, InputNumber, InputText, Select, SelectButton, Tag, Tooltip, ChartCard, StatCard],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, IconField, InputIcon, InputNumber, InputText, Select, SelectButton, Tag, Tooltip, ChartCard, StatCard],
   templateUrl: './accounting-view.html',
   styleUrl: './accounting-view.css',
 })

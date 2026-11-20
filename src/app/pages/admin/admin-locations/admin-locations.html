@@ -21,7 +21,7 @@
   }
 </div>
 
-<p-dialog [header]="(editing()?.id ? 'Edit location' : 'Add location') | t" [visible]="!!editing()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="(editing()?.id ? 'Edit location' : 'Add location') | t" [visible]="!!editing()" (visibleChange)="close($event)" width="28rem" [tone]="editing()?.id ? 'edit' : 'primary'" [icon]="editing()?.id ? 'pen' : 'location-dot'">
   @if (editing(); as l) {
     <div class="space-y-3">
       <div class="field"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="l.name" [placeholder]="'e.g. Downtown' | t" /></div>
@@ -29,8 +29,6 @@
       <div class="field"><label>{{ 'City' | t }}</label><input pInputText [(ngModel)]="l.city" /></div>
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button></div>
+</app-modal>

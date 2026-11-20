@@ -31,7 +31,7 @@
   }
 </div>
 
-<p-dialog [header]="draft().id ? ('Edit plan' | t) : ('New plan' | t)" [(visible)]="visible" [modal]="true" [style]="{ width: '36rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="draft().id ? ('Edit plan' | t) : ('New plan' | t)" [(visible)]="visible" width="36rem" [tone]="draft().id ? 'edit' : 'primary'" [icon]="draft().id ? 'pen' : 'id-card'">
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="draft().name" [placeholder]="'e.g. Monthly unlimited' | t" /></div>
     <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
@@ -52,8 +52,6 @@
       <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'On sale' | t }}</label>
     </div>
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()" [disabled]="!draft().name || !draft().durationDays">{{ 'Save' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().name || !draft().durationDays">{{ 'Save' | t }}</button></div>
+</app-modal>

@@ -55,13 +55,11 @@
   }
 </div>
 
-<p-dialog [header]="(handling()?.status === 'RESOLVED' ? 'Resolve report' : 'Dismiss report') | t" [visible]="!!handling()" (visibleChange)="onDialog($event)" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="(handling()?.status === 'RESOLVED' ? 'Resolve report' : 'Dismiss report') | t" [visible]="!!handling()" (visibleChange)="onDialog($event)" width="32rem" [tone]="handling()?.status === 'RESOLVED' ? 'success' : 'danger'" icon="flag">
   <div class="field">
     <label for="resolution-note">{{ 'Note (optional)' | t }}</label>
     <textarea pTextarea id="resolution-note" rows="4" [(ngModel)]="note" [placeholder]="'What was done? e.g. Talked with the coach' | t"></textarea>
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="handling.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="confirmHandle()">{{ 'Confirm' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="handling.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmHandle()">{{ 'Confirm' | t }}</button></div>
+</app-modal>

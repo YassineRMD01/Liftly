@@ -63,7 +63,7 @@
   }
 }
 
-<p-dialog [header]="'Pay coach' | t" [visible]="!!paying()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Pay coach' | t" [visible]="!!paying()" (visibleChange)="close($event)" width="30rem" tone="success" icon="hand-holding-dollar">
   @if (paying(); as p) {
     <div class="space-y-4">
       <div class="font-semibold">{{ store.fullName(p.coachId) }}</div>
@@ -88,8 +88,6 @@
       <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="p.note" /></div>
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="paying.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="confirmPay()" data-testid="pay-confirm">{{ 'Record payment' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="paying.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmPay()" data-testid="pay-confirm">{{ 'Record payment' | t }}</button></div>
+</app-modal>

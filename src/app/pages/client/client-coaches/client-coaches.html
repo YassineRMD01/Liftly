@@ -18,7 +18,7 @@
   }
 </div>
 
-<p-dialog [header]="('Rate ' | t) + (coach()?.firstName ?? '')" [(visible)]="rateVisible" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="('Rate ' | t) + (coach()?.firstName ?? '')" [(visible)]="rateVisible" width="32rem" tone="edit" icon="star">
   <div class="space-y-4">
     @if (rateGyms().length > 1) {
       <div class="field"><label>{{ 'At gym' | t }}</label>
@@ -30,14 +30,12 @@
     </div>
     <div class="field"><label>{{ 'Comment' | t }}</label><textarea pTextarea rows="4" [(ngModel)]="form.comment" [placeholder]="'How was your experience?' | t"></textarea></div>
   </div>
-  <ng-template #footer>
-    @if (existing()) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()">{{ 'Delete' | t }}</button> }
-    <button pButton type="button" [text]="true" severity="secondary" (click)="rateVisible = false">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="submit()" [disabled]="!form.rating || !form.gymId">{{ 'Submit' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer>@if (existing()) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()">{{ 'Delete' | t }}</button> }
+    <button pButton type="button" [text]="true" severity="secondary" (click)="rateVisible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="submit()" [disabled]="!form.rating || !form.gymId">{{ 'Submit' | t }}</button></div>
+</app-modal>
 
-<p-dialog [header]="('Reviews · ' | t) + (coach()?.firstName ?? '')" [(visible)]="reviewsVisible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="('Reviews · ' | t) + (coach()?.firstName ?? '')" [(visible)]="reviewsVisible" width="40rem" tone="info" icon="star">
   <div class="space-y-3">
     @for (r of coachReviews(); track r.id) {
       <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800">
@@ -47,10 +45,10 @@
       </div>
     } @empty { <p class="muted text-center py-6">{{ 'No reviews yet — be the first!' | t }}</p> }
   </div>
-</p-dialog>
+</app-modal>
 
 <!-- report a coach -->
-<p-dialog [header]="'Report a coach' | t" [visible]="!!reporting()" (visibleChange)="closeReport($event)" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Report a coach' | t" [visible]="!!reporting()" (visibleChange)="closeReport($event)" width="34rem" tone="danger" icon="flag">
   @if (reporting(); as c) {
     <div class="space-y-4">
       <p class="text-sm muted">{{ 'Your report about {name} is sent to the gym and to the Liftly team. The coach does not see who reported them.' | t: { name: c.firstName + ' ' + c.lastName } }}</p>
@@ -71,8 +69,6 @@
       </div>
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="reporting.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" severity="danger" (click)="sendReport()" [disabled]="!reportValid()">{{ 'Send report' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="reporting.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" severity="danger" (click)="sendReport()" [disabled]="!reportValid()">{{ 'Send report' | t }}</button></div>
+</app-modal>

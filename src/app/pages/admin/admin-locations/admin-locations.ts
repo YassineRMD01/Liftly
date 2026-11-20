@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputText } from 'primeng/inputtext';
 import { AuthService } from '../../../core/auth.service';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
@@ -14,7 +14,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Branches of a multi-site gym. Classes and check-ins can be tied to a location. */
 @Component({
   selector: 'app-admin-locations',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputText, PageHeader],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputText, PageHeader],
   templateUrl: './admin-locations.html',
   styleUrl: './admin-locations.css',
 })

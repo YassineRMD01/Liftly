@@ -18,7 +18,7 @@
 </div>
 
 <!-- add coach -->
-<p-dialog [header]="'Add a coach' | t" [(visible)]="addVisible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Add a coach' | t" [(visible)]="addVisible" width="40rem" tone="primary" icon="user-tie">
   <p-selectbutton [options]="modes" optionLabel="label" optionValue="value" [(ngModel)]="mode" [allowEmpty]="false" class="mb-4" />
   @if (limitReached()) { <p-message severity="warn" class="mb-3">{{ 'Coach limit of your plan reached — upgrade in Billing.' | t }}</p-message> }
   @if (mode === 'network') {
@@ -44,10 +44,10 @@
     <p class="text-xs muted mt-2">{{ 'The coach gets an invitation link to activate the account.' | t }}</p>
     <div class="flex justify-end mt-4"><button pButton type="button" (click)="createAndLink()" [disabled]="limitReached()">{{ 'Invite & link' | t }}</button></div>
   }
-</p-dialog>
+</app-modal>
 
 <!-- reviews -->
-<p-dialog [header]="('Reviews · ' | t) + (reviewCoach()?.firstName ?? '')" [(visible)]="reviewsVisible" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="('Reviews · ' | t) + (reviewCoach()?.firstName ?? '')" [(visible)]="reviewsVisible" width="40rem" tone="info" icon="star">
   <div class="space-y-4">
     @for (r of reviews(); track r.id) {
       <div class="p-4 rounded-xl bg-surface-50 dark:bg-surface-800">
@@ -60,6 +60,6 @@
       </div>
     } @empty { <p class="muted text-center py-6">{{ 'No reviews yet.' | t }}</p> }
   </div>
-</p-dialog>
+</app-modal>
 
 <app-invite-dialog />

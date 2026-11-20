@@ -1,4 +1,4 @@
-<p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [closable]="false" [dismissableMask]="true" [draggable]="false"
+<p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [closable]="true" [closeOnEscape]="true" [dismissableMask]="true" [draggable]="false"
   [style]="{ width: '95rem' }" [breakpoints]="{ '1400px': '96vw' }"
   styleClass="!rounded-3xl !border-0 !max-h-[96vh] overflow-hidden">
   <ng-template #headless>
@@ -97,7 +97,7 @@
 </p-dialog>
 
 <!-- add / edit payment -->
-<p-dialog [visible]="editVisible()" (visibleChange)="editVisible.set($event)" [modal]="true" [closable]="false" [dismissableMask]="true" [draggable]="false"
+<p-dialog [visible]="editVisible()" (visibleChange)="editVisible.set($event)" [modal]="true" [closable]="true" [closeOnEscape]="true" [dismissableMask]="true" [draggable]="false"
   [style]="{ width: '26rem' }" [breakpoints]="{ '640px': '92vw' }" styleClass="!rounded-3xl !border-0">
   <ng-template #headless>
     <div class="bg-surface-0 dark:bg-surface-900 rounded-3xl">

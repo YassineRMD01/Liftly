@@ -1,0 +1,19 @@
+<p-dialog [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true" [closable]="true" [closeOnEscape]="true" [dismissableMask]="dismissable()" [draggable]="false"
+  [style]="style()" [breakpoints]="{ '640px': '94vw' }" styleClass="app-modal !rounded-3xl !border-0 overflow-hidden">
+  <ng-template #headless>
+    <div class="flex flex-col max-h-[92vh] bg-surface-0 dark:bg-surface-900 rounded-3xl" role="dialog" [attr.aria-label]="header()">
+      <div class="m-2 rounded-2xl px-4 py-3 bg-gradient-to-br flex items-center gap-3 shrink-0" [class]="toneClass()" data-testid="modal-header">
+        <fa-icon [icon]="icon()" class="text-lg" />
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold leading-tight truncate">{{ header() }}</div>
+          @if (subtitle()) { <div class="text-xs opacity-80 truncate">{{ subtitle() }}</div> }
+        </div>
+        <button type="button" (click)="visible.set(false)" class="w-8 h-8 shrink-0 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer" [attr.aria-label]="'Close' | t" data-testid="modal-close"><fa-icon icon="xmark" /></button>
+      </div>
+      <div class="px-5 pt-2 pb-5 overflow-y-auto min-h-0">
+        <ng-content />
+      </div>
+      <div class="modal-footer empty:hidden flex flex-wrap justify-center gap-2 px-5 pb-5 shrink-0"><ng-content select="[modal-footer]" /></div>
+    </div>
+  </ng-template>
+</p-dialog>

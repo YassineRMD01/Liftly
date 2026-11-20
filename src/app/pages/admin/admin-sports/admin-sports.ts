@@ -4,7 +4,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 import { AuthService } from '../../../core/auth.service';
@@ -17,7 +17,7 @@ import { SportDialog } from '../../../shared/sport-dialog/sport-dialog';
 /** Gym admin: the sports / activities the gym offers (from the catalog or custom). */
 @Component({
   selector: 'app-admin-sports',
-  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputText, Tag, PageHeader, SportDialog],
+  imports: [TranslatePipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputText, Tag, PageHeader, SportDialog],
   templateUrl: './admin-sports.html',
   styleUrl: './admin-sports.css',
 })

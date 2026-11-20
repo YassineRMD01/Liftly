@@ -1,5 +1,4 @@
-<p-dialog [header]="(draft().id ? 'Edit sport' : 'New sport') | t" [visible]="visible()" (visibleChange)="visible.set($event)" [modal]="true"
-  [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="(draft().id ? 'Edit sport' : 'New sport') | t" [visible]="visible()" (visibleChange)="visible.set($event)" width="30rem" [tone]="draft().id ? 'edit' : 'primary'" [icon]="draft().id ? 'pen' : 'medal'">
   <div class="space-y-4">
     <div class="field">
       <label for="sport-name">{{ 'Name' | t }}</label>
@@ -18,8 +17,6 @@
       </div>
     </div>
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()" [disabled]="!valid()">{{ 'Save' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!valid()">{{ 'Save' | t }}</button></div>
+</app-modal>

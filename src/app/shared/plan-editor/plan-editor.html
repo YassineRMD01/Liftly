@@ -1,4 +1,4 @@
-<p-dialog [header]="(plan()?.id ? 'Edit plan' : 'New plan') | t" [visible]="!!plan()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '768px': '96vw' }">
+<app-modal [header]="(plan()?.id ? 'Edit plan' : 'New plan') | t" [visible]="!!plan()" (visibleChange)="close($event)" width="46rem" [tone]="plan()?.id ? 'edit' : 'primary'" [icon]="plan()?.id ? 'pen' : 'clipboard-list'">
   @if (plan(); as p) {
     <div class="space-y-4">
       <div class="flex flex-wrap gap-3">
@@ -25,8 +25,6 @@
       </div>
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="plan.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()">{{ 'Save and notify' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="plan.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save and notify' | t }}</button></div>
+</app-modal>

@@ -88,7 +88,7 @@
   </div>
 
   <!-- slot dialog -->
-  <p-dialog [header]="draft.id ? ('Edit time slot' | t) : ('New time slot' | t)" [(visible)]="slotVisible" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <app-modal [header]="draft.id ? ('Edit time slot' | t) : ('New time slot' | t)" [(visible)]="slotVisible" width="34rem" [tone]="draft.id ? 'edit' : 'primary'" [icon]="draft.id ? 'pen' : 'clock'">
     <div class="space-y-4">
       <div class="field">
         <label>{{ draft.id ? ('Day' | t) : ('Days' | t) }}</label>
@@ -127,14 +127,12 @@
       @if (error()) { <p-message severity="error">{{ error() }}</p-message> }
       <p class="text-xs muted">{{ 'Men-only and women-only sessions may run at the same time (separate areas). Any other overlap on the same area is refused.' | t }}</p>
     </div>
-    <ng-template #footer>
-      <button pButton type="button" [text]="true" severity="secondary" (click)="slotVisible = false">{{ 'Cancel' | t }}</button>
-      <button pButton type="button" (click)="saveSlot()">{{ 'Save' | t }}</button>
-    </ng-template>
-  </p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="slotVisible.set(false)">{{ 'Cancel' | t }}</button>
+      <button pButton type="button" (click)="saveSlot()">{{ 'Save' | t }}</button></div>
+  </app-modal>
 
   <!-- copy dialog -->
-  <p-dialog [header]="('Copy ' | t) + (copyFrom() !== null ? dayLabel[copyFrom()!] : '') + ' to…'" [(visible)]="copyVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+  <app-modal [header]="('Copy ' | t) + (copyFrom() !== null ? dayLabel[copyFrom()!] : '') + ' to…'" [(visible)]="copyVisible" width="28rem" tone="primary" icon="copy">
     <div class="flex flex-wrap gap-1.5">
       @for (d of weekOrder; track d) {
         @if (d !== copyFrom()) {
@@ -144,9 +142,7 @@
       }
     </div>
     <p class="text-xs muted mt-3">{{ 'The selected days\' current slots are replaced.' | t }}</p>
-    <ng-template #footer>
-      <button pButton type="button" [text]="true" severity="secondary" (click)="copyVisible = false">{{ 'Cancel' | t }}</button>
-      <button pButton type="button" (click)="copy()" [disabled]="!copyTo.length">{{ 'Copy' | t }}</button>
-    </ng-template>
-  </p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="copyVisible.set(false)">{{ 'Cancel' | t }}</button>
+      <button pButton type="button" (click)="copy()" [disabled]="!copyTo.length">{{ 'Copy' | t }}</button></div>
+  </app-modal>
 }

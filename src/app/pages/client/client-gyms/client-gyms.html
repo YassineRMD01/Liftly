@@ -39,7 +39,7 @@
   } @empty { <p class="muted">{{ 'No gyms match your search.' | t }}</p> }
 </div>
 
-<p-dialog [header]="gym()?.name ?? ''" [(visible)]="visible" [modal]="true" [style]="{ width: '64rem' }" [breakpoints]="{ '1100px': '95vw' }" (onHide)="theme.preview.set(null)">
+<app-modal [header]="gym()?.name ?? ''" [(visible)]="visible" (onHide)="theme.preview.set(null)" width="64rem" tone="primary" icon="dumbbell">
   @if (gym(); as g) {
     <div class="space-y-6">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -101,4 +101,4 @@
       </div>
     </div>
   }
-</p-dialog>
+</app-modal>

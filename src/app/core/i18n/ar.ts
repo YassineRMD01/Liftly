@@ -1308,4 +1308,5 @@ export const AR: Record<string, string> = {
   "Amounts in another currency are converted to {currency} with the platform exchange rates; the original amount is shown below.": "تُحوَّل المبالغ بعملة أخرى إلى {currency} بأسعار صرف المنصة؛ ويظهر المبلغ الأصلي تحتها.",
   "Coach pay is in the gym currency ({currency}).": "أجور المدربين بعملة القاعة ({currency}).",
   "Liftly revenue from gym subscriptions, platform costs and VAT.": "إيرادات Liftly من اشتراكات القاعات وتكاليف المنصة والضريبة.",
+  "Please confirm": "يرجى التأكيد",
 };

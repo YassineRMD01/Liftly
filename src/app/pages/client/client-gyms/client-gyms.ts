@@ -5,7 +5,7 @@ import { MoneyPipe } from '../../../core/currency';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
@@ -29,7 +29,7 @@ import { Stars } from '../../../shared/stars/stars';
  */
 @Component({
   selector: 'app-client-gyms',
-  imports: [GymLogo, TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
+  imports: [GymLogo, TranslatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, IconField, InputIcon, InputText, Message, Select, Tag, PageHeader, Stars, OpenStatusBadge, WeekCalendar, WeekSchedule],
   templateUrl: './client-gyms.html',
   styleUrl: './client-gyms.css',
 })
@@ -37,7 +37,7 @@ export class ClientGyms {
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly theme = inject(ThemeService);
-  protected visible = false;
+  protected readonly visible = signal(false);
   protected readonly q = signal('');
   protected readonly sport = signal<string | null>(null);
   protected readonly gym = signal<Gym | null>(null);
@@ -70,6 +70,6 @@ export class ClientGyms {
   open(g: Gym) {
     this.gym.set(g);
     this.theme.preview.set(g.theme); // show the gym's own brand while viewing it
-    this.visible = true;
+    this.visible.set(true);
   }
 }

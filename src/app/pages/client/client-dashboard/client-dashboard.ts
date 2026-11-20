@@ -15,7 +15,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 import { OpenStatusBadge } from '../../../shared/open-status/open-status';
 import { WeekCalendar } from '../../../shared/week-calendar/week-calendar';
 import { PaymentCalendar } from '../../../shared/payment-calendar/payment-calendar';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { FormsModule } from '@angular/forms';
 import { Rating } from 'primeng/rating';
 import { Textarea } from 'primeng/textarea';
@@ -25,7 +25,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Dialog],
+  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Modal],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })
@@ -34,7 +34,7 @@ export class ClientDashboard {
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
   protected readonly payments = viewChild(PaymentCalendar);
-  protected scheduleVisible = false;
+  protected readonly scheduleVisible = signal(false);
   protected readonly scheduleGym = signal<string | null>(null);
 
   // ---------- rate a gym ----------
@@ -64,7 +64,7 @@ export class ClientDashboard {
 
   showSchedule(gymId: string) {
     this.scheduleGym.set(gymId);
-    this.scheduleVisible = true;
+    this.scheduleVisible.set(true);
   }
   private readonly mine = computed(() => this.store.membershipsOfClient((this.auth.user()?.id ?? '')));
   protected readonly active = computed(() => this.mine().filter((m) => m.status === 'ACTIVE'));

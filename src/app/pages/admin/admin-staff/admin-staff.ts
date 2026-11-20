@@ -1,10 +1,10 @@
-import { Component, computed, inject, viewChild } from '@angular/core';
+import { Component, computed, inject, viewChild, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputText } from 'primeng/inputtext';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from '../../../core/auth.service';
@@ -17,7 +17,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 /** Front-desk staff (receptionists): check members in and manage class rosters, no billing or settings. */
 @Component({
   selector: 'app-admin-staff',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputText, Tooltip, PageHeader, InviteDialog],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputText, Tooltip, PageHeader, InviteDialog],
   templateUrl: './admin-staff.html',
   styleUrl: './admin-staff.css',
 })
@@ -28,13 +28,13 @@ export class AdminStaff {
   private readonly confirm = inject(ConfirmationService);
   private readonly gymId = computed(() => this.auth.activeGym()?.id ?? '');
   protected readonly staff = computed(() => this.store.staffOfGym(this.gymId()));
-  protected addVisible = false;
+  protected readonly addVisible = signal(false);
   protected readonly inviteDialog = viewChild.required(InviteDialog);
   protected form = { firstName: '', lastName: '', email: '' };
 
   since(u: User) { return this.store.staff().find((s) => s.gymId === this.gymId() && s.userId === u.id)?.since; }
 
-  openAdd() { this.form = { firstName: '', lastName: '', email: '' }; this.addVisible = true; }
+  openAdd() { this.form = { firstName: '', lastName: '', email: '' }; this.addVisible.set(true); }
 
   add() {
     const { firstName, lastName, email } = this.form;
@@ -46,7 +46,7 @@ export class AdminStaff {
     }
     const u = existing ?? this.store.addUser({ role: 'STAFF', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim() });
     this.store.linkStaff(this.gymId(), u.id);
-    this.addVisible = false;
+    this.addVisible.set(false);
     this.toast.add({ severity: 'success', summary: t('Staff member added') });
     if (!existing) this.inviteDialog().open(u);
   }

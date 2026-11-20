@@ -8,7 +8,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { InputNumber } from 'primeng/inputnumber';
@@ -28,7 +28,7 @@ type PromoState = { label: string; sev: 'success' | 'warn' | 'danger' | 'seconda
 
 @Component({
   selector: 'app-admin-promos',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, DatePicker, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText, Select, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, DatePicker, Modal, InputGroup, InputGroupAddon, InputNumber, InputText, Select, ProgressBar, SelectButton, TableModule, Tag, ToggleSwitch, Tooltip, PageHeader],
   templateUrl: './admin-promos.html',
   styleUrl: './admin-promos.css',
 })
@@ -37,7 +37,7 @@ export class AdminPromos {
   private readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-  protected visible = false;
+  protected readonly visible = signal(false);
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected range: Date[] | null = null;
   protected readonly draft = signal<PromoCode>(this.empty());
@@ -68,7 +68,7 @@ export class AdminPromos {
     const d = p ? structuredClone(p) : this.empty();
     this.draft.set(d);
     this.range = [new Date(d.validFrom), new Date(d.validUntil)];
-    this.visible = true;
+    this.visible.set(true);
   }
 
   generate() {
@@ -88,7 +88,7 @@ export class AdminPromos {
     const end = to ?? from;
     if (end) end.setHours(23, 59, 59);
     this.store.savePromo({ ...d, validFrom: (from ?? new Date()).toISOString(), validUntil: (end ?? new Date()).toISOString() });
-    this.visible = false;
+    this.visible.set(false);
     this.toast.add({ severity: 'success', summary: t('Promo code saved'), detail: code });
   }
 

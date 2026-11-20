@@ -186,5 +186,22 @@ and replace `AuthService.login` with your JWT flow. Payment in sign-up/billing i
 - **Colours:** `shared/color-field` wraps the composable `p-inputcolor` (area, hue slider, swatch, hex input) in a popover (`<p-colorpicker>` is deprecated).
 - **Charts:** `p-chart` is deprecated, so `shared/chart-card` uses **Chart.js directly** on a `<canvas>`. It registers only the bar and line pieces it needs (tree-shaken), updates the chart in place when data, theme or language change, and destroys it when the card goes away.
 
+### Dialogs
+Every dialog uses `shared/modal` (`<app-modal>`), which has the same design as the payment calendar:
+- a rounded card with a gradient header bar holding an icon, title, optional subtitle and a round close button;
+- a padded body;
+- centred pill buttons in the `modal-footer` slot.
+
+The `tone` sets the header colour: `primary` for create or neutral, `edit` (amber), `success`, `danger` and `info`. Visibility is a two-way signal (`model()`); all dialog state lives in signals. Escape and a click outside close a dialog. The global confirmation dialog (`app.html`) uses the same headless look and turns red for destructive actions (`acceptButtonStyleClass: 'p-button-danger'`).
+```html
+<app-modal [(visible)]="open" [header]="'Add staff member' | t" icon="id-badge" tone="primary" width="28rem">
+  …form…
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="open.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>
+```
+
 ### Icons
 Font Awesome icons are registered in `core/icons.ts` (tree-shaken). Add new ones there before using `<fa-icon icon="name" />`.

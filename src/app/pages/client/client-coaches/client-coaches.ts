@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { Rating } from 'primeng/rating';
 import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
@@ -20,7 +20,7 @@ import { Stars } from '../../../shared/stars/stars';
 
 @Component({
   selector: 'app-client-coaches',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, Modal, Rating, Select, SelectButton, Textarea, CoachCard, PageHeader, Stars],
   templateUrl: './client-coaches.html',
   styleUrl: './client-coaches.css',
 })
@@ -29,8 +29,8 @@ export class ClientCoaches {
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirmSvc = inject(ConfirmationService);
-  protected rateVisible = false;
-  protected reviewsVisible = false;
+  protected readonly rateVisible = signal(false);
+  protected readonly reviewsVisible = signal(false);
   protected readonly scope = signal<'mine' | 'all'>('mine');
   protected readonly scopes = [{ label: t('My gyms'), value: 'mine' }, { label: t('All coaches'), value: 'all' }];
   protected readonly coach = signal<User | null>(null);
@@ -83,7 +83,7 @@ export class ClientCoaches {
     const mine = this.myReview(c);
     this.form = { gymId: mine?.gymId ?? this.rateGyms()[0]?.id ?? '', rating: 0, comment: '' };
     this.prefill();
-    this.rateVisible = true;
+    this.rateVisible.set(true);
   }
 
   prefill() {
@@ -93,11 +93,11 @@ export class ClientCoaches {
     this.form.comment = r?.comment ?? '';
   }
 
-  openReviews(c: User) { this.coach.set(c); this.reviewsVisible = true; }
+  openReviews(c: User) { this.coach.set(c); this.reviewsVisible.set(true); }
 
   submit() {
     this.store.saveReview({ coachId: this.coach()!.id, clientId: this.me(), gymId: this.form.gymId, rating: this.form.rating, comment: this.form.comment.trim() });
-    this.rateVisible = false;
+    this.rateVisible.set(false);
     this.toast.add({ severity: 'success', summary: t('Thanks for your review!') });
   }
 
@@ -106,7 +106,7 @@ export class ClientCoaches {
     if (!r) return;
     this.confirmSvc.confirm({
       header: t('Delete review'), message: t('Delete your review?'), acceptButtonStyleClass: 'p-button-danger',
-      accept: () => { this.store.deleteReview(r.id); this.rateVisible = false; this.toast.add({ severity: 'info', summary: t('Review deleted') }); },
+      accept: () => { this.store.deleteReview(r.id); this.rateVisible.set(false); this.toast.add({ severity: 'info', summary: t('Review deleted') }); },
     });
   }
 }

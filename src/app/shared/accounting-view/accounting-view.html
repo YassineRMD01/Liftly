@@ -76,7 +76,7 @@
   }
 </div>
 
-<p-dialog [header]="(editing()?.id ? 'Edit expense' : 'Add expense') | t" [visible]="!!editing()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="(editing()?.id ? 'Edit expense' : 'Add expense') | t" [visible]="!!editing()" (visibleChange)="close($event)" width="32rem" [tone]="editing()?.id ? 'edit' : 'primary'" [icon]="editing()?.id ? 'pen' : 'receipt'">
   @if (editing(); as e) {
     <div class="grid sm:grid-cols-2 gap-4">
       <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><input pInputText [(ngModel)]="e.label" [placeholder]="'e.g. Rent for March' | t" data-testid="expense-label" /></div>
@@ -90,8 +90,6 @@
       }
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button></div>
+</app-modal>

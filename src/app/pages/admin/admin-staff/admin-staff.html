@@ -14,7 +14,7 @@
   } @empty { <p class="text-center muted py-10">{{ 'No staff members yet.' | t }}</p> }
 </div>
 
-<p-dialog [header]="'Add staff member' | t" [(visible)]="addVisible" [modal]="true" [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Add staff member' | t" [(visible)]="addVisible" width="28rem" tone="primary" icon="id-badge">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-3">
       <div class="field"><label>{{ 'First name' | t }}</label><input pInputText [(ngModel)]="form.firstName" /></div>
@@ -22,10 +22,8 @@
     </div>
     <div class="field"><label>{{ 'Email' | t }}</label><input pInputText type="email" [(ngModel)]="form.email" /></div>
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="addVisible = false">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="add()">{{ 'Add' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="addVisible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="add()">{{ 'Add' | t }}</button></div>
+</app-modal>
 
 <app-invite-dialog />

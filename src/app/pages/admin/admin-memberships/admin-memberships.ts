@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -20,7 +20,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-admin-memberships',
-  imports: [TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './admin-memberships.html',
   styleUrl: './admin-memberships.css',
 })
@@ -29,7 +29,7 @@ export class AdminMemberships {
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-  protected visible = false;
+  protected readonly visible = signal(false);
   /** Active currencies (managed by the super-admin). */
   protected readonly currencies = inject(StoreService).currencyOptions;
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
@@ -40,10 +40,10 @@ export class AdminMemberships {
     return { id: '', gymId: this.auth.activeGym()?.id ?? '', name: '', description: '', price: 50, currency: this.auth.activeGym()?.currency, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true };
   }
   subscribers(planId: string) { return this.store.memberships().filter((m) => m.planId === planId && m.status === 'ACTIVE').length; }
-  edit(p?: MembershipPlan) { this.draft.set(p ? structuredClone(p) : this.empty()); this.visible = true; }
+  edit(p?: MembershipPlan) { this.draft.set(p ? structuredClone(p) : this.empty()); this.visible.set(true); }
   save() {
     this.store.saveMembershipPlan(this.draft());
-    this.visible = false;
+    this.visible.set(false);
     this.toast.add({ severity: 'success', summary: t('Plan saved'), detail: this.draft().name });
   }
   remove(p: MembershipPlan) {

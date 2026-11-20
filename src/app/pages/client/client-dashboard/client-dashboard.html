@@ -41,13 +41,12 @@
 
 <app-payment-calendar />
 
-<p-dialog [header]="('Weekly schedule · ' | t) + (store.gym(scheduleGym() ?? undefined)?.name ?? '')" [(visible)]="scheduleVisible" [modal]="true"
-  [style]="{ width: '68rem' }" [breakpoints]="{ '1200px': '95vw' }">
+<app-modal [header]="('Weekly schedule · ' | t) + (store.gym(scheduleGym() ?? undefined)?.name ?? '')" [(visible)]="scheduleVisible" width="68rem" tone="primary" icon="calendar-week">
   @if (scheduleGym(); as gid) {
     <div class="mb-3"><app-open-status [gymId]="gid" [gender]="auth.user()?.gender" /></div>
     <app-week-calendar [gymId]="gid" [gender]="auth.user()?.gender" />
   }
-</p-dialog>
+</app-modal>
 
 @if (past().length) {
   <h2 class="font-semibold text-lg mt-8 mb-3">{{ 'History' | t }}</h2>
@@ -63,7 +62,7 @@
 }
 
 <!-- rate a gym -->
-<p-dialog [header]="('Rate' | t) + ' ' + (store.gym(ratingGym() ?? undefined)?.name ?? '')" [visible]="!!ratingGym()" (visibleChange)="closeRate($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="('Rate' | t) + ' ' + (store.gym(ratingGym() ?? undefined)?.name ?? '')" [visible]="!!ratingGym()" (visibleChange)="closeRate($event)" width="30rem" tone="edit" icon="star">
   <div class="space-y-4">
     <div class="flex flex-col items-center gap-2 py-2">
       <p-rating [(ngModel)]="gymForm.rating" [stars]="5" class="text-3xl" />
@@ -74,9 +73,7 @@
       <textarea pTextarea id="gym-review" rows="4" [(ngModel)]="gymForm.comment" [placeholder]="'Equipment, cleanliness, atmosphere, schedule…' | t"></textarea>
     </div>
   </div>
-  <ng-template #footer>
-    @if (myGymReview(ratingGym() ?? '')) { <button pButton type="button" severity="danger" [text]="true" (click)="deleteGymReview()">{{ 'Delete' | t }}</button> }
+  <div modal-footer>@if (myGymReview(ratingGym() ?? '')) { <button pButton type="button" severity="danger" [text]="true" (click)="deleteGymReview()">{{ 'Delete' | t }}</button> }
     <button pButton type="button" [text]="true" severity="secondary" (click)="ratingGym.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="saveGymReview()" [disabled]="!gymForm.rating">{{ 'Submit' | t }}</button>
-  </ng-template>
-</p-dialog>
+    <button pButton type="button" (click)="saveGymReview()" [disabled]="!gymForm.rating">{{ 'Submit' | t }}</button></div>
+</app-modal>

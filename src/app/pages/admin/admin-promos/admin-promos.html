@@ -31,7 +31,7 @@
   </p-table>
 </div>
 
-<p-dialog [header]="draft().id ? ('Edit promo code' | t) : ('New promo code' | t)" [(visible)]="visible" [modal]="true" [style]="{ width: '38rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="draft().id ? ('Edit promo code' | t) : ('New promo code' | t)" [(visible)]="visible" width="38rem" [tone]="draft().id ? 'edit' : 'primary'" [icon]="draft().id ? 'pen' : 'ticket'">
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="field sm:col-span-2">
       <label>{{ 'Code' | t }}</label>
@@ -65,8 +65,6 @@
     </div>
     <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().active" /> {{ 'Active' | t }}</label>
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="visible = false">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="save()" [disabled]="!draft().code || !draft().value">{{ 'Save' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="visible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" [disabled]="!draft().code || !draft().value">{{ 'Save' | t }}</button></div>
+</app-modal>

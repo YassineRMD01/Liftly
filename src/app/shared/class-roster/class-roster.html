@@ -1,4 +1,4 @@
-<p-dialog [header]="current()?.cls?.name ?? ''" [visible]="!!current()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="current()?.cls?.name ?? ''" [visible]="!!current()" (visibleChange)="close($event)" width="34rem" tone="info" icon="users">
   @if (current(); as c) {
     <div class="text-sm muted mb-4">{{ c.date | date: 'EEEE d MMMM' }} · <span dir="ltr">{{ c.cls.start }}–{{ c.cls.end }}</span> · {{ booked().length }}/{{ c.cls.capacity }}</div>
     <h3 class="text-sm font-semibold mb-2">{{ 'Booked' | t }}</h3>
@@ -24,4 +24,4 @@
       } @empty { <p class="text-sm muted py-2">{{ 'Nobody waiting.' | t }}</p> }
     </div>
   }
-</p-dialog>
+</app-modal>

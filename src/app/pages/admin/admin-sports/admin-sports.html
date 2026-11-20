@@ -28,7 +28,7 @@
   }
 </div>
 
-<p-dialog [header]="'Add from catalog' | t" [visible]="catalogVisible()" (visibleChange)="catalogVisible.set($event)" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'Add from catalog' | t" [visible]="catalogVisible()" (visibleChange)="catalogVisible.set($event)" width="40rem" tone="primary" icon="medal">
   <input pInputText class="w-full mb-3" [placeholder]="'Search sports' | t" [ngModel]="q()" (ngModelChange)="q.set($event)" />
   <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
     @for (s of addable(); track s.id) {
@@ -40,10 +40,8 @@
       </button>
     } @empty { <p class="muted text-sm col-span-3 text-center py-6">{{ 'Your gym already offers every catalog sport.' | t }}</p> }
   </div>
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="catalogVisible.set(false)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="addPicked()" [disabled]="!picked().length">{{ 'Add' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="catalogVisible.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="addPicked()" [disabled]="!picked().length">{{ 'Add' | t }}</button></div>
+</app-modal>
 
 <app-sport-dialog (saved)="onSaved($event)" />

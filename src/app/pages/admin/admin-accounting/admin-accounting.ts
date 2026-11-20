@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { SelectButton } from 'primeng/selectbutton';
@@ -22,7 +22,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Gym accounting: the books (payments, expenses, coach pay, Liftly invoices, VAT) and paying coaches. */
 @Component({
   selector: 'app-admin-accounting',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Dialog, InputNumber, InputText, SelectButton, Tag, Tooltip, AccountingView, PageHeader],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, SelectButton, Tag, Tooltip, AccountingView, PageHeader],
   templateUrl: './admin-accounting.html',
   styleUrl: './admin-accounting.css',
 })

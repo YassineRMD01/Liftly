@@ -85,7 +85,7 @@
 </div>
 
 <!-- details -->
-<p-dialog [header]="selected()?.title ?? ''" [visible]="!!selected()" (visibleChange)="closeDetails($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="selected()?.title ?? ''" [visible]="!!selected()" (visibleChange)="closeDetails($event)" width="30rem" tone="primary" [icon]="selected()?.kind === 'CLASS' ? 'calendar-check' : 'handshake'">
   @if (selected(); as i) {
     <div class="space-y-3 text-sm">
       <div class="flex flex-wrap items-center gap-2">
@@ -127,10 +127,10 @@
       }
     </div>
   }
-</p-dialog>
+</app-modal>
 
 <!-- new private lesson -->
-<p-dialog [header]="'New private lesson' | t" [visible]="!!creating()" (visibleChange)="closeCreate($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+<app-modal [header]="'New private lesson' | t" [visible]="!!creating()" (visibleChange)="closeCreate($event)" width="30rem" tone="primary" icon="handshake">
   @if (creating(); as c) {
     <div class="grid grid-cols-2 gap-3">
       <div class="field col-span-2"><label>{{ 'Member' | t }}</label>
@@ -144,8 +144,6 @@
       <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [ngModel]="c.note" (ngModelChange)="patch({ note: $event })" /></div>
     </div>
   }
-  <ng-template #footer>
-    <button pButton type="button" [text]="true" severity="secondary" (click)="creating.set(null)">{{ 'Cancel' | t }}</button>
-    <button pButton type="button" (click)="createLesson()" data-testid="lesson-save">{{ 'Book lesson' | t }}</button>
-  </ng-template>
-</p-dialog>
+  <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="creating.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="createLesson()" data-testid="lesson-save">{{ 'Book lesson' | t }}</button></div>
+</app-modal>

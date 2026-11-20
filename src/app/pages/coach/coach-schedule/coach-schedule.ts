@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -26,7 +26,7 @@ const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${St
 /** Coach week planner: classes taught at every gym, private sessions and availability, with booking. */
 @Component({
   selector: 'app-coach-schedule',
-  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, Dialog, InputNumber, InputText, Select, SelectButton, Tag, PageHeader],
+  imports: [TranslatePipe, DatePipe, MoneyPipe, FormsModule, RouterLink, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Select, SelectButton, Tag, PageHeader],
   templateUrl: './coach-schedule.html',
   styleUrl: './coach-schedule.css',
 })

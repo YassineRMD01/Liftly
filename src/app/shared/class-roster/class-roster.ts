@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../modal/modal';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { TranslatePipe, t } from '../../core/i18n/i18n';
@@ -13,7 +13,7 @@ import { StoreService } from '../../core/store.service';
 /** Roster of one class occurrence: booked members and the waitlist, with attendance actions. */
 @Component({
   selector: 'app-class-roster',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, Dialog, Tag, Tooltip],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, Modal, Tag, Tooltip],
   templateUrl: './class-roster.html',
   styleUrl: './class-roster.css',
 })

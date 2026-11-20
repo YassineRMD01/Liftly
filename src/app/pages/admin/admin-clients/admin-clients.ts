@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
@@ -30,7 +30,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Dialog, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
+  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Modal, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })
@@ -45,7 +45,7 @@ export class AdminClients {
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly payments = viewChild(PaymentCalendar);
   protected readonly invite = viewChild.required(InviteDialog);
-  protected visible = false;
+  protected readonly visible = signal(false);
   protected mode: 'existing' | 'new' = 'existing';
   protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];
   protected readonly modes = [{ label: t('Existing member'), value: 'existing' }, { label: t('New member'), value: 'new' }];
@@ -89,7 +89,7 @@ export class AdminClients {
   open() {
     this.form = { clientId: '', firstName: '', lastName: '', email: '', planId: '', coachId: undefined, promo: '', gender: null };
     this.promoResult.set(null);
-    this.visible = true;
+    this.visible.set(true);
   }
 
   applyPromo() { this.promoResult.set(this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo)); }
@@ -108,7 +108,7 @@ export class AdminClients {
     if (this.store.isBanned(this.gymId(), clientId)) return this.err(t('This client is banned from your gym. Unban them first.'));
     if (this.form.promo && !this.store.checkPromo(this.gymId(), this.form.planId, this.form.promo).ok) return this.err(t('Promo code is not valid.'));
     this.store.subscribeClient({ gymId: this.gymId(), clientId, planId: this.form.planId, coachId: this.form.coachId, promoCode: this.form.promo || undefined });
-    this.visible = false;
+    this.visible.set(false);
     this.toast.add({ severity: 'success', summary: t('Subscription created'), detail: this.store.fullName(clientId) });
     if (created) this.invite().open(this.store.user(clientId)!);
   }

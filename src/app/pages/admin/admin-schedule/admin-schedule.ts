@@ -6,7 +6,7 @@ import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputText } from 'primeng/inputtext';
 import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
@@ -32,7 +32,7 @@ const WEEKEND = [6, 0];
 
 @Component({
   selector: 'app-admin-schedule',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, DatePicker, Dialog, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule, PageHeader],
+  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, DatePicker, Modal, InputText, Menu, Message, Select, SelectButton, Tooltip, AudienceTag, OpenStatusBadge, WeekCalendar, WeekSchedule, PageHeader],
   templateUrl: './admin-schedule.html',
   styleUrl: './admin-schedule.css',
 })
@@ -51,8 +51,8 @@ export class AdminSchedule {
 
   protected readonly view = signal<'calendar' | 'list'>('calendar');
   protected readonly views = [{ label: t('Week calendar'), value: 'calendar', icon: 'calendar-week' }, { label: t('Day list'), value: 'list', icon: 'list' }];
-  protected slotVisible = false;
-  protected copyVisible = false;
+  protected readonly slotVisible = signal(false);
+  protected readonly copyVisible = signal(false);
   protected draft: Draft = this.emptyDraft();
   protected readonly error = signal<string | null>(null);
   protected readonly copyFrom = signal<number | null>(null);
@@ -107,7 +107,7 @@ export class AdminSchedule {
     this.draft = s
       ? { id: s.id, days: [s.day], open: s.open, close: s.close, audience: s.audience, sportId: s.sportId ?? null, note: s.note ?? '' }
       : this.emptyDraft(day);
-    this.slotVisible = true;
+    this.slotVisible.set(true);
   }
 
   toggleDay(d: number) {
@@ -131,7 +131,7 @@ export class AdminSchedule {
     }
     // when editing, the slot keeps its own day; the sport may be removed
     this.store.saveSlots(slots.map((s) => (s.sportId ? s : { ...s, sportId: undefined })));
-    this.slotVisible = false;
+    this.slotVisible.set(false);
     this.toast.add({ severity: 'success', summary: t('Schedule updated'), detail: t('{0} slot{1} saved', { 0: slots.length, 1: slots.length > 1 ? 's' : '' }) });
   }
 
@@ -147,7 +147,7 @@ export class AdminSchedule {
     });
   }
 
-  openCopy(day: number) { this.copyFrom.set(day); this.copyTo = []; this.copyVisible = true; }
+  openCopy(day: number) { this.copyFrom.set(day); this.copyTo = []; this.copyVisible.set(true); }
   toggleCopy(d: number) { this.copyTo = this.copyTo.includes(d) ? this.copyTo.filter((x) => x !== d) : [...this.copyTo, d]; }
 
   copy() {
@@ -155,7 +155,7 @@ export class AdminSchedule {
     const keep = this.slots().filter((s) => !this.copyTo.includes(s.day)).map(({ id, gymId, ...rest }) => rest);
     const copies = this.copyTo.flatMap((day) => from.map(({ id, gymId, ...rest }) => ({ ...rest, day })));
     this.store.replaceSchedule(this.gymId(), [...keep, ...copies]);
-    this.copyVisible = false;
+    this.copyVisible.set(false);
     this.toast.add({ severity: 'success', summary: t('Day copied'), detail: this.copyTo.map((d) => DAY_SHORT[d]).join(', ') });
   }
 

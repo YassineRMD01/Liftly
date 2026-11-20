@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { Modal } from '../../../shared/modal/modal';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -21,7 +21,7 @@ const EMPTY: SaasPlan = { id: '', name: '', description: '', monthlyPrice: 0, ye
 
 @Component({
   selector: 'app-sa-plans',
-  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, ButtonDirective, Dialog, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [Select, TranslatePipe, FormsModule, CurrencyPipe, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './sa-plans.html',
   styleUrl: './sa-plans.css',
 })
@@ -29,7 +29,7 @@ export class SaPlans {
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-  protected visible = false;
+  protected readonly visible = signal(false);
   protected readonly draft = signal<SaasPlan>({ ...EMPTY });
   protected featuresText = '';
 
@@ -64,12 +64,12 @@ export class SaPlans {
   edit(p: SaasPlan = EMPTY) {
     this.draft.set(structuredClone({ ...p, countryPrices: p.countryPrices ?? [] }));
     this.featuresText = p.features.join('\n');
-    this.visible = true;
+    this.visible.set(true);
   }
 
   save() {
     this.store.saveSaasPlan({ ...this.draft(), features: this.featuresText.split('\n').map((f) => f.trim()).filter(Boolean) });
-    this.visible = false;
+    this.visible.set(false);
     this.toast.add({ severity: 'success', summary: t('Plan saved') });
   }
 
