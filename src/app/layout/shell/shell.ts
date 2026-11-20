@@ -4,7 +4,8 @@ import { AppearanceSwitcher } from '../../shared/appearance-switcher/appearance-
 import { GymLogo } from '../../shared/gym-logo/gym-logo';
 import { LanguageSwitcher } from '../../shared/language-switcher/language-switcher';
 import { TranslatePipe, t, CURRENT_LANGUAGE } from '../../core/i18n/i18n';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { CommandPalette } from '../../shared/command-palette/command-palette';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
@@ -101,7 +102,7 @@ const ROLE_LABEL: Record<Role, string> = { SUPER_ADMIN: t('Super admin'), ADMIN:
 
 @Component({
   selector: 'app-shell',
-  imports: [InstallButton, NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, ButtonDirective, Select, Tag, Tooltip],
+  imports: [CommandPalette, InstallButton, NotificationBell, AppearanceSwitcher, GymLogo, LanguageSwitcher, TranslatePipe, RouterOutlet, RouterLink, RouterLinkActive, FormsModule, FaIconComponent, Avatar, ButtonDirective, Select, Tag, Tooltip],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })
@@ -126,5 +127,7 @@ export class Shell {
   /** Liftly team messages for this user (banner). */
   protected readonly banners = computed(() => this.store.platformBannersFor(this.auth.user()?.id ?? ''));
   dismissBanner(id: string) { this.store.dismissPlatformAnnouncement(id, this.auth.user()!.id); }
+  protected readonly palette = viewChild.required(CommandPalette);
+  skip(e: Event) { e.preventDefault(); document.getElementById('main')?.focus(); }
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
 }

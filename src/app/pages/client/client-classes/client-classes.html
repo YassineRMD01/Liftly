@@ -94,7 +94,7 @@
         @else if (b.status === 'ATTENDED') { <p-tag [value]="'Attended' | t" severity="secondary" /> }
         @else { <p-tag [value]="'Booked' | t" severity="success" /> }
         @if (b.status === 'BOOKED') {
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Add to my calendar' | t" (click)="exportCalendar([b])"><fa-icon icon="calendar-plus" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Add to my calendar' | t" [attr.aria-label]="'Add to my calendar' | t" (click)="exportCalendar([b])"><fa-icon icon="calendar-plus" /></button>
         }
         @if (b.status === 'BOOKED' || b.status === 'WAITLIST') {
           <button pButton type="button" size="small" severity="secondary" [text]="true" (click)="cancel(b)">{{ 'Cancel' | t }}</button>

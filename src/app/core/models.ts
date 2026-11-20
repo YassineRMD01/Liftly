@@ -3,6 +3,8 @@ export type Gender = 'MALE' | 'FEMALE';
 
 export interface User {
   id: string;
+  /** notification categories the user muted */
+  notifyOff?: NotifyCategory[];
   role: Role;
   firstName: string;
   lastName: string;
@@ -764,4 +766,19 @@ export interface FreezeRequest {
   status: FreezeRequestStatus;
   createdAt: string;
   handledAt?: string;
+}
+
+export type NotifyCategory = 'BOOKINGS' | 'SESSIONS' | 'MEMBERSHIP' | 'ANNOUNCEMENTS';
+export const NOTIFY_CATEGORIES: { id: NotifyCategory; label: string; hint: string; icon: string }[] = [
+  { id: 'BOOKINGS', label: 'Class bookings', hint: 'Waitlist places and cancelled classes', icon: 'calendar-check' },
+  { id: 'SESSIONS', label: 'Private sessions', hint: 'Requests, confirmations and changes', icon: 'user-clock' },
+  { id: 'MEMBERSHIP', label: 'Membership & payments', hint: 'Renewals, freezes, payments and waivers', icon: 'id-card' },
+  { id: 'ANNOUNCEMENTS', label: 'Announcements', hint: 'News from your gym, the platform and challenges', icon: 'bullhorn' },
+];
+/** Which category a notification title belongs to. */
+export function notifyCategory(title: string): NotifyCategory {
+  if (/^Session|session request/.test(title)) return 'SESSIONS';
+  if (/^(You got a place|Class cancelled)/.test(title)) return 'BOOKINGS';
+  if (/^(Announcement|Liftly:|New challenge)/.test(title)) return 'ANNOUNCEMENTS';
+  return 'MEMBERSHIP';
 }

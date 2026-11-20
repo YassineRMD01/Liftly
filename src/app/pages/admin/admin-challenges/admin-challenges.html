@@ -9,8 +9,8 @@
         <div class="flex-1 min-w-0"><div class="font-semibold">{{ x.c.title }}</div>
           <div class="text-xs muted">{{ x.c.target }} {{ metric[x.c.metric] | t }} · {{ x.c.start | date: 'd MMM' }} → {{ x.c.end | date: 'd MMM' }}@if (x.c.reward) { · {{ x.c.reward }} }</div></div>
         <p-tag [value]="x.status | t" [severity]="sev(x.status)" />
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(x.c)"><fa-icon icon="pen" /></button>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(x.c)"><fa-icon icon="trash" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t" (click)="edit(x.c)"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(x.c)"><fa-icon icon="trash" /></button>
       </div>
       <div class="text-sm"><b>{{ x.board.length }}</b> {{ 'taking part' | t }} · <b>{{ finishers(x) }}</b> {{ 'reached the goal' | t }}</div>
       @for (r of x.board.slice(0, 5); track r.user.id; let i = $index) {

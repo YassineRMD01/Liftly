@@ -8,8 +8,8 @@
       <div class="flex items-start gap-3">
         <span class="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900 text-primary grid place-items-center"><fa-icon icon="location-dot" /></span>
         <div class="flex-1 min-w-0"><div class="font-semibold">{{ l.name }}</div><div class="text-sm muted">{{ l.address }}, {{ l.city }}</div></div>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(l)"><fa-icon icon="pen" /></button>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(l)"><fa-icon icon="trash" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(l)" [attr.aria-label]="'Edit' | t"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(l)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
       </div>
       <div class="flex gap-6 mt-4 text-sm">
         <div><div class="text-xl font-bold">{{ classCount(l.id) }}</div><div class="muted">{{ 'weekly classes' | t }}</div></div>

@@ -55,7 +55,7 @@
               <span class="w-28 muted">{{ s.paid!.at | date: 'd MMM' }}</span><span class="flex-1">{{ store.fullName(s.clientId) }}</span>
               <p-tag [value]="(s.paid!.method === 'CASH' ? 'Cash' : 'Bank transfer') | t" [severity]="s.paid!.method === 'CASH' ? 'secondary' : 'info'" />
               <span class="w-24 text-end tabular-nums">{{ s.price | money: s.currency }}</span>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Undo' | t" (click)="undo(s)"><fa-icon icon="rotate-left" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Undo' | t" [attr.aria-label]="'Undo' | t" (click)="undo(s)"><fa-icon icon="rotate-left" /></button>
             </div>
           }
         }

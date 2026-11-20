@@ -82,6 +82,9 @@ export class ThemeService {
   /** Live operating-system preference. */
   readonly systemDark = signal(this.media?.matches ?? false);
 
+  /** Accessibility: stronger text, borders and focus rings (also follows `prefers-contrast: more`). */
+  readonly highContrast = signal<boolean>(this.readContrast());
+
   readonly dark = computed(() => {
     const resolve = (a: Appearance | undefined) => ((a ?? 'system') === 'system' ? this.systemDark() : a === 'dark');
     // while an admin previews a theme with a forced light/dark mode, show it so they see what members will see
@@ -109,6 +112,11 @@ export class ThemeService {
     effect(() => {
       try { localStorage.setItem(APPEARANCE_KEY, this.userAppearance()); } catch { /* ignore */ }
     });
+    effect(() => {
+      const on = this.highContrast();
+      document.documentElement.classList.toggle('app-hc', on);
+      try { localStorage.setItem('liftly-contrast', on ? '1' : '0'); } catch { /* ignore */ }
+    });
   }
 
   private readChoice(): AppearanceChoice {
@@ -120,5 +128,14 @@ export class ThemeService {
     }
   }
 
+  private readContrast(): boolean {
+    try {
+      const v = localStorage.getItem('liftly-contrast');
+      if (v !== null) return v === '1';
+    } catch { /* ignore */ }
+    return typeof matchMedia === 'function' && matchMedia('(prefers-contrast: more)').matches;
+  }
+
   setAppearance(choice: AppearanceChoice) { this.userAppearance.set(choice); }
+  toggleContrast() { this.highContrast.update((v) => !v); }
 }

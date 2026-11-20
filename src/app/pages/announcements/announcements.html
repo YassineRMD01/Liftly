@@ -26,8 +26,8 @@
           <p class="mt-2 text-sm whitespace-pre-line">{{ a.body }}</p>
         </div>
         @if (isAdmin()) {
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="(a.pinned ? 'Unpin' : 'Pin to top') | t" (click)="store.togglePin(a.id)"><fa-icon icon="thumbtack" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(a)"><fa-icon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="(a.pinned ? 'Unpin' : 'Pin to top') | t" [attr.aria-label]="(a.pinned ? 'Unpin' : 'Pin to top') | t" (click)="store.togglePin(a.id)"><fa-icon icon="thumbtack" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(a)"><fa-icon icon="trash" /></button>
         }
       </div>
     </article>

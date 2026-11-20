@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,7 @@ import { METRIC_LABEL } from '../../client/client-achievements/client-achievemen
   styleUrl: './admin-challenges.css',
 })
 export class AdminChallenges {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -51,7 +53,7 @@ export class AdminChallenges {
     this.editing.set(null);
   }
   remove(c: GymChallenge) {
-    this.confirm.confirm({ header: t('Delete challenge'), message: t('Delete "{0}"?', { 0: c.title }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deleteChallenge(c.id) });
+    this.undo.run(t('Challenge deleted'), ['challenges'], () => this.store.deleteChallenge(c.id), c.title);
   }
   sev(s: string) { return ({ RUNNING: 'success', UPCOMING: 'info', ENDED: 'secondary' } as Record<string, 'success' | 'info' | 'secondary'>)[s]; }
   finishers(x: { c: GymChallenge; board: { value: number }[] }) { return x.board.filter((b) => b.value >= x.c.target).length; }

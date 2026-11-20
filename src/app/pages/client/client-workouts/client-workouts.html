@@ -41,8 +41,8 @@
           @if (w.note) { <div class="text-xs mt-1 italic">“{{ w.note }}”</div> }
         </div>
         <span class="text-sm tabular-nums muted">{{ volume(w) | number: '1.0-0' }} kg</span>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="open(w)"><fa-icon icon="pen" /></button>
-        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(w)"><fa-icon icon="trash" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t" (click)="open(w)"><fa-icon icon="pen" /></button>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(w)"><fa-icon icon="trash" /></button>
       </div>
     } @empty { <p class="text-sm muted py-8 text-center">{{ 'No workouts yet. Log your first one!' | t }}</p> }
   </div>

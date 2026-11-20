@@ -3,6 +3,7 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 import {
   Announcement, AppNotification, AuditEntry, AthleteNote, CoachTimeOff, Exercise, GymModule, PlanTemplate, PlatformAnnouncement, Equipment, Locker, StaffShift, WaiverSignature, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
+  NotifyCategory, notifyCategory,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
@@ -117,6 +118,11 @@ export class StoreService {
     this.state.set(structuredClone(SEED));
   }
 
+  /** Copy of some collections, with a function that puts them back (used by undo). */
+  snapshot(keys: (keyof DbState)[]) {
+    const saved = Object.fromEntries(keys.map((k) => [k, structuredClone(this.state()[k])])) as Partial<DbState>;
+    return () => this.patch(() => structuredClone(saved));
+  }
   private patch(fn: (s: DbState) => Partial<DbState>) {
     this.state.update((s) => ({ ...s, ...fn(s) }));
   }
@@ -702,9 +708,13 @@ export class StoreService {
   /** Send an in-app notification (title/body are English keys translated for the reader). Skipped if `key` was already sent. */
   notify(userId: string, title: string, body: string, params?: Record<string, string | number>, link?: string, key?: string) {
     if (key && this.notifications().some((n) => n.key === key && n.userId === userId)) return false;
+    if (this.user(userId)?.notifyOff?.includes(notifyCategory(title))) return false;
     const n: AppNotification = { id: uid('n'), userId, title, body, ...(params ? { params } : {}), ...(link ? { link } : {}), read: false, createdAt: new Date().toISOString(), ...(key ? { key } : {}) };
     this.patch((s) => ({ notifications: [...s.notifications, n] }));
     return true;
+  }
+  setNotifyOff(userId: string, cat: NotifyCategory, off: boolean) {
+    this.patch((s) => ({ users: s.users.map((u) => u.id !== userId ? u : { ...u, notifyOff: off ? [...new Set([...(u.notifyOff ?? []), cat])] : (u.notifyOff ?? []).filter((c) => c !== cat) }) }));
   }
   markRead(id: string) { this.patch((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) })); }
   markAllRead(userId: string) { this.patch((s) => ({ notifications: s.notifications.map((n) => (n.userId === userId ? { ...n, read: true } : n)) })); }

@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,7 @@ export const LEVEL_ICON: Record<AnnouncementLevel, string> = { INFO: 'circle-inf
   styleUrl: './sa-announcements.css',
 })
 export class SaAnnouncements {
+  private readonly undo = inject(UndoService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
@@ -40,6 +42,6 @@ export class SaAnnouncements {
     this.toast.add({ severity: 'success', summary: t('Announcement sent'), detail: t('{0} people notified', { 0: n }) });
     this.form.set({ title: '', body: '', level: 'INFO', audience: 'ADMINS', until: '' });
   }
-  remove(a: PlatformAnnouncement) { this.confirm.confirm({ header: t('Delete announcement'), message: t('Delete "{0}"?', { 0: a.title }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deletePlatformAnnouncement(a.id) }); }
+  remove(a: PlatformAnnouncement) { this.undo.run(t('Announcement deleted'), ['platformAnnouncements'], () => this.store.deletePlatformAnnouncement(a.id), a.title); }
   audienceLabel(a: AnnouncementAudience) { return this.audiences.find((x) => x.value === a)?.label ?? a; }
 }

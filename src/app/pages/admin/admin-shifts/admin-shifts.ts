@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,7 @@ export class AdminShifts {
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
+  private readonly undo = inject(UndoService);
   protected readonly gym = this.auth.activeGym;
   protected readonly canEdit = computed(() => this.auth.role() === 'ADMIN');
   protected readonly weekStart = signal(this.monday(new Date()));
@@ -58,7 +60,7 @@ export class AdminShifts {
     if (!r.ok) { this.toast.add({ severity: 'error', summary: t(r.reason) }); return; }
     this.editing.set(null);
   }
-  remove() { const s = this.editing(); if (s?.id) { this.store.deleteShift(s.id); this.editing.set(null); } }
+  remove() { const s = this.editing(); if (s?.id) { this.undo.run(t('Shift deleted'), ['shifts'], () => this.store.deleteShift(s.id)); this.editing.set(null); } }
   copyWeek() {
     const n = this.store.copyShiftsWeek(this.gym()!.id, this.days()[0].date);
     this.toast.add({ severity: n ? 'success' : 'info', summary: n ? t('{n} shifts copied to next week', { n }) : t('Nothing to copy (or next week is already planned).') });

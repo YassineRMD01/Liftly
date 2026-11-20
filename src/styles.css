@@ -22,3 +22,38 @@ body {
   .field { @apply flex flex-col gap-1.5; }
   .field > label { @apply text-sm font-medium text-surface-700 dark:text-surface-200; }
 }
+
+@layer components {
+  .kbd {
+    @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-[11px] font-mono font-medium text-surface-600 dark:text-surface-300;
+  }
+}
+
+/* ---------- accessibility ---------- */
+.skip-link {
+  position: fixed; top: .5rem; inset-inline-start: .5rem; z-index: 1000;
+  padding: .5rem 1rem; border-radius: .5rem; background: var(--p-primary-color); color: var(--p-primary-contrast-color);
+  font-weight: 600; transform: translateY(-200%); transition: transform .15s;
+}
+.skip-link:focus { transform: none; }
+:where(a, button, [role="button"], [tabindex], input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--p-primary-color); outline-offset: 2px;
+}
+.sr-only-focusable:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* high contrast: darker text, visible borders, thick focus ring, underlined links */
+.app-hc body { color: #000; }
+.app-hc.app-dark body { color: #fff; }
+.app-hc .muted { color: var(--p-surface-700) !important; }
+.app-hc.app-dark .muted { color: var(--p-surface-200) !important; }
+.app-hc .card, .app-hc .p-dialog, .app-hc .p-popover, .app-hc .p-menu, .app-hc .p-inputtext, .app-hc .p-select, .app-hc .p-datatable-table td, .app-hc .p-datatable-table th {
+  border-color: var(--p-surface-500) !important;
+}
+.app-hc .card { border-width: 2px; }
+.app-hc main a:not([pButton]):not(.p-button) { text-decoration: underline; text-underline-offset: 2px; }
+.app-hc :where(a, button, [role="button"], [tabindex], input, select, textarea):focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+.app-hc .p-tag { outline: 1px solid currentColor; }

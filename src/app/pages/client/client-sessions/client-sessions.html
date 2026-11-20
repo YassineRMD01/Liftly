@@ -52,7 +52,7 @@
           <div class="py-2 flex items-center gap-2" data-testid="my-session">
             <div class="flex-1 text-sm"><div class="font-medium">{{ store.fullName(s.coachId) }}</div><div class="text-xs muted">{{ s.date | date: 'EEE d MMM' }} · <span dir="ltr">{{ s.start }}</span></div></div>
             <p-tag [value]="s.status | t" [severity]="sev[s.status]" />
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="cancel(s)"><fa-icon icon="xmark" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" (click)="cancel(s)" [attr.aria-label]="'Cancel' | t"><fa-icon icon="xmark" /></button>
           </div>
         } @empty { <p class="text-sm muted py-2">{{ 'No upcoming sessions.' | t }}</p> }
       </div>

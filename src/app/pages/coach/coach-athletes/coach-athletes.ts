@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { DatePipe } from '@angular/common';
 import { Textarea } from 'primeng/textarea';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
@@ -25,6 +26,7 @@ import { ProgressView } from '../../../shared/progress-view/progress-view';
   styleUrl: './coach-athletes.css',
 })
 export class CoachAthletes {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly confirm = inject(ConfirmationService);
@@ -43,6 +45,7 @@ export class CoachAthletes {
     this.store.saveNote({ id: '', coachId: this.me(), clientId: c.id, date: new Date().toISOString().slice(0, 10), text: this.noteText.trim() });
     this.noteText = '';
   }
+  removeNote(n: AthleteNote) { this.undo.run(t('Note deleted'), ['athleteNotes'], () => this.store.deleteNote(n.id)); }
   togglePin(n: AthleteNote) { this.store.saveNote({ ...n, pinned: !n.pinned }); }
   protected readonly plans = computed(() => (this.current() ? this.store.plansOfClient(this.current()!.id).filter((p) => p.coachId === this.me()) : []));
 
@@ -53,6 +56,6 @@ export class CoachAthletes {
   newPlan(kind: TrainingPlan['kind']) { this.editor().open(this.me(), this.current()!.id, undefined, kind); }
   edit(p: TrainingPlan) { this.editor().open(this.me(), p.clientId, p); }
   remove(p: TrainingPlan) {
-    this.confirm.confirm({ header: t('Delete plan'), message: t('Delete "{0}"?', { 0: p.title }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deletePlan(p.id) });
+    this.undo.run(t('Plan deleted'), ['plans'], () => this.store.deletePlan(p.id), p.title);
   }
 }

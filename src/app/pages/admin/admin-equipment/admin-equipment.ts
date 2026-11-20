@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +30,7 @@ const STATUS_SEV: Record<EquipmentStatus, 'success' | 'warn' | 'danger'> = { OK:
   styleUrl: './admin-equipment.css',
 })
 export class AdminEquipment {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -53,7 +55,7 @@ export class AdminEquipment {
     this.store.saveEquipment({ ...e, name: e.name.trim(), category: e.category.trim() });
     this.editing.set(null);
   }
-  remove(e: Equipment) { this.confirm.confirm({ header: t('Delete'), message: t('Delete "{0}"?', { 0: e.name }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deleteEquipment(e.id) }); }
+  remove(e: Equipment) { this.undo.run(t('Deleted'), ['equipment'], () => this.store.deleteEquipment(e.id), e.name); }
   setStatus(e: Equipment, status: EquipmentStatus) { this.store.saveEquipment({ ...e, status }); }
   // service dialog
   protected readonly servicing = signal<Equipment | null>(null);

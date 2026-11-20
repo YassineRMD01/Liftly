@@ -1,3 +1,4 @@
+import { UndoService } from '../../core/undo.service';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +43,7 @@ export const METHOD_LABEL: Record<string, string> = { CASH: 'Cash', CARD: 'Card'
   styleUrl: './accounting-view.css',
 })
 export class AccountingView {
+  private readonly undo = inject(UndoService);
   private readonly store = inject(StoreService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(MessageService);
@@ -155,10 +157,7 @@ export class AccountingView {
     this.editing.set(null);
   }
   remove(l: LedgerLine) {
-    this.confirm.confirm({
-      header: t('Delete expense'), message: t('Delete "{0}"?', { 0: l.label }), acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.store.deleteExpense(l.expenseId!),
-    });
+    this.undo.run(t('Expense deleted'), ['expenses'], () => this.store.deleteExpense(l.expenseId!), l.label);
   }
   sourceIcon(l: LedgerLine) {
     return ({ PAYMENT: 'money-bill', EXPENSE: 'receipt', PAYOUT: 'hand-holding-dollar', INVOICE: 'file-invoice', SESSION: 'handshake' } as const)[l.source];

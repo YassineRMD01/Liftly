@@ -1,3 +1,4 @@
+import { UndoService } from '../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,7 @@ import { PageHeader } from '../../shared/page-header/page-header';
   styleUrl: './announcements.css',
 })
 export class Announcements {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -48,9 +50,6 @@ export class Announcements {
   }
   patch(p: Partial<{ title: string; body: string; pinned: boolean }>) { this.form.update((f) => ({ ...f, ...p })); }
   remove(a: Announcement) {
-    this.confirm.confirm({
-      header: t('Delete announcement'), message: t('Delete "{0}"?', { 0: a.title }), acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.store.deleteAnnouncement(a.id),
-    });
+    this.undo.run(t('Announcement deleted'), ['announcements'], () => this.store.deleteAnnouncement(a.id), a.title);
   }
 }

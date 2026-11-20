@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -19,6 +20,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
   styleUrl: './admin-locations.css',
 })
 export class AdminLocations {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -39,9 +41,6 @@ export class AdminLocations {
     this.toast.add({ severity: 'success', summary: t('Location saved') });
   }
   remove(l: GymLocation) {
-    this.confirm.confirm({
-      header: t('Delete location'), message: t('Delete {0}? Its classes stay, without a location.', { 0: l.name }), acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.store.deleteLocation(this.gym()!.id, l.id),
-    });
+    this.undo.run(t('Location deleted'), ['gyms', 'classes'], () => this.store.deleteLocation(this.gym()!.id, l.id), l.name);
   }
 }

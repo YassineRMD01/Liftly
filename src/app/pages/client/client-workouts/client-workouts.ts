@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
   styleUrl: './client-workouts.css',
 })
 export class ClientWorkouts {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -101,6 +103,6 @@ export class ClientWorkouts {
     this.editing.set(null);
   }
   remove(w: WorkoutLog) {
-    this.confirm.confirm({ header: t('Delete workout'), message: t('Delete "{0}"?', { 0: w.title }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deleteWorkout(w.id) });
+    this.undo.run(t('Workout deleted'), ['workouts'], () => this.store.deleteWorkout(w.id), w.title);
   }
 }

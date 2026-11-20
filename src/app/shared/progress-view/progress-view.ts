@@ -1,3 +1,4 @@
+import { UndoService } from '../../core/undo.service';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +27,7 @@ type Metric = 'weight' | 'bodyFat' | 'waist';
   styleUrl: './progress-view.css',
 })
 export class ProgressView {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -80,6 +82,6 @@ export class ProgressView {
   }
 
   remove(e: ProgressEntry) {
-    this.confirm.confirm({ header: t('Delete entry'), message: t('Delete the entry of {0}?', { 0: e.date }), accept: () => this.store.deleteProgress(e.id) });
+    this.undo.run(t('Entry deleted'), ['progress'], () => this.store.deleteProgress(e.id), e.date);
   }
 }

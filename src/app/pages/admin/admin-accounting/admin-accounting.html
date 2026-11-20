@@ -55,7 +55,7 @@
             <p-tag [value]="(p.method === 'TRANSFER' ? 'Bank transfer' : 'Cash') | t" [severity]="p.method === 'TRANSFER' ? 'info' : 'secondary'" />
             <span class="w-28 font-mono text-xs muted">{{ p.reference }}</span>
             <span class="w-28 text-end tabular-nums font-semibold">{{ p.amount | money: p.currency }}</span>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="removePayout(p)"><fa-icon icon="trash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="removePayout(p)"><fa-icon icon="trash" /></button>
           </div>
         } @empty { <p class="text-sm muted py-4 text-center">{{ 'No payments yet.' | t }}</p> }
       </div>

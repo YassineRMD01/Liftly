@@ -1,5 +1,5 @@
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -12,7 +12,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { RouterLink } from '@angular/router';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
@@ -46,6 +46,14 @@ export class AdminClients {
   protected readonly cur = computed(() => this.auth.activeGym()?.currency ?? 'USD');
   protected readonly payments = viewChild(PaymentCalendar);
   protected readonly invite = viewChild.required(InviteDialog);
+  /** `?q=` pre-fills the search (used by the command palette). */
+  readonly q = input<string>();
+  private readonly dt = viewChild<Table>('dt');
+  protected readonly search = signal('');
+  private readonly applyQuery = effect(() => {
+    const q = this.q(), dt = this.dt();
+    if (q && dt) untracked(() => { this.search.set(q); setTimeout(() => dt.filterGlobal(q, 'contains')); });
+  });
   protected readonly visible = signal(false);
   protected mode: 'existing' | 'new' = 'existing';
   protected readonly genders = [{ label: t('Male'), value: 'MALE' }, { label: t('Female'), value: 'FEMALE' }];

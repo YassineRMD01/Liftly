@@ -1,0 +1,40 @@
+<p-dialog [(visible)]="visible" [modal]="true" [showHeader]="false" [dismissableMask]="true" [closeOnEscape]="true" position="top"
+  [style]="{ width: '36rem', maxWidth: '94vw', marginTop: '10vh' }" styleClass="app-palette" [draggable]="false" [resizable]="false">
+  <div role="combobox" aria-haspopup="listbox" [attr.aria-expanded]="true" class="flex items-center gap-3 px-1 pb-3 border-b border-surface-200 dark:border-surface-700">
+    <fa-icon icon="magnifying-glass" class="muted" />
+    <input #box class="flex-1 bg-transparent !outline-none text-base py-1" [value]="query()" (input)="setQuery($any($event.target).value)" (keydown)="onBoxKey($event)"
+      [placeholder]="'Search pages, members, classes…' | t" [attr.aria-label]="'Search' | t" aria-controls="palette-list" [attr.aria-activedescendant]="'hit-' + active()" data-testid="palette-input" />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div id="palette-list" role="listbox" class="max-h-[55vh] overflow-y-auto pt-2 -mx-2">
+    @for (g of groups(); track g.name) {
+      <div class="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide muted font-semibold">{{ g.name }}</div>
+      @for (x of g.items; track x.i) {
+        <button type="button" role="option" [id]="'hit-' + x.i" [attr.data-hit]="x.i" [attr.aria-selected]="x.i === active()" (click)="go(x.hit)" (mousemove)="active.set(x.i)"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-start cursor-pointer" [class.bg-primary-50]="x.i === active()" [class.dark:bg-primary-950]="x.i === active()" data-testid="palette-hit">
+          <fa-icon [icon]="x.hit.icon" class="w-5 text-center" [class.text-primary]="x.i === active()" [class.muted]="x.i !== active()" />
+          <span class="flex-1 min-w-0 truncate text-sm">{{ x.hit.label }}</span>
+          <span class="text-xs muted truncate max-w-[40%]">{{ x.hit.hint }}</span>
+        </button>
+      }
+    } @empty { <p class="text-sm muted text-center py-8">{{ 'No results' | t }}</p> }
+  </div>
+  <div class="flex items-center gap-4 pt-3 mt-2 border-t border-surface-200 dark:border-surface-700 text-xs muted">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> {{ 'to navigate' | t }}</span>
+    <span><kbd class="kbd">Enter</kbd> {{ 'to open' | t }}</span>
+    <button type="button" class="ms-auto cursor-pointer hover:text-primary" (click)="visible.set(false); help.set(true)"><kbd class="kbd">?</kbd> {{ 'Keyboard shortcuts' | t }}</button>
+  </div>
+</p-dialog>
+
+<app-modal [(visible)]="help" [header]="'Keyboard shortcuts' | t" icon="keyboard" tone="info" width="28rem">
+  <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm" data-testid="shortcuts-help">
+    <dt><kbd class="kbd">Ctrl</kbd> <kbd class="kbd">K</kbd></dt><dd>{{ 'Open search' | t }}</dd>
+    <dt><kbd class="kbd">/</kbd></dt><dd>{{ 'Open search' | t }}</dd>
+    <dt><kbd class="kbd">?</kbd></dt><dd>{{ 'Show this help' | t }}</dd>
+    <dt><kbd class="kbd">Esc</kbd></dt><dd>{{ 'Close dialogs' | t }}</dd>
+    @for (k of goKeys; track k[0]) {
+      <dt><kbd class="kbd">g</kbd> <kbd class="kbd">{{ k[0] }}</kbd></dt><dd>{{ 'Go to' | t }} {{ k[1].label | t }}</dd>
+    }
+  </dl>
+  <p class="text-xs muted mt-4">{{ 'Go-to shortcuts only work for pages available to your role.' | t }}</p>
+</app-modal>

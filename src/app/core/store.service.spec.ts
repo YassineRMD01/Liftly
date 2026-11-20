@@ -341,4 +341,22 @@ describe('StoreService', () => {
       expect(store.platformBannersFor('u-a1').some((b) => b.id === id)).toBe(false);
     });
   });
+
+  describe('platform quality', () => {
+    it('restores a snapshot to undo a delete', () => {
+      const before = store.workouts().length;
+      const restore = store.snapshot(['workouts']);
+      store.deleteWorkout(store.workouts()[0].id);
+      expect(store.workouts().length).toBe(before - 1);
+      restore();
+      expect(store.workouts().length).toBe(before);
+    });
+    it('skips notifications in muted categories', () => {
+      store.setNotifyOff('u-k1', 'ANNOUNCEMENTS', true);
+      expect(store.notify('u-k1', 'Announcement from {gym}', 'x', { gym: 'Iron' })).toBe(false);
+      expect(store.notify('u-k1', 'Session confirmed', 'x')).toBe(true);
+      store.setNotifyOff('u-k1', 'ANNOUNCEMENTS', false);
+      expect(store.notify('u-k1', 'Announcement from {gym}', 'y', { gym: 'Iron' })).toBe(true);
+    });
+  });
 });

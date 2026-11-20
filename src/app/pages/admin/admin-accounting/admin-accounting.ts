@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
   styleUrl: './admin-accounting.css',
 })
 export class AdminAccounting {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -82,9 +84,6 @@ export class AdminAccounting {
     this.paying.set(null);
   }
   removePayout(p: CoachPayout) {
-    this.confirm.confirm({
-      header: t('Delete payment'), message: t('Delete this payment of {0}?', { 0: formatMoney(p.amount, p.currency) }), acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.store.deleteCoachPayout(p.id),
-    });
+    this.undo.run(t('Payment deleted'), ['coachPayouts'], () => this.store.deleteCoachPayout(p.id), formatMoney(p.amount, p.currency));
   }
 }

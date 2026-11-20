@@ -28,7 +28,7 @@ export class AppearanceSwitcher {
       label: c === 'auto' ? t('Auto (gym or system setting)') : this.labels[c],
       styleClass: this.theme.userAppearance() === c ? 'font-semibold' : '',
       command: () => this.theme.setAppearance(c),
-    })));
-  iconOf(id: string | undefined) { return this.icons[(id as AppearanceChoice) ?? 'auto']; }
-  selected(id: string | undefined) { return this.theme.userAppearance() === id; }
+    } as MenuItem)).concat([{ separator: true }, { id: 'hc', label: t('High contrast'), command: () => this.theme.toggleContrast() }]));
+  iconOf(id: string | undefined): IconProp { return id === 'hc' ? 'eye' : this.icons[(id as AppearanceChoice) ?? 'auto']; }
+  selected(id: string | undefined) { return id === 'hc' ? this.theme.highContrast() : this.theme.userAppearance() === id; }
 }

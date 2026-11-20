@@ -25,7 +25,7 @@
         <td><p-toggleswitch [ngModel]="u.active" (ngModelChange)="toggle(u, $event)" [disabled]="u.role === 'SUPER_ADMIN'" /></td>
         <td>
           @if (u.role !== 'SUPER_ADMIN') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Impersonate' | t" (click)="auth.loginAs(u)"><fa-icon icon="user-secret" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Impersonate' | t" [attr.aria-label]="'Impersonate' | t" (click)="auth.loginAs(u)"><fa-icon icon="user-secret" /></button>
           }
         </td>
       </tr>

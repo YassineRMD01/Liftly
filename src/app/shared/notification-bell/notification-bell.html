@@ -1,9 +1,25 @@
 <p-popover #pop appendTo="body">
   <div class="w-80 max-w-[85vw]">
     <div class="flex items-center justify-between gap-2 pb-2 mb-1 border-b border-surface-200 dark:border-surface-700">
-      <span class="font-semibold text-sm">{{ 'Notifications' | t }}</span>
-      @if (unread()) { <button type="button" class="text-xs text-primary cursor-pointer" (click)="markAll()">{{ 'Mark all as read' | t }}</button> }
+      <span class="font-semibold text-sm">{{ (settings() ? 'Notification settings' : 'Notifications') | t }}</span>
+      <span class="flex items-center gap-2">
+        @if (unread() && !settings()) { <button type="button" class="text-xs text-primary cursor-pointer" (click)="markAll()">{{ 'Mark all as read' | t }}</button> }
+        <button type="button" class="muted hover:text-primary cursor-pointer px-1" (click)="settings.set(!settings())" data-testid="notif-settings"
+          [attr.aria-label]="(settings() ? 'Back' : 'Notification settings') | t"><fa-icon [icon]="settings() ? 'arrow-left' : 'gear'" /></button>
+      </span>
     </div>
+    @if (settings()) {
+      <div class="flex flex-col gap-1 py-1">
+        @for (c of categories; track c.id) {
+          <label class="flex items-center gap-3 px-1 py-2 rounded-lg cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800">
+            <fa-icon [icon]="$any(c.icon)" class="text-primary w-5 text-center" />
+            <span class="flex-1 min-w-0"><span class="block text-sm font-medium">{{ c.label | t }}</span><span class="block text-xs muted">{{ c.hint | t }}</span></span>
+            <p-toggleswitch [ngModel]="isOn(c.id)" (ngModelChange)="setOn(c.id, $event)" [attr.data-testid]="'notif-' + c.id" />
+          </label>
+        }
+        <p class="text-xs muted px-1 pt-1">{{ 'Muted categories are not delivered to your bell.' | t }}</p>
+      </div>
+    } @else {
     <div class="max-h-96 overflow-y-auto -mx-1">
       @for (n of items(); track n.id) {
         <button type="button" (click)="open(n, pop)" class="w-full text-start px-2 py-2 rounded-lg flex gap-2 hover:bg-surface-100 dark:hover:bg-surface-800 cursor-pointer">
@@ -16,6 +32,7 @@
         </button>
       } @empty { <p class="text-sm muted text-center py-6">{{ 'No notifications' | t }}</p> }
     </div>
+    }
   </div>
 </p-popover>
 <button pButton type="button" [text]="true" [rounded]="true" severity="secondary" (click)="pop.toggle($event)" [attr.aria-label]="'Notifications' | t">@if (unread()) {

@@ -36,7 +36,7 @@
       <div class="flex flex-wrap gap-3 items-center">
         <p-iconfield>
           <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
-          <input pInputText [placeholder]="'Search client or plan' | t" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+          <input pInputText [value]="search()" [placeholder]="'Search client or plan' | t" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
         </p-iconfield>
         <div class="flex-1"></div>
         <p-selectbutton [options]="filters" optionLabel="label" optionValue="value" [ngModel]="status()" (ngModelChange)="status.set($event)" [allowEmpty]="false" />
@@ -83,23 +83,23 @@
           @if (isAdmin()) {
           @if (r.m.status === 'ACTIVE') {
             @if (hasFreeze(r.m)) {
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" (click)="unfreeze(r.m)"><fa-icon icon="play" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Unfreeze' | t" [attr.aria-label]="'Unfreeze' | t" (click)="unfreeze(r.m)"><fa-icon icon="play" /></button>
             } @else {
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" (click)="freeze(r.m)"><fa-icon icon="snowflake" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="info" [pTooltip]="'Freeze membership' | t" [attr.aria-label]="'Freeze membership' | t" (click)="freeze(r.m)"><fa-icon icon="snowflake" /></button>
             }
           }
           @if (store.user(r.m.clientId)?.invite) {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" (click)="invite().open(store.user(r.m.clientId)!)"><fa-icon icon="link" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="warn" [pTooltip]="'Not activated yet — show the invitation link' | t" [attr.aria-label]="'Not activated yet — show the invitation link' | t" (click)="invite().open(store.user(r.m.clientId)!)"><fa-icon icon="link" /></button>
           }
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" (click)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" (click)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Payments calendar' | t" [attr.aria-label]="'Payments calendar' | t" (click)="payments()?.open(r.m.gymId, r.m.clientId)"><fa-icon icon="calendar-days" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" [pTooltip]="'Renew or change plan' | t" [attr.aria-label]="'Renew or change plan' | t" (click)="renew(r.m)" [disabled]="r.clientStatus === 'BANNED'"><fa-icon icon="rotate" /></button>
           @if (r.m.status === 'ACTIVE') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="cancel(r.m)"><fa-icon icon="ban" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" [attr.aria-label]="'Cancel' | t" (click)="cancel(r.m)"><fa-icon icon="ban" /></button>
           }
           @if (r.clientStatus === 'BANNED') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" (click)="unban(r.m.clientId)"><fa-icon icon="user-check" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Unban client' | t" [attr.aria-label]="'Unban client' | t" (click)="unban(r.m.clientId)"><fa-icon icon="user-check" /></button>
           } @else {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" (click)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Ban client' | t" [attr.aria-label]="'Ban client' | t" (click)="ban(r.m.clientId)"><fa-icon icon="user-slash" /></button>
           }
           }
         </td>

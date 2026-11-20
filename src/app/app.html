@@ -1,5 +1,13 @@
 <router-outlet />
-<p-toast position="top-right" />
+<p-toast position="top-right">
+  <ng-template #message let-m>
+    <div class="flex items-start gap-3 w-full" data-testid="toast">
+      <fa-icon [icon]="m.severity === 'success' ? 'circle-check' : m.severity === 'error' ? 'circle-xmark' : m.severity === 'warn' ? 'triangle-exclamation' : 'circle-info'" class="text-lg mt-0.5" />
+      <div class="flex-1 min-w-0"><div class="font-semibold">{{ m.summary }}</div>@if (m.detail) { <div class="text-sm opacity-90">{{ m.detail }}</div> }</div>
+      @if (undo.canUndo(m.data?.undoId)) { <button type="button" class="font-semibold underline underline-offset-2 cursor-pointer shrink-0 me-5" (click)="undo.undo(m.data.undoId)" data-testid="undo">{{ 'Undo' | t }}</button> }
+    </div>
+  </ng-template>
+</p-toast>
 <!-- confirmations use the same look as app-modal: gradient header bar, rounded card, pill buttons -->
 <p-confirmdialog [style]="{ width: '26rem' }" [breakpoints]="{ '640px': '94vw' }" styleClass="!rounded-3xl !border-0 overflow-hidden">
   <ng-template #headless let-c let-onAccept="onAccept" let-onReject="onReject">

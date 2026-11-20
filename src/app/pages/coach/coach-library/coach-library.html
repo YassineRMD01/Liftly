@@ -17,8 +17,8 @@
           @else { <span class="w-28 shrink-0 grid place-items-center bg-surface-100 dark:bg-surface-800 text-surface-400 text-2xl"><fa-icon icon="dumbbell" /></span> }
           <div class="p-3 flex-1 min-w-0">
             <div class="flex items-start gap-1"><span class="font-semibold flex-1">{{ e.name }}</span>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(e)"><fa-icon icon="pen" /></button>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(e)"><fa-icon icon="trash" /></button></div>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t" (click)="edit(e)"><fa-icon icon="pen" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(e)"><fa-icon icon="trash" /></button></div>
             @if (e.equipment) { <p-tag [value]="e.equipment" severity="secondary" /> }
             @if (e.cues) { <p class="text-xs muted mt-1 line-clamp-2">{{ e.cues }}</p> }
           </div>
@@ -37,8 +37,8 @@
         <div class="flex items-start gap-3">
           <span class="w-10 h-10 rounded-xl grid place-items-center text-white" [class.bg-orange-500]="tpl.kind === 'WORKOUT'" [class.bg-emerald-600]="tpl.kind === 'NUTRITION'"><fa-icon [icon]="tpl.kind === 'WORKOUT' ? 'dumbbell' : 'utensils'" /></span>
           <div class="flex-1 min-w-0"><div class="font-semibold">{{ tpl.title }}</div><div class="text-xs muted">{{ tpl.items.length }} {{ 'lines' | t }} · {{ groupsOf(tpl).join(' · ') }}</div></div>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="editTemplate(tpl)"><fa-icon icon="pen" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="removeTemplate(tpl)"><fa-icon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t" (click)="editTemplate(tpl)"><fa-icon icon="pen" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="removeTemplate(tpl)"><fa-icon icon="trash" /></button>
         </div>
         @if (tpl.notes) { <p class="text-sm muted">{{ tpl.notes }}</p> }
         <button pButton type="button" size="small" (click)="assign(tpl)" data-testid="assign-template"><fa-icon icon="paper-plane" />{{ 'Assign to athletes' | t }}</button>

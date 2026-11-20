@@ -19,8 +19,8 @@
             <input pInputText [(ngModel)]="i.name" list="library-names" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. Back squat' : 'e.g. Oats and banana') | t" />
             <input pInputText [(ngModel)]="i.detail" [placeholder]="(p.kind === 'WORKOUT' ? 'e.g. 5 × 5 @ 75%' : 'e.g. 80 g') | t" />
             <span class="flex">
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="addItem(i)"><fa-icon icon="plus" /></button>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeItem(i)"><fa-icon icon="trash" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="addItem(i)" [attr.aria-label]="'Add' | t"><fa-icon icon="plus" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="removeItem(i)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
             </span>
           </div>
         }

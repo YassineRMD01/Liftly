@@ -54,7 +54,7 @@
             <td class="text-end tabular-nums">{{ e.waist != null ? (e.waist | number: '1.0-1') + ' cm' : '—' }}</td>
             <td class="ps-4 muted">{{ e.note }}</td>
             <td class="muted">{{ store.fullName(e.byId) }}</td>
-            <td class="text-end"><button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(e)"><fa-icon icon="trash" /></button></td>
+            <td class="text-end"><button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(e)"><fa-icon icon="trash" /></button></td>
           </tr>
         } @empty { <tr><td colspan="7" class="text-center muted py-6">{{ 'No measurements yet.' | t }}</td></tr> }
       </tbody>

@@ -1,4 +1,6 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -7,13 +9,13 @@ import { OverlayBadge } from 'primeng/overlaybadge';
 import { Popover } from 'primeng/popover';
 import { AuthService } from '../../core/auth.service';
 import { TranslatePipe } from '../../core/i18n/i18n';
-import { AppNotification } from '../../core/models';
+import { AppNotification, NOTIFY_CATEGORIES, NotifyCategory } from '../../core/models';
 import { StoreService } from '../../core/store.service';
 
 /** Header bell: the user's in-app notifications (waitlist places, reminders, messages…). */
 @Component({
   selector: 'app-notification-bell',
-  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, OverlayBadge, Popover],
+  imports: [TranslatePipe, DatePipe, FaIconComponent, ButtonDirective, OverlayBadge, Popover, ToggleSwitch, FormsModule],
   templateUrl: './notification-bell.html',
   styleUrl: './notification-bell.css',
 })
@@ -23,6 +25,10 @@ export class NotificationBell {
   private readonly router = inject(Router);
 
   protected readonly items = computed(() => this.store.notificationsOf(this.auth.user()?.id ?? '').slice(0, 30));
+  protected readonly settings = signal(false);
+  protected readonly categories = NOTIFY_CATEGORIES;
+  protected isOn(c: NotifyCategory) { return !this.auth.user()?.notifyOff?.includes(c); }
+  protected setOn(c: NotifyCategory, on: boolean) { const u = this.auth.user(); if (u) this.store.setNotifyOff(u.id, c, !on); }
   protected readonly unread = computed(() => this.items().filter((n) => !n.read).length);
 
   constructor() {

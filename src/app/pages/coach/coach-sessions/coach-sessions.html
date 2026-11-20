@@ -32,7 +32,7 @@
           <span class="w-24 font-medium">{{ dayLabel[w.day] }}</span>
           <span class="tabular-nums" dir="ltr">{{ w.start }}–{{ w.end }}</span>
           <span class="flex-1 text-xs muted">{{ slotCount(w) }} × {{ w.slotMin }} min</span>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteAvailability(w.id)"><fa-icon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.deleteAvailability(w.id)" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
         </div>
       } @empty { <p class="text-sm muted py-2">{{ 'No availability yet: members cannot book you.' | t }}</p> }
     </div>
@@ -62,8 +62,8 @@
             <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="set(s, 'DECLINED')">{{ 'Decline' | t }}</button>
           }
           @if (s.status === 'CONFIRMED') {
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Mark as done' | t" (click)="set(s, 'DONE')"><fa-icon icon="check" /></button>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" (click)="set(s, 'CANCELLED')"><fa-icon icon="xmark" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="success" [pTooltip]="'Mark as done' | t" [attr.aria-label]="'Mark as done' | t" (click)="set(s, 'DONE')"><fa-icon icon="check" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" [pTooltip]="'Cancel' | t" [attr.aria-label]="'Cancel' | t" (click)="set(s, 'CANCELLED')"><fa-icon icon="xmark" /></button>
           }
         </div>
       } @empty { <p class="text-center muted py-10">{{ 'Nothing here.' | t }}</p> }

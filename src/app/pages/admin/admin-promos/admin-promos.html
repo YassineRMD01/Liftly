@@ -11,7 +11,7 @@
       <tr>
         <td>
           <span class="font-mono font-bold tracking-wider px-2 py-1 rounded-md bg-primary-50 dark:bg-primary-950 text-primary">{{ p.code }}</span>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Copy' | t" (click)="copy(p.code)"><fa-icon icon="copy" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Copy' | t" [attr.aria-label]="'Copy' | t" (click)="copy(p.code)"><fa-icon icon="copy" /></button>
         </td>
         <td class="font-semibold">{{ p.discountType === 'PERCENT' ? p.value + '%' : (p.value | money: cur()) }}</td>
         <td class="text-sm">{{ p.validFrom | date: 'mediumDate' }} → {{ p.validUntil | date: 'mediumDate' }}</td>
@@ -22,8 +22,8 @@
         </td>
         <td><p-tag [value]="state(p).label" [severity]="state(p).sev" /></td>
         <td class="whitespace-nowrap">
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(p)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
-          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(p)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(p)" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t"><fa-icon icon="pen" /></button>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(p)" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
         </td>
       </tr>
     </ng-template>
@@ -38,7 +38,7 @@
       <p-inputgroup>
         <input pInputText class="font-mono uppercase" [(ngModel)]="draft().code" [placeholder]="'SUMMER25' | t" />
         <p-inputgroup-addon>
-          <button pButton type="button" iconOnly [text]="true" (click)="generate()" [pTooltip]="'Generate' | t"><fa-icon icon="wand-magic-sparkles" /></button>
+          <button pButton type="button" iconOnly [text]="true" (click)="generate()" [pTooltip]="'Generate' | t" [attr.aria-label]="'Generate' | t"><fa-icon icon="wand-magic-sparkles" /></button>
         </p-inputgroup-addon>
       </p-inputgroup>
     </div>

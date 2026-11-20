@@ -1,3 +1,4 @@
+import { UndoService } from '../../../core/undo.service';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -27,6 +28,7 @@ import { PlanEditor } from '../../../shared/plan-editor/plan-editor';
   styleUrl: './coach-library.css',
 })
 export class CoachLibrary {
+  private readonly undo = inject(UndoService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly toast = inject(MessageService);
@@ -61,11 +63,11 @@ export class CoachLibrary {
     this.store.saveExercise({ ...e, name: e.name.trim(), category: e.category.trim(), videoUrl: e.videoUrl?.trim() || undefined, cues: e.cues?.trim() || undefined, equipment: e.equipment?.trim() || undefined });
     this.editing.set(null);
   }
-  remove(e: Exercise) { this.confirm.confirm({ header: t('Delete'), message: t('Delete "{0}"?', { 0: e.name }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deleteExercise(e.id) }); }
+  remove(e: Exercise) { this.undo.run(t('Deleted'), ['exercises'], () => this.store.deleteExercise(e.id), e.name); }
 
   newTemplate(kind: 'WORKOUT' | 'NUTRITION') { this.editor().openTemplate(this.me(), undefined, kind); }
   editTemplate(tpl: PlanTemplate) { this.editor().openTemplate(this.me(), tpl); }
-  removeTemplate(tpl: PlanTemplate) { this.confirm.confirm({ header: t('Delete template'), message: t('Delete "{0}"?', { 0: tpl.title }), acceptButtonStyleClass: 'p-button-danger', accept: () => this.store.deletePlanTemplate(tpl.id) }); }
+  removeTemplate(tpl: PlanTemplate) { this.undo.run(t('Template deleted'), ['planTemplates'], () => this.store.deletePlanTemplate(tpl.id), tpl.title); }
   groupsOf(tpl: PlanTemplate) { return [...new Set(tpl.items.map((i) => i.group))]; }
 
   protected readonly assigning = signal<PlanTemplate | null>(null);

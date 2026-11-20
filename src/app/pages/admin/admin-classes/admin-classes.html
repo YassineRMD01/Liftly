@@ -48,8 +48,8 @@
           <td class="whitespace-nowrap">@if (store.classSeriesRating(c.gymId, c.name); as r) { @if (r.count) { <span class="text-amber-500">★</span> {{ r.avg }} <span class="text-xs muted">({{ r.count }})</span> } @else { <span class="muted">—</span> } }</td>
           <td>{{ (c.active ? 'Yes' : 'No') | t }}</td>
           <td class="whitespace-nowrap">
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t"><fa-icon icon="pen" /></button>
-            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(c)" [pTooltip]="'Delete' | t"><fa-icon icon="trash" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="edit(c)" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t"><fa-icon icon="pen" /></button>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="remove(c)" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t"><fa-icon icon="trash" /></button>
           </td>
         </tr>
       </ng-template>

@@ -21,9 +21,9 @@
             <td><p-tag [value]="x.state | t" [severity]="sev[x.state]" /></td>
             <td class="text-end whitespace-nowrap pe-2">
               <button pButton type="button" size="small" [outlined]="true" (click)="service(x.e)" data-testid="service-btn"><fa-icon icon="screwdriver-wrench" />{{ 'Service' | t }}</button>
-              @if (x.e.status !== 'OUT_OF_ORDER') { <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Mark out of order' | t" (click)="setStatus(x.e, 'OUT_OF_ORDER')"><fa-icon icon="ban" /></button> }
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(x.e)"><fa-icon icon="pen" /></button>
-              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(x.e)"><fa-icon icon="trash" /></button>
+              @if (x.e.status !== 'OUT_OF_ORDER') { <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Mark out of order' | t" [attr.aria-label]="'Mark out of order' | t" (click)="setStatus(x.e, 'OUT_OF_ORDER')"><fa-icon icon="ban" /></button> }
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" [attr.aria-label]="'Edit' | t" (click)="edit(x.e)"><fa-icon icon="pen" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" [attr.aria-label]="'Delete' | t" (click)="remove(x.e)"><fa-icon icon="trash" /></button>
             </td>
           </tr>
           @if (x.e.log.length) {
