@@ -72,6 +72,16 @@ const checkInHistory = (): CheckIn[] => {
   return out.filter((c) => !(c.clientId === 'u-k3' && c.at > new Date(Date.now() - 16 * 86400000).toISOString()));
 };
 
+
+/** YYYY-MM-DD of `day` in the month `offset` months from now (clamped to today for the current month). */
+const monthDay = (offset: number, day: number) => {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() + offset, day);
+  const x = d > now ? now : d;
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
+const monthKey = (offset: number) => monthDay(offset, 1).slice(0, 7);
+
 export const SEED: DbState = {
   platform: { theme: { primary: '#6366f1', logoText: 'LF', appearance: 'system' }, defaultCountry: 'US' },
   sports: [
@@ -169,10 +179,10 @@ export const SEED: DbState = {
     { id: 'u-k7', gender: 'FEMALE', role: 'CLIENT', firstName: 'Sara', lastName: 'Lopez', email: 'sara@liftly.io', password: 'demo', createdAt: d(-70), active: true },
   ],
   coachProfiles: [
-    { userId: 'u-c1', bio: 'Strength & conditioning coach, former powerlifter.', specialties: ['Powerlifting', 'Hypertrophy', 'Mobility'], yearsExperience: 9, hourlyRate: 45, currency: 'USD' },
-    { userId: 'u-c2', bio: 'Competitive swimmer turned coach. Technique obsessed.', specialties: ['Swimming', 'Triathlon', 'Endurance'], yearsExperience: 7, hourlyRate: 50, currency: 'EUR' },
-    { userId: 'u-c3', bio: 'Black belt in karate and BJJ purple belt.', specialties: ['Karate', 'BJJ', 'Self-defense'], yearsExperience: 12, hourlyRate: 400, currency: 'MAD' },
-    { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35, currency: 'USD' },
+    { userId: 'u-c1', bio: 'Strength & conditioning coach, former powerlifter.', specialties: ['Powerlifting', 'Hypertrophy', 'Mobility'], yearsExperience: 9, hourlyRate: 45, currency: 'USD', payoutMethod: 'TRANSFER', bank: { holder: 'Jordan Blake', bankName: 'Lone Star Bank', iban: 'US64SVBKUS6S3300958879', swift: 'SVBKUS6S' } },
+    { userId: 'u-c2', bio: 'Competitive swimmer turned coach. Technique obsessed.', specialties: ['Swimming', 'Triathlon', 'Endurance'], yearsExperience: 7, hourlyRate: 50, currency: 'EUR', payoutMethod: 'TRANSFER', bank: { holder: 'Lina Costa', bankName: 'Banco Sabadell', iban: 'ES9121000418450200051332', swift: 'BSABESBB' } },
+    { userId: 'u-c3', bio: 'Black belt in karate and BJJ purple belt.', specialties: ['Karate', 'BJJ', 'Self-defense'], yearsExperience: 12, hourlyRate: 400, currency: 'MAD', payoutMethod: 'CASH' },
+    { userId: 'u-c4', bio: 'Functional fitness and HIIT specialist.', specialties: ['HIIT', 'CrossFit', 'Nutrition'], yearsExperience: 5, hourlyRate: 35, currency: 'USD', payoutMethod: 'CASH' },
   ],
   saasPlans: [
     { id: 'sp-starter', name: 'Starter', description: 'For small studios getting started.', monthlyPrice: 29, yearlyPrice: 290, maxCoaches: 3, maxClients: 100, features: ['Membership plans', 'Promo codes', 'Coach ratings', 'Email support'], customTheme: false, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 249, yearly: 2490 }, { country: 'FR', monthly: 27, yearly: 270 }, { country: 'ES', monthly: 25, yearly: 250 }] },
@@ -185,12 +195,12 @@ export const SEED: DbState = {
     { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sportIds: ['sport-karate', 'sport-bjj', 'sport-kickboxing', 'sport-kids-karate'], country: 'MA', currency: 'MAD', city: 'Casablanca', address: '88 Bd Zerktouni', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(5) },
   ],
   gymCoaches: [
-    { gymId: 'g-iron', coachId: 'u-c1', since: d(-280) },
-    { gymId: 'g-iron', coachId: 'u-c4', since: d(-90) },
-    { gymId: 'g-wave', coachId: 'u-c2', since: d(-250) },
-    { gymId: 'g-wave', coachId: 'u-c4', since: d(-60) },
-    { gymId: 'g-kumite', coachId: 'u-c3', since: d(-20) },
-    { gymId: 'g-kumite', coachId: 'u-c1', since: d(-15) },
+    { gymId: 'g-iron', coachId: 'u-c1', since: d(-280), classRate: 40, ratesFrom: monthDay(-2, 1) },
+    { gymId: 'g-iron', coachId: 'u-c4', since: d(-90), classRate: 30, ratesFrom: monthDay(-1, 1) },
+    { gymId: 'g-wave', coachId: 'u-c2', since: d(-250), classRate: 35, ratesFrom: monthDay(-1, 1) },
+    { gymId: 'g-wave', coachId: 'u-c4', since: d(-60), classRate: 30, ratesFrom: monthDay(-1, 1) },
+    { gymId: 'g-kumite', coachId: 'u-c3', since: d(-20), classRate: 250, ratesFrom: monthDay(0, 1) },
+    { gymId: 'g-kumite', coachId: 'u-c1', since: d(-15), classRate: 300, ratesFrom: monthDay(0, 1) },
   ],
   membershipPlans: [
     { id: 'mp-1', gymId: 'g-iron', name: 'Monthly Open Gym', description: 'Unlimited access to the gym floor.', price: 49, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true },
@@ -302,7 +312,9 @@ export const SEED: DbState = {
   sessions: [
     { id: 'ps-1', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: nextDate(3, 1), start: '10:00', end: '11:00', status: 'CONFIRMED', note: 'Deadlift technique', price: 45, currency: 'USD', createdAt: d(-2) },
     { id: 'ps-2', coachId: 'u-c1', clientId: 'u-k6', gymId: 'g-iron', date: nextDate(5, 1), start: '11:00', end: '12:00', status: 'REQUESTED', note: 'First session, assessment', price: 45, currency: 'USD', createdAt: d(-1) },
-    { id: 'ps-3', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: isoDay(-6), start: '10:00', end: '11:00', status: 'DONE', price: 45, currency: 'USD', createdAt: d(-10) },
+    { id: 'ps-3', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: isoDay(-6), start: '10:00', end: '11:00', status: 'DONE', price: 45, currency: 'USD', createdAt: d(-10), paid: { method: 'CASH', at: d(-6) } },
+    { id: 'ps-4', coachId: 'u-c1', clientId: 'u-k3', gymId: 'g-iron', date: isoDay(-13), start: '11:00', end: '12:00', status: 'DONE', price: 45, currency: 'USD', createdAt: d(-15), paid: { method: 'TRANSFER', at: d(-12), reference: 'TRF-88213' } },
+    { id: 'ps-5', coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: isoDay(-2), start: '12:00', end: '13:00', status: 'DONE', price: 45, currency: 'USD', createdAt: d(-5) },
   ],
   plans: [
     {
@@ -352,5 +364,29 @@ export const SEED: DbState = {
     { id: 'au-3', at: d(-5), actorId: 'u-a1', action: 'Membership created', gymId: 'g-iron', target: 'Amine El Idrissi · Monthly Open Gym' },
     { id: 'au-4', at: d(-3), actorId: 'u-sa', action: 'SaaS plan saved', target: 'Pro' },
     { id: 'au-5', at: d(-2), actorId: 'u-a1', action: 'Announcement posted', gymId: 'g-iron', target: 'New squat racks!' },
+  ],
+  expenses: [
+    // platform (USD)
+    ...[0, 1, 2].flatMap((m) => [
+      { id: `ex-p-host-${m}`, owner: 'PLATFORM' as const, date: monthDay(-m, 3), category: 'HOSTING' as const, label: 'Cloud hosting', amount: 42, currency: 'USD', method: 'CARD' as const },
+      { id: `ex-p-fee-${m}`, owner: 'PLATFORM' as const, date: monthDay(-m, 28), category: 'FEES' as const, label: 'Card processing fees', amount: 9.5, currency: 'USD', method: 'CARD' as const },
+    ]),
+    { id: 'ex-p-mkt', owner: 'PLATFORM', date: monthDay(-1, 12), category: 'MARKETING', label: 'Social ads campaign', amount: 120, currency: 'USD', method: 'CARD' },
+    // Iron Temple (USD)
+    ...[0, 1, 2].flatMap((m) => [
+      { id: `ex-g-rent-${m}`, owner: 'GYM' as const, ownerId: 'g-iron', date: monthDay(-m, 1), category: 'RENT' as const, label: 'Rent', amount: 900, currency: 'USD', method: 'TRANSFER' as const },
+      { id: `ex-g-util-${m}`, owner: 'GYM' as const, ownerId: 'g-iron', date: monthDay(-m, 10), category: 'UTILITIES' as const, label: 'Electricity & water', amount: 140 + m * 12, currency: 'USD', method: 'TRANSFER' as const },
+    ]),
+    { id: 'ex-g-eq', owner: 'GYM', ownerId: 'g-iron', date: monthDay(-1, 18), category: 'EQUIPMENT', label: 'Competition squat racks (×2)', amount: 1850, currency: 'USD', method: 'CARD', vatRate: 0 },
+    { id: 'ex-g-maint', owner: 'GYM', ownerId: 'g-iron', date: monthDay(0, 6), category: 'MAINTENANCE', label: 'Treadmill repair', amount: 160, currency: 'USD', method: 'CASH' },
+    // coach Jordan
+    { id: 'ex-c-gear', owner: 'COACH', ownerId: 'u-c1', date: monthDay(-1, 9), category: 'EQUIPMENT', label: 'Resistance bands & chalk', amount: 65, currency: 'USD', method: 'CARD' },
+    { id: 'ex-c-travel', owner: 'COACH', ownerId: 'u-c1', date: monthDay(0, 4), category: 'TRAVEL', label: 'Fuel — Kumite Dojo trips', amount: 38, currency: 'USD', method: 'CASH' },
+  ],
+  coachPayouts: [
+    { id: 'po-1', gymId: 'g-iron', coachId: 'u-c1', date: monthDay(-1, 2), amount: 640, currency: 'USD', method: 'TRANSFER', reference: 'IT-PAY-1041', period: monthKey(-2) },
+    { id: 'po-2', gymId: 'g-iron', coachId: 'u-c1', date: monthDay(0, 2), amount: 720, currency: 'USD', method: 'TRANSFER', reference: 'IT-PAY-1077', period: monthKey(-1) },
+    { id: 'po-3', gymId: 'g-iron', coachId: 'u-c4', date: monthDay(0, 3), amount: 360, currency: 'USD', method: 'CASH', period: monthKey(-1) },
+    { id: 'po-4', gymId: 'g-wave', coachId: 'u-c2', date: monthDay(0, 5), amount: 280, currency: 'EUR', method: 'TRANSFER', reference: 'BW-00932', period: monthKey(-1) },
   ],
 };

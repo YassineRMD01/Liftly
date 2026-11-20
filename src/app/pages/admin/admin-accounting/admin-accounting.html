@@ -1,0 +1,94 @@
+<app-page-header [title]="'Accounting' | t" [subtitle]="'Income, expenses, VAT and coach pay of your gym.' | t">
+  <p-selectbutton [options]="tabs" optionLabel="label" optionValue="value" [ngModel]="tab()" (ngModelChange)="tab.set($event)" [allowEmpty]="false" />
+</app-page-header>
+
+@if (gym(); as g) {
+  @if (tab() === 'books') {
+    <app-accounting-view [lines]="lines()" [currency]="cur()" owner="GYM" [ownerId]="g.id" [fileName]="'accounting-' + g.name" />
+  } @else {
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shiftMonth(-1)" [attr.aria-label]="'Previous month' | t"><fa-icon icon="chevron-left" class="rtl:rotate-180" /></button>
+      <span class="font-semibold w-36 text-center">{{ monthLabel() | date: 'MMMM y' }}</span>
+      <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shiftMonth(1)" [attr.aria-label]="'Next month' | t"><fa-icon icon="chevron-right" class="rtl:rotate-180" /></button>
+      <span class="flex-1"></span>
+      <span class="text-sm muted">{{ 'Owed to coaches in total' | t }}</span><span class="text-xl font-bold tabular-nums" data-testid="total-due">{{ totalDue() | money: cur() }}</span>
+    </div>
+
+    <div class="card !p-0 overflow-x-auto mb-6">
+      <table class="w-full text-sm min-w-[56rem]">
+        <thead>
+          <tr class="text-xs muted border-b border-surface-200 dark:border-surface-700">
+            <th class="text-start p-3 font-medium">{{ 'Coach' | t }}</th><th class="text-start font-medium">{{ 'Rate per class' | t }}</th>
+            <th class="text-end font-medium">{{ 'Classes this month' | t }}</th><th class="text-end font-medium">{{ 'Earned this month' | t }}</th>
+            <th class="text-end font-medium">{{ 'Paid for this month' | t }}</th><th class="text-end font-medium">{{ 'Balance due' | t }}</th><th class="text-start font-medium ps-4">{{ 'Paid by' | t }}</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of coaches(); track c.coach.id) {
+            <tr class="border-b border-surface-100 dark:border-surface-800" data-testid="coach-pay-row">
+              <td class="p-3 font-medium">{{ c.coach.firstName }} {{ c.coach.lastName }}</td>
+              <td><p-inputnumber [ngModel]="c.link?.classRate ?? null" (ngModelChange)="setRate(c.coach, $event)" [ngModelOptions]="{ updateOn: 'blur' }" mode="currency" [currency]="cur()" [min]="0" inputStyleClass="w-28 !py-1" [placeholder]="'Not set' | t" /></td>
+              <td class="text-end tabular-nums">{{ c.monthStatement.classes }}</td>
+              <td class="text-end tabular-nums">{{ c.monthStatement.earned | money: cur() }}</td>
+              <td class="text-end tabular-nums">{{ c.monthStatement.paid | money: cur() }}</td>
+              <td class="text-end tabular-nums font-semibold" [class.text-amber-600]="c.total.due > 0">{{ c.total.due | money: cur() }}</td>
+              <td class="ps-4">
+                <p-tag [value]="(c.profile?.payoutMethod === 'TRANSFER' ? 'Bank transfer' : 'Cash') | t" [severity]="c.profile?.payoutMethod === 'TRANSFER' ? 'info' : 'secondary'" />
+                @if (c.profile?.payoutMethod === 'TRANSFER' && !c.profile?.bank?.iban) { <fa-icon icon="triangle-exclamation" class="text-amber-500 ms-1" [pTooltip]="'No bank details yet' | t" /> }
+              </td>
+              <td class="text-end pe-3"><button pButton type="button" size="small" (click)="pay(c.coach)" [disabled]="!c.link?.classRate"><fa-icon icon="hand-holding-dollar" />{{ 'Pay' | t }}</button></td>
+            </tr>
+          } @empty { <tr><td colspan="8" class="text-center muted py-10">{{ 'No coaches at your gym yet.' | t }}</td></tr> }
+        </tbody>
+      </table>
+      <p class="text-xs muted p-3">{{ 'Classes count once they have ended, from the day a rate is set. The balance is everything earned minus everything paid.' | t }}</p>
+    </div>
+
+    <div class="card">
+      <h2 class="font-semibold mb-2">{{ 'Payments to coaches' | t }}</h2>
+      <div class="divide-y divide-surface-100 dark:divide-surface-800">
+        @for (p of payouts(); track p.id) {
+          <div class="py-2 flex flex-wrap items-center gap-3 text-sm" data-testid="payout-row">
+            <span class="w-28 muted">{{ p.date | date: 'mediumDate' }}</span>
+            <span class="flex-1 min-w-40 font-medium">{{ store.fullName(p.coachId) }}@if (p.period) { <span class="muted font-normal"> · {{ p.period }}</span> }</span>
+            <p-tag [value]="(p.method === 'TRANSFER' ? 'Bank transfer' : 'Cash') | t" [severity]="p.method === 'TRANSFER' ? 'info' : 'secondary'" />
+            <span class="w-28 font-mono text-xs muted">{{ p.reference }}</span>
+            <span class="w-28 text-end tabular-nums font-semibold">{{ p.amount | money: p.currency }}</span>
+            <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="removePayout(p)"><fa-icon icon="trash" /></button>
+          </div>
+        } @empty { <p class="text-sm muted py-4 text-center">{{ 'No payments yet.' | t }}</p> }
+      </div>
+    </div>
+  }
+}
+
+<p-dialog [header]="'Pay coach' | t" [visible]="!!paying()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (paying(); as p) {
+    <div class="space-y-4">
+      <div class="font-semibold">{{ store.fullName(p.coachId) }}</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field"><label>{{ 'Amount' | t }}</label><p-inputnumber [(ngModel)]="p.amount" mode="currency" [currency]="p.currency" [min]="0" class="w-full" inputStyleClass="w-full" data-testid="pay-amount" /></div>
+        <div class="field"><label>{{ 'Date' | t }}</label><input pInputText type="date" [(ngModel)]="p.date" /></div>
+        <div class="field"><label>{{ 'For the month' | t }}</label><input pInputText type="month" [(ngModel)]="p.period" /></div>
+        <div class="field"><label>{{ 'Paid by' | t }}</label><p-selectbutton [options]="methods" optionLabel="label" optionValue="value" [(ngModel)]="p.method" [allowEmpty]="false" /></div>
+      </div>
+      @if (p.method === 'TRANSFER') {
+        @if (bankOf(p.coachId); as b) {
+          <div class="p-3 rounded-xl bg-surface-50 dark:bg-surface-800 text-sm space-y-0.5" data-testid="bank-details">
+            <div class="text-xs muted">{{ 'Bank details' | t }}</div>
+            <div class="font-medium">{{ b.holder }} · {{ b.bankName }}</div>
+            <div class="font-mono">{{ b.iban }}@if (b.swift) { · {{ b.swift }} }</div>
+          </div>
+        } @else {
+          <p class="text-sm text-amber-600">{{ 'This coach has not entered bank details yet.' | t }}</p>
+        }
+        <div class="field"><label>{{ 'Transfer reference' | t }}</label><input pInputText [(ngModel)]="p.reference" class="font-mono" data-testid="pay-ref" /></div>
+      }
+      <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="p.note" /></div>
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="paying.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="confirmPay()" data-testid="pay-confirm">{{ 'Record payment' | t }}</button>
+  </ng-template>
+</p-dialog>

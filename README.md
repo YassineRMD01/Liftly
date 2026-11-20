@@ -28,6 +28,36 @@ Works for any sport (gym, pool, dojo, court…). Five roles:
 - **Announcements:** admins post news to their gym (optionally pinned). Every member, coach and staff member gets an in-app notification.
 - **PWA:** web app manifest, icons and an Angular service worker in production builds. The app can be installed (an *Install app* button appears when the browser offers it) and works offline; demo data lives in `localStorage`. An *Update* button appears when a new version has been downloaded.
 
+### Accounting & coach scheduling
+- **Shared accounting view** (`shared/accounting-view`), used by the super-admin, gym admins and coaches:
+  - a year/month filter;
+  - income, expenses, net result and VAT due (collected minus deductible);
+  - a monthly income-vs-expenses chart, plus expenses by category and income by payment method;
+  - a searchable **journal** with a type filter;
+  - CSV export;
+  - recording, editing and deleting expenses (category, currency, cash/card/transfer, VAT included).
+- **Gym accounting** (`/admin/accounting`), in the gym currency:
+  - member payments in;
+  - out: expenses, coach pay and the Liftly subscription invoices.
+  - **Coach pay** tab:
+    - set each coach's rate per class (classes count once they have ended, from the day the rate is set);
+    - see classes, earned, paid and balance due per month;
+    - **pay a coach in cash or by bank transfer** (the coach's bank details are shown, and a transfer needs a reference); the coach is notified;
+    - payment history.
+- **Platform accounting** (`/super-admin/accounting`), in USD: subscription invoices of every gym (converted with the exchange rates) against platform costs (hosting, fees, marketing…), plus **VAT by country** for the year.
+- **Coach scheduler** (`/coach/schedule`):
+  - a week planner with the classes the coach teaches at **every gym** (in each gym's colour), private lessons (requests dashed) and availability windows shaded;
+  - overlapping items sit side by side and are flagged as clashes;
+  - click an empty slot (or *New private lesson*) to book a lesson with a member, which is confirmed and the member notified; bookings that clash with a class or another lesson are refused;
+  - open any item to confirm/decline, mark done, reschedule, cancel, mark as paid or message the member;
+  - a day list on phones.
+- **Coach accounting** (`/coach/accounting`, coach currency):
+  - what each gym owes (rate, classes this month, balance due);
+  - **private lessons to collect**, marked as paid in **cash** or by **bank transfer** (with a reference), with undo;
+  - payments received from gyms;
+  - *How I get paid*: cash, or bank transfer with holder, bank, IBAN (checked) and SWIFT;
+  - the coach's own books, including expenses such as equipment and travel.
+
 ### Growth, billing documents & admin tools
 - **Public gym directory** (`/gyms`): search by name or city, filter by sport and country. Each gym has a **public page** (`/gyms/:id`) in its own theme with plans, classes, opening hours, coaches, reviews and locations, plus an **Ask to join** form. Admins can hide the page (Branding → *Public page & referrals*).
 - **Join requests** (`/admin/requests`, with a badge for new ones): mark as contacted, decline, or *Create member*. That makes an invited account; the admin then adds the membership.

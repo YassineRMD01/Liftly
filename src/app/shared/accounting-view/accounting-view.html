@@ -1,0 +1,90 @@
+<div class="flex flex-wrap items-center gap-3 mb-5">
+  <p-select [options]="years()" optionLabel="label" optionValue="value" [ngModel]="year()" (ngModelChange)="year.set($event)" class="w-28" [attr.aria-label]="'Year' | t" />
+  <p-select [options]="months()" optionLabel="label" optionValue="value" [ngModel]="month()" (ngModelChange)="month.set($event)" class="w-40" [attr.aria-label]="'Month' | t" data-testid="acc-month" />
+  <span class="flex-1"></span>
+  <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
+  <button pButton type="button" (click)="newExpense()" data-testid="add-expense"><fa-icon icon="plus" />{{ 'Add expense' | t }}</button>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-testid="acc-kpis">
+  <app-stat-card icon="arrow-trend-up" [label]="'Income' | t" [value]="fmt(income())" />
+  <app-stat-card icon="arrow-trend-down" [label]="'Expenses' | t" [value]="fmt(spent())" />
+  <app-stat-card icon="scale-balanced" [label]="'Net result' | t" [value]="fmt(net())" [hint]="(net() >= 0 ? 'Profit' : 'Loss') | t" />
+  @if (showVat()) {
+    <app-stat-card icon="percent" [label]="'VAT to pay' | t" [value]="fmt(vatDue())" [hint]="('Collected' | t) + ' ' + fmt(vatCollected())" />
+  } @else {
+    <app-stat-card icon="list" [label]="'Entries' | t" [value]="period().length" />
+  }
+</div>
+
+<div class="mb-6"><app-chart-card [title]="'Income and expenses' | t" [subtitle]="('Per month' | t) + ' · ' + year()" [labels]="monthLabels" [series]="monthly()" [format]="money" [timeAxis]="true" /></div>
+<div class="grid lg:grid-cols-2 gap-6 mb-6">
+  <app-chart-card [title]="'Expenses by category' | t" [labels]="byCategory().labels" [series]="byCategory().series" [format]="money" [horizontal]="true" height="12rem" />
+  <app-chart-card [title]="'Income by payment method' | t" [labels]="byMethod().labels" [series]="byMethod().series" [format]="money" [horizontal]="true" height="12rem" />
+</div>
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 mb-3">
+    <h2 class="font-semibold flex-1">{{ 'Journal' | t }}</h2>
+    <p-iconfield class="w-64">
+      <p-inputicon><fa-icon icon="magnifying-glass" /></p-inputicon>
+      <input pInputText class="w-full" [ngModel]="q()" (ngModelChange)="q.set($event)" [placeholder]="'Search' | t" />
+    </p-iconfield>
+    <p-selectbutton [options]="types" optionLabel="label" optionValue="value" [ngModel]="type()" (ngModelChange)="type.set($event)" [allowEmpty]="false" />
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm min-w-[52rem]" data-testid="journal">
+      <thead>
+        <tr class="text-xs muted border-b border-surface-200 dark:border-surface-700">
+          <th class="text-start py-2 font-medium">{{ 'Date' | t }}</th><th class="text-start font-medium">{{ 'Description' | t }}</th><th class="text-start font-medium">{{ 'Category' | t }}</th>
+          <th class="text-start font-medium">{{ 'Method' | t }}</th><th class="text-end font-medium">{{ 'Amount' | t }}</th>@if (showVat()) { <th class="text-end font-medium">{{ 'VAT' | t }}</th> }<th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of shown(); track l.source + l.id) {
+          <tr class="border-b border-surface-100 dark:border-surface-800">
+            <td class="py-2 whitespace-nowrap">{{ l.date | date: 'mediumDate' }}</td>
+            <td><div class="flex items-center gap-2"><fa-icon [icon]="sourceIcon(l)" class="muted w-4" />
+              <span class="min-w-0"><span class="font-medium">{{ l.label }}</span>@if (l.counterparty || l.reference) { <span class="block text-xs muted">{{ l.counterparty }}@if (l.counterparty && l.reference) { · }{{ l.reference }}</span> }</span></div></td>
+            <td><p-tag [value]="(cat[l.category] ?? l.category) | t" [severity]="l.type === 'INCOME' ? 'success' : 'secondary'" /></td>
+            <td class="muted">{{ l.method ? ((methodLabel[l.method] ?? l.method) | t) : '' }}</td>
+            <td class="text-end tabular-nums whitespace-nowrap font-medium" [class.text-green-700]="l.type === 'INCOME'" [class.dark:text-green-400]="l.type === 'INCOME'">
+              {{ l.type === 'EXPENSE' ? '−' : '+' }}{{ l.amount | money: currency() }}
+              @if (l.original) { <span class="block text-[11px] muted font-normal">{{ l.original.amount | money: l.original.currency }}</span> }
+            </td>
+            @if (showVat()) { <td class="text-end tabular-nums muted">{{ l.vat ? (l.vat | money: currency()) : '—' }}</td> }
+            <td class="text-end whitespace-nowrap">
+              @if (l.expenseId) {
+                <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(l)"><fa-icon icon="pen" /></button>
+                <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(l)"><fa-icon icon="trash" /></button>
+              }
+            </td>
+          </tr>
+        } @empty { <tr><td [attr.colspan]="showVat() ? 7 : 6" class="text-center muted py-10">{{ 'No entries for this period.' | t }}</td></tr> }
+      </tbody>
+    </table>
+  </div>
+  @if (journal().length > shown().length) {
+    <div class="text-center mt-3"><button pButton type="button" [text]="true" (click)="limit.set(limit() + 25)">{{ 'Show more' | t }} ({{ journal().length - shown().length }})</button></div>
+  }
+</div>
+
+<p-dialog [header]="(editing()?.id ? 'Edit expense' : 'Add expense') | t" [visible]="!!editing()" (visibleChange)="close($event)" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (editing(); as e) {
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><input pInputText [(ngModel)]="e.label" [placeholder]="'e.g. Rent for March' | t" data-testid="expense-label" /></div>
+      <div class="field"><label>{{ 'Date' | t }}</label><input pInputText type="date" [(ngModel)]="e.date" /></div>
+      <div class="field"><label>{{ 'Category' | t }}</label><p-select [options]="categoryOptions()" optionLabel="label" optionValue="value" [(ngModel)]="e.category" class="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Amount' | t }}</label><p-inputnumber [(ngModel)]="e.amount" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" class="w-full" inputStyleClass="w-full" data-testid="expense-amount" /></div>
+      <div class="field"><label>{{ 'Currency' | t }}</label><p-select [options]="currencies()" optionLabel="code" optionValue="code" [(ngModel)]="e.currency" [filter]="true" filterBy="label,code" class="w-full" appendTo="body" /></div>
+      <div class="field sm:col-span-2"><label>{{ 'Paid by' | t }}</label><p-selectbutton [options]="methods" optionLabel="label" optionValue="value" [(ngModel)]="e.method" [allowEmpty]="false" /></div>
+      @if (showVat()) {
+        <div class="field"><label>{{ 'VAT included (%)' | t }}</label><p-inputnumber [(ngModel)]="e.vatRate" [min]="0" [max]="40" [maxFractionDigits]="1" class="w-full" inputStyleClass="w-full" /></div>
+      }
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()">{{ 'Save' | t }}</button>
+  </ng-template>
+</p-dialog>

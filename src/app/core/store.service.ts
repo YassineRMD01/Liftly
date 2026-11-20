@@ -1,14 +1,14 @@
 import { CURRENT_LANGUAGE, t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  Announcement, AppNotification, AuditEntry, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, AuditEntry, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v13';
+const STORAGE_KEY = 'liftly-db-v14';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -59,6 +59,8 @@ export class StoreService {
   readonly announcements = computed(() => this.state().announcements);
   readonly joinRequests = computed(() => this.state().joinRequests);
   readonly audit = computed(() => this.state().audit);
+  readonly expenses = computed(() => this.state().expenses);
+  readonly coachPayouts = computed(() => this.state().coachPayouts);
   /** Signed-in user, set by AuthService: recorded as the actor of audit entries. */
   readonly actorId = signal<string | null>(null);
 
@@ -1029,4 +1031,192 @@ export class StoreService {
         Math.round((clients.filter((c) => activeIn(byClient.get(c)!, key + k)).length / clients.length) * 100)),
     }));
   }
+  // ---------- coach agenda & scheduling ----------
+  /** Classes of a coach (at every gym) taking place between two dates, inclusive. */
+  classOccurrences(coachId: string, from: string, to: string, gymId?: string) {
+    const out: { cls: GymClass; date: string }[] = [];
+    const classes = this.classes().filter((c) => c.coachId === coachId && c.active && (!gymId || c.gymId === gymId));
+    if (!classes.length) return out;
+    const closed = new Set(this.closures().map((c) => `${c.gymId}|${c.date}`));
+    for (let d = new Date(from + 'T00:00:00'); isoDate(d) <= to; d.setDate(d.getDate() + 1)) {
+      const date = isoDate(d);
+      for (const c of classes) if (c.day === d.getDay() && !closed.has(`${c.gymId}|${date}`)) out.push({ cls: c, date });
+    }
+    return out.sort((a, b) => (a.date + a.cls.start).localeCompare(b.date + b.cls.start));
+  }
+  /** Everything in a coach's week: classes they teach, private sessions, and their availability windows. */
+  coachAgenda(coachId: string, from: string, to: string) {
+    type Item = { kind: 'CLASS' | 'SESSION'; id: string; date: string; start: string; end: string; gymId: string; title: string; status?: string };
+    const items: Item[] = this.classOccurrences(coachId, from, to).map(({ cls, date }) => ({ kind: 'CLASS', id: cls.id, date, start: cls.start, end: cls.end, gymId: cls.gymId, title: cls.name }));
+    for (const s of this.sessions()) {
+      if (s.coachId !== coachId || s.date < from || s.date > to || s.status === 'CANCELLED' || s.status === 'DECLINED') continue;
+      items.push({ kind: 'SESSION', id: s.id, date: s.date, start: s.start, end: s.end, gymId: s.gymId, title: this.fullName(s.clientId), status: s.status });
+    }
+    return items.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+  }
+  /** What already occupies a coach at that time (a class or a session), if anything. */
+  coachConflict(coachId: string, date: string, start: string, end: string, ignoreSessionId?: string) {
+    const a = toMin(start), b = toMin(end);
+    return this.coachAgenda(coachId, date, date).find((i) => i.id !== ignoreSessionId && toMin(i.start) < b && a < toMin(i.end));
+  }
+  /** A coach books a private lesson directly with one of their members (confirmed straight away). */
+  scheduleSession(r: { coachId: string; clientId: string; gymId: string; date: string; start: string; end: string; note?: string; price?: number }) {
+    if (toMin(r.end) <= toMin(r.start)) return { ok: false as const, reason: 'The end must be after the start.' };
+    if (new Date(`${r.date}T${r.start}:00`) < new Date()) return { ok: false as const, reason: 'This time is in the past.' };
+    const clash = this.coachConflict(r.coachId, r.date, r.start, r.end);
+    if (clash) return { ok: false as const, reason: clash.kind === 'CLASS' ? 'You teach a class at that time.' : 'You already have a session at that time.' };
+    const profile = this.coachProfile(r.coachId);
+    const minutes = toMin(r.end) - toMin(r.start);
+    const session: PrivateSession = {
+      id: uid('ps'), coachId: r.coachId, clientId: r.clientId, gymId: r.gymId, date: r.date, start: r.start, end: r.end, status: 'CONFIRMED',
+      ...(r.note ? { note: r.note } : {}), createdAt: new Date().toISOString(),
+      price: r.price ?? Math.round((profile?.hourlyRate ?? 0) * minutes / 60 * 100) / 100, currency: profile?.currency ?? DEFAULT_CURRENCY,
+    };
+    this.patch((s) => ({ sessions: [...s.sessions, session] }));
+    this.notify(r.clientId, 'Session scheduled', '{name} booked a private session with you on {date} at {time}.', { name: this.fullName(r.coachId), date: r.date, time: r.start }, '/client/sessions');
+    return { ok: true as const, session };
+  }
+  /** Move a session to another time (coach side); the member is told. */
+  rescheduleSession(id: string, date: string, start: string, end: string) {
+    const ses = this.sessions().find((x) => x.id === id);
+    if (!ses) return { ok: false as const, reason: 'Unknown session' };
+    const clash = this.coachConflict(ses.coachId, date, start, end, id);
+    if (clash) return { ok: false as const, reason: clash.kind === 'CLASS' ? 'You teach a class at that time.' : 'You already have a session at that time.' };
+    this.patch((s) => ({ sessions: s.sessions.map((x) => (x.id === id ? { ...x, date, start, end } : x)) }));
+    this.notify(ses.clientId, 'Session moved', '{name} moved your session to {date} at {time}.', { name: this.fullName(ses.coachId), date, time: start }, '/client/sessions');
+    return { ok: true as const };
+  }
+  /** The member paid the coach for a session (cash or bank transfer). */
+  markSessionPaid(id: string, method: PayoutMethod, reference?: string) {
+    this.patch((s) => ({ sessions: s.sessions.map((x) => (x.id === id ? { ...x, paid: { method, at: new Date().toISOString(), ...(reference ? { reference } : {}) } } : x)) }));
+  }
+  markSessionUnpaid(id: string) { this.patch((s) => ({ sessions: s.sessions.map((x) => (x.id === id ? { ...x, paid: undefined } : x)) })); }
+
+  // ---------- coach pay (gyms → coaches) ----------
+  gymCoachLink(gymId: string, coachId: string) { return this.gymCoaches().find((l) => l.gymId === gymId && l.coachId === coachId); }
+  setClassRate(gymId: string, coachId: string, classRate: number) {
+    this.patch((s) => ({ gymCoaches: s.gymCoaches.map((l) => (l.gymId === gymId && l.coachId === coachId ? { ...l, classRate, ratesFrom: l.ratesFrom ?? isoDate() } : l)) }));
+    this.log('Coach rate set', `${this.fullName(coachId)} · ${formatMoney(classRate, this.currencyOf(gymId))} / class`, gymId);
+  }
+  /** Classes a coach has already taught at a gym between two dates (counted from the rate start date). */
+  classesTaught(gymId: string, coachId: string, from: string, to: string) {
+    const link = this.gymCoachLink(gymId, coachId);
+    if (!link?.classRate || !link.ratesFrom) return [];
+    const start = from > link.ratesFrom ? from : link.ratesFrom;
+    const now = new Date();
+    return this.classOccurrences(coachId, start, to, gymId).filter((o) => new Date(`${o.date}T${o.cls.end}:00`) <= now);
+  }
+  /** Earned / paid / due for a coach at a gym (gym currency). With `month` (YYYY-MM) only that month. */
+  coachStatement(gymId: string, coachId: string, month?: string) {
+    const link = this.gymCoachLink(gymId, coachId);
+    const cur = this.currencyOf(gymId);
+    const from = month ? `${month}-01` : link?.ratesFrom ?? isoDate();
+    const to = month ? isoDate(new Date(+month.slice(0, 4), +month.slice(5, 7), 0)) : isoDate();
+    const taught = this.classesTaught(gymId, coachId, from, to);
+    const earned = taught.length * (link?.classRate ?? 0);
+    const payouts = this.coachPayouts().filter((p) => p.gymId === gymId && p.coachId === coachId && (!month || (p.period ?? p.date.slice(0, 7)) === month));
+    const paid = payouts.reduce((t, p) => t + this.convert(p.amount, p.currency, cur), 0);
+    return { classes: taught.length, rate: link?.classRate ?? 0, earned, paid: Math.round(paid * 100) / 100, due: Math.round((earned - paid) * 100) / 100, currency: cur, payouts };
+  }
+  payoutsOf(filter: { gymId?: string; coachId?: string }) {
+    return this.coachPayouts().filter((p) => (!filter.gymId || p.gymId === filter.gymId) && (!filter.coachId || p.coachId === filter.coachId)).sort((a, b) => b.date.localeCompare(a.date));
+  }
+  saveCoachPayout(p: CoachPayout) {
+    const isNew = !p.id;
+    const saved = isNew ? { ...p, id: uid('po') } : p;
+    this.patch((s) => ({ coachPayouts: isNew ? [...s.coachPayouts, saved] : s.coachPayouts.map((x) => (x.id === saved.id ? saved : x)) }));
+    this.log(isNew ? 'Coach paid' : 'Coach payout edited', `${this.fullName(p.coachId)} · ${formatMoney(p.amount, p.currency)} · ${p.method}`, p.gymId);
+    if (isNew) this.notify(p.coachId, 'Payment received', '{gym} paid you {amount} ({method}).', { gym: this.gym(p.gymId)?.name ?? '', amount: formatMoney(p.amount, p.currency), method: p.method === 'CASH' ? t('Cash') : t('Bank transfer') }, '/coach/accounting');
+    return saved;
+  }
+  deleteCoachPayout(id: string) { this.patch((s) => ({ coachPayouts: s.coachPayouts.filter((x) => x.id !== id) })); }
+  saveCoachBank(coachId: string, payoutMethod: PayoutMethod, bank?: CoachProfile['bank']) {
+    const p = this.coachProfile(coachId);
+    if (p) this.upsertCoachProfile({ ...p, payoutMethod, bank });
+  }
+
+  // ---------- expenses & ledgers ----------
+  expensesOf(owner: ExpenseOwner, ownerId?: string) { return this.expenses().filter((e) => e.owner === owner && (owner === 'PLATFORM' || e.ownerId === ownerId)); }
+  saveExpense(e: Expense) {
+    const isNew = !e.id;
+    const saved = isNew ? { ...e, id: uid('ex') } : e;
+    this.patch((s) => ({ expenses: isNew ? [...s.expenses, saved] : s.expenses.map((x) => (x.id === saved.id ? saved : x)) }));
+    if (e.owner !== 'COACH') this.log(isNew ? 'Expense recorded' : 'Expense edited', `${e.label} · ${formatMoney(e.amount, e.currency)}`, e.owner === 'GYM' ? e.ownerId : undefined);
+    return saved;
+  }
+  deleteExpense(id: string) { this.patch((s) => ({ expenses: s.expenses.filter((x) => x.id !== id) })); }
+
+  private expenseLines(owner: ExpenseOwner, ownerId: string | undefined, cur: string): LedgerLine[] {
+    return this.expensesOf(owner, ownerId).map((e) => {
+      const amount = this.convert(e.amount, e.currency, cur);
+      return { id: e.id, date: e.date, type: 'EXPENSE', category: e.category, label: e.label, amount, vat: this.vatSplit(amount, e.vatRate ?? 0).vat, method: e.method, source: 'EXPENSE', expenseId: e.id, ...(e.currency !== cur ? { original: { amount: e.amount, currency: e.currency } } : {}) };
+    });
+  }
+  /** Journal of a gym (gym currency): member payments in; expenses, coach pay and the Liftly subscription out. */
+  gymLedger(gymId: string): LedgerLine[] {
+    const g = this.gym(gymId);
+    if (!g) return [];
+    const cur = g.currency, vat = this.vatRate(g.country);
+    const lines: LedgerLine[] = this.payments().filter((p) => p.gymId === gymId).map((p) => {
+      const amount = this.convert(p.amount, this.paymentCurrency(p), cur);
+      return { id: p.id, date: p.date, type: 'INCOME', category: 'MEMBERSHIPS', label: p.note || t('Membership payment'), counterparty: this.fullName(p.clientId), amount, vat: this.vatSplit(amount, vat).vat, method: p.method, source: 'PAYMENT', ...(this.paymentCurrency(p) !== cur ? { original: { amount: p.amount, currency: this.paymentCurrency(p) } } : {}) };
+    });
+    lines.push(...this.expenseLines('GYM', gymId, cur));
+    for (const p of this.payoutsOf({ gymId })) {
+      lines.push({ id: p.id, date: p.date, type: 'EXPENSE', category: 'COACHES', label: t('Coach pay') + (p.period ? ` · ${p.period}` : ''), counterparty: this.fullName(p.coachId), amount: this.convert(p.amount, p.currency, cur), vat: 0, method: p.method, reference: p.reference, source: 'PAYOUT', payoutId: p.id });
+    }
+    for (const i of this.saasInvoices(gymId)) {
+      const amount = this.convert(i.amount, i.currency, cur);
+      lines.push({ id: i.number, date: i.date, type: 'EXPENSE', category: 'SOFTWARE', label: t('Liftly {plan} plan', { plan: i.plan }), counterparty: 'Liftly', amount, vat: this.vatSplit(amount, vat).vat, method: 'CARD', reference: i.number, source: 'INVOICE' });
+    }
+    return lines.sort((a, b) => b.date.localeCompare(a.date));
+  }
+  /** Journal of the platform (USD): subscription invoices of every gym in, platform expenses out. */
+  platformLedger(): LedgerLine[] {
+    const lines: LedgerLine[] = [];
+    for (const g of this.gyms()) {
+      const rate = this.vatRate(g.country);
+      for (const i of this.saasInvoices(g.id)) {
+        const amount = this.toUsd(i.amount, i.currency);
+        lines.push({ id: `${g.id}-${i.number}`, date: i.date, type: 'INCOME', category: 'SUBSCRIPTIONS', label: t('Liftly {plan} plan', { plan: i.plan }), counterparty: g.name, country: g.country, amount, vat: this.vatSplit(amount, rate).vat, method: 'CARD', reference: i.number, source: 'INVOICE', ...(i.currency !== 'USD' ? { original: { amount: i.amount, currency: i.currency } } : {}) });
+      }
+    }
+    lines.push(...this.expenseLines('PLATFORM', undefined, 'USD'));
+    return lines.sort((a, b) => b.date.localeCompare(a.date));
+  }
+  /** Journal of a coach (coach currency): gym pay and paid private sessions in, own expenses out. */
+  coachLedger(coachId: string): LedgerLine[] {
+    const cur = this.coachProfile(coachId)?.currency ?? DEFAULT_CURRENCY;
+    const lines: LedgerLine[] = this.payoutsOf({ coachId }).map((p) => ({
+      id: p.id, date: p.date, type: 'INCOME' as const, category: 'GYM_PAY', label: t('Classes') + (p.period ? ` · ${p.period}` : ''), counterparty: this.gym(p.gymId)?.name, amount: this.convert(p.amount, p.currency, cur), vat: 0, method: p.method, reference: p.reference, source: 'PAYOUT' as const,
+      ...(p.currency !== cur ? { original: { amount: p.amount, currency: p.currency } } : {}),
+    }));
+    for (const s of this.sessions()) {
+      if (s.coachId !== coachId || !s.paid) continue;
+      lines.push({ id: s.id, date: s.paid.at.slice(0, 10), type: 'INCOME', category: 'PRIVATE', label: t('Private session') + ` · ${s.date}`, counterparty: this.fullName(s.clientId), amount: this.convert(s.price, s.currency, cur), vat: 0, method: s.paid.method, reference: s.paid.reference, source: 'SESSION', ...(s.currency !== cur ? { original: { amount: s.price, currency: s.currency } } : {}) });
+    }
+    lines.push(...this.expenseLines('COACH', coachId, cur));
+    return lines.sort((a, b) => b.date.localeCompare(a.date));
+  }
+}
+
+/** One line of an accounting journal, already converted to the journal currency. */
+export interface LedgerLine {
+  id: string;
+  date: string; // YYYY-MM-DD
+  type: 'INCOME' | 'EXPENSE';
+  /** Category key (English, translated for display). */
+  category: string;
+  label: string;
+  counterparty?: string;
+  country?: string;
+  amount: number;
+  /** VAT included in the amount. */
+  vat: number;
+  method?: string;
+  reference?: string;
+  original?: { amount: number; currency: string };
+  source: 'PAYMENT' | 'EXPENSE' | 'PAYOUT' | 'INVOICE' | 'SESSION';
+  expenseId?: string;
+  payoutId?: string;
 }

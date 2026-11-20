@@ -156,4 +156,61 @@ describe('StoreService', () => {
       expect(store.thread('u-k1', 'u-c1').at(-1)?.body).toBe('hi');
     });
   });
+  describe('coach scheduling', () => {
+    const wed = future(3); // Jordan teaches CrossFit WOD Wed 18:00–19:00 at Iron Temple
+
+    it('shows classes and sessions in the coach agenda', () => {
+      const kinds = store.coachAgenda('u-c1', wed, wed).map((i) => `${i.kind}:${i.title}`);
+      expect(kinds).toContain('CLASS:CrossFit WOD');
+    });
+    it('books a confirmed lesson and refuses double bookings', () => {
+      const ok = store.scheduleSession({ coachId: 'u-c1', clientId: 'u-k3', gymId: 'g-iron', date: wed, start: '14:00', end: '15:00' });
+      expect(ok.ok && ok.session.status).toBe('CONFIRMED');
+      expect(store.notificationsOf('u-k3')[0].title).toBe('Session scheduled');
+      expect(store.scheduleSession({ coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: wed, start: '14:30', end: '15:30' })).toEqual({ ok: false, reason: 'You already have a session at that time.' });
+      expect(store.scheduleSession({ coachId: 'u-c1', clientId: 'u-k1', gymId: 'g-iron', date: wed, start: '18:30', end: '19:30' })).toEqual({ ok: false, reason: 'You teach a class at that time.' });
+    });
+    it('reschedules a session', () => {
+      const r = store.scheduleSession({ coachId: 'u-c1', clientId: 'u-k3', gymId: 'g-iron', date: wed, start: '09:00', end: '10:00' });
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(store.rescheduleSession(r.session.id, wed, '11:00', '12:00').ok).toBe(true);
+    });
+  });
+
+  describe('coach pay & accounting', () => {
+    it('counts only ended classes since the rate was set', () => {
+      store.setClassRate('g-iron', 'u-c4', 30);
+      const st = store.coachStatement('g-iron', 'u-c4');
+      expect(st.rate).toBe(30);
+      expect(st.earned).toBe(st.classes * 30);
+    });
+    it('reduces the balance due with payouts and notifies the coach', () => {
+      const before = store.coachStatement('g-iron', 'u-c1').due;
+      store.saveCoachPayout({ id: '', gymId: 'g-iron', coachId: 'u-c1', date: isoDate(), amount: 100, currency: 'USD', method: 'CASH' });
+      expect(store.coachStatement('g-iron', 'u-c1').due).toBeCloseTo(before - 100, 2);
+      expect(store.notificationsOf('u-c1')[0].title).toBe('Payment received');
+    });
+    it('puts member payments, expenses, coach pay and Liftly invoices in the gym ledger', () => {
+      const sources = new Set(store.gymLedger('g-iron').map((l) => l.source));
+      expect([...sources].sort()).toEqual(['EXPENSE', 'INVOICE', 'PAYMENT', 'PAYOUT']);
+    });
+    it('adds paid private lessons to the coach ledger', () => {
+      const unpaid = store.sessions().find((s) => s.id === 'ps-5')!;
+      expect(store.coachLedger('u-c1').some((l) => l.id === unpaid.id)).toBe(false);
+      store.markSessionPaid('ps-5', 'TRANSFER', 'REF-1');
+      const line = store.coachLedger('u-c1').find((l) => l.id === 'ps-5')!;
+      expect(line).toMatchObject({ type: 'INCOME', method: 'TRANSFER', reference: 'REF-1', amount: 45 });
+    });
+    it('splits VAT on platform invoices by gym country', () => {
+      const es = store.platformLedger().filter((l) => l.country === 'ES');
+      expect(es.length).toBeGreaterThan(0);
+      for (const l of es) expect(l.vat).toBeCloseTo(l.amount - l.amount / 1.21, 1);
+    });
+    it('records and deletes expenses', () => {
+      const e = store.saveExpense({ id: '', owner: 'GYM', ownerId: 'g-wave', date: isoDate(), category: 'RENT', label: 'Rent', amount: 500, currency: 'EUR' });
+      expect(store.expensesOf('GYM', 'g-wave').map((x) => x.id)).toContain(e.id);
+      store.deleteExpense(e.id);
+      expect(store.expensesOf('GYM', 'g-wave').map((x) => x.id)).not.toContain(e.id);
+    });
+  });
 });

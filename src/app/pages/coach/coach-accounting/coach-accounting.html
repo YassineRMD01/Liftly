@@ -1,0 +1,93 @@
+<app-page-header [title]="'Accounting' | t" [subtitle]="'What your gyms owe you, lessons to collect, how you get paid and your own books.' | t">
+  <p-selectbutton [options]="tabs" optionLabel="label" optionValue="value" [ngModel]="tab()" (ngModelChange)="tab.set($event)" [allowEmpty]="false" />
+</app-page-header>
+
+@if (tab() === 'books') {
+  <app-accounting-view [lines]="lines()" [currency]="cur()" owner="COACH" [ownerId]="me()" [showVat]="false" [categories]="['EQUIPMENT', 'TRAVEL', 'MARKETING', 'SOFTWARE', 'FEES', 'TAXES', 'OTHER']" fileName="coach-accounting" />
+} @else {
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="card"><div class="text-sm muted">{{ 'Owed by your gyms' | t }}</div><div class="text-2xl font-bold tabular-nums" data-testid="owed-total">{{ owedTotal() }}</div><div class="text-xs muted">{{ 'Classes taught minus payments received' | t }}</div></div>
+    <div class="card"><div class="text-sm muted">{{ 'Private lessons to collect' | t }}</div><div class="text-2xl font-bold tabular-nums" data-testid="collect-total">{{ toCollectTotal() }}</div><div class="text-xs muted">{{ toCollect().length }} {{ 'lessons not paid yet' | t }}</div></div>
+  </div>
+
+  <div class="grid xl:grid-cols-[minmax(0,1fr)_24rem] gap-6">
+    <div class="space-y-6 min-w-0">
+      <div class="card !p-0 overflow-x-auto">
+        <h2 class="font-semibold p-4 pb-2">{{ 'Classes at your gyms' | t }} · {{ month }}</h2>
+        <table class="w-full text-sm min-w-[40rem]">
+          <thead><tr class="text-xs muted border-b border-surface-200 dark:border-surface-700"><th class="text-start p-3 font-medium">{{ 'Gym' | t }}</th><th class="text-end font-medium">{{ 'Rate per class' | t }}</th><th class="text-end font-medium">{{ 'Classes this month' | t }}</th><th class="text-end font-medium">{{ 'Earned this month' | t }}</th><th class="text-end font-medium pe-3">{{ 'Balance due' | t }}</th></tr></thead>
+          <tbody>
+            @for (x of gyms(); track x.gym.id) {
+              <tr class="border-b border-surface-100 dark:border-surface-800" data-testid="coach-gym-row">
+                <td class="p-3 font-medium"><span class="inline-block w-2.5 h-2.5 rounded-full me-2" [style.background]="x.gym.theme.primary"></span>{{ x.gym.name }}</td>
+                <td class="text-end tabular-nums">@if (x.total.rate) { {{ x.total.rate | money: x.total.currency }} } @else { <span class="muted" [pTooltip]="'The gym has not set your rate yet' | t">—</span> }</td>
+                <td class="text-end tabular-nums">{{ x.month.classes }}</td>
+                <td class="text-end tabular-nums">{{ x.month.earned | money: x.month.currency }}</td>
+                <td class="text-end tabular-nums font-semibold pe-3" [class.text-amber-600]="x.total.due > 0">{{ x.total.due | money: x.total.currency }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2 class="font-semibold mb-2">{{ 'Private lessons to collect' | t }}</h2>
+        <div class="divide-y divide-surface-100 dark:divide-surface-800">
+          @for (s of toCollect(); track s.id) {
+            <div class="py-2.5 flex flex-wrap items-center gap-3 text-sm" data-testid="collect-row">
+              <span class="w-28">{{ s.date | date: 'EEE d MMM' }}</span>
+              <span class="flex-1 min-w-40"><span class="font-medium">{{ store.fullName(s.clientId) }}</span><span class="block text-xs muted">{{ store.gym(s.gymId)?.name }}</span></span>
+              <span class="font-semibold tabular-nums">{{ s.price | money: s.currency }}</span>
+              @if (refFor() === s.id) {
+                <input pInputText class="w-40 font-mono !py-1" [(ngModel)]="ref" [placeholder]="'Transfer reference' | t" />
+                <button pButton type="button" size="small" (click)="paid(s, 'TRANSFER')">{{ 'Save' | t }}</button>
+              } @else {
+                <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="paid(s, 'CASH')" data-testid="collect-cash"><fa-icon icon="money-bill" />{{ 'Cash' | t }}</button>
+                <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="paid(s, 'TRANSFER')" data-testid="collect-transfer"><fa-icon icon="building-columns" />{{ 'Transfer' | t }}</button>
+              }
+            </div>
+          } @empty { <p class="text-sm muted py-4 text-center">{{ 'All your lessons are paid.' | t }}</p> }
+        </div>
+        @if (recentPaid().length) {
+          <h3 class="text-xs font-semibold uppercase tracking-wider muted mt-4 mb-1">{{ 'Recently paid' | t }}</h3>
+          @for (s of recentPaid(); track s.id) {
+            <div class="py-1.5 flex items-center gap-3 text-sm">
+              <span class="w-28 muted">{{ s.paid!.at | date: 'd MMM' }}</span><span class="flex-1">{{ store.fullName(s.clientId) }}</span>
+              <p-tag [value]="(s.paid!.method === 'CASH' ? 'Cash' : 'Bank transfer') | t" [severity]="s.paid!.method === 'CASH' ? 'secondary' : 'info'" />
+              <span class="w-24 text-end tabular-nums">{{ s.price | money: s.currency }}</span>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="secondary" [pTooltip]="'Undo' | t" (click)="undo(s)"><fa-icon icon="rotate-left" /></button>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="card">
+        <h2 class="font-semibold mb-2">{{ 'Payments from your gyms' | t }}</h2>
+        @for (p of payouts(); track p.id) {
+          <div class="py-1.5 flex flex-wrap items-center gap-3 text-sm" data-testid="received-row">
+            <span class="w-28 muted">{{ p.date | date: 'mediumDate' }}</span>
+            <span class="flex-1 min-w-32">{{ store.gym(p.gymId)?.name }}@if (p.period) { <span class="muted"> · {{ p.period }}</span> }</span>
+            <p-tag [value]="(p.method === 'CASH' ? 'Cash' : 'Bank transfer') | t" [severity]="p.method === 'CASH' ? 'secondary' : 'info'" />
+            <span class="w-24 font-mono text-xs muted">{{ p.reference }}</span>
+            <span class="w-24 text-end tabular-nums font-semibold">{{ p.amount | money: p.currency }}</span>
+          </div>
+        } @empty { <p class="text-sm muted py-4 text-center">{{ 'No payments yet.' | t }}</p> }
+      </div>
+    </div>
+
+    <div class="card space-y-4 h-fit" data-testid="payout-settings">
+      <div><h2 class="font-semibold">{{ 'How I get paid' | t }}</h2><p class="text-sm muted">{{ 'Your gyms see this when they pay you for your classes.' | t }}</p></div>
+      <p-selectbutton [options]="methods" optionLabel="label" optionValue="value" [(ngModel)]="payoutMethod" [allowEmpty]="false" />
+      @if (payoutMethod === 'TRANSFER') {
+        <div class="field"><label>{{ 'Account holder' | t }}</label><input pInputText [(ngModel)]="bank.holder" /></div>
+        <div class="field"><label>{{ 'Bank' | t }}</label><input pInputText [(ngModel)]="bank.bankName" /></div>
+        <div class="field"><label>IBAN</label><input pInputText class="font-mono uppercase" [(ngModel)]="bank.iban" [class.ng-invalid]="bank.iban && !ibanOk()" [class.ng-dirty]="bank.iban && !ibanOk()" data-testid="iban" />
+          @if (bank.iban && !ibanOk()) { <small class="text-red-600">{{ 'This IBAN does not look right.' | t }}</small> }</div>
+        <div class="field"><label>SWIFT / BIC {{ '(optional)' | t }}</label><input pInputText class="font-mono uppercase" [(ngModel)]="bank.swift" /></div>
+      } @else {
+        <p class="text-sm muted"><fa-icon icon="money-bill" class="me-1" />{{ 'You collect your pay in cash at the front desk.' | t }}</p>
+      }
+      <button pButton type="button" class="w-full" (click)="saveBank()" data-testid="save-bank">{{ 'Save' | t }}</button>
+    </div>
+  </div>
+}

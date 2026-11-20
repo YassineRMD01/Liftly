@@ -27,6 +27,19 @@ export interface CoachProfile {
   hourlyRate: number;
   /** Currency of the hourly rate (ISO 4217) — a coach may work at gyms using different currencies. */
   currency: string;
+  /** How the coach prefers to be paid by gyms. */
+  payoutMethod?: PayoutMethod;
+  /** Bank details for transfers (shown to the gyms that pay the coach). */
+  bank?: BankDetails;
+}
+
+export type PayoutMethod = 'CASH' | 'TRANSFER';
+
+export interface BankDetails {
+  holder: string;
+  bankName: string;
+  iban: string;
+  swift?: string;
 }
 
 /** Pricing plans of the SaaS itself (what gym admins pay). Managed by super-admin. */
@@ -174,6 +187,45 @@ export interface GymCoach {
   gymId: string;
   coachId: string;
   since: string;
+  /** What the gym pays the coach for each class taught (gym currency). */
+  classRate?: number;
+  /** Classes are counted towards the coach's balance from this date (YYYY-MM-DD). */
+  ratesFrom?: string;
+}
+
+export type ExpenseOwner = 'PLATFORM' | 'GYM' | 'COACH';
+export type ExpenseCategory = 'RENT' | 'SALARIES' | 'EQUIPMENT' | 'UTILITIES' | 'MARKETING' | 'MAINTENANCE' | 'SOFTWARE' | 'HOSTING' | 'TAXES' | 'TRAVEL' | 'FEES' | 'OTHER';
+
+/** A cost recorded by the platform, a gym or a coach. */
+export interface Expense {
+  id: string;
+  owner: ExpenseOwner;
+  /** Gym id or coach user id (none for the platform). */
+  ownerId?: string;
+  date: string; // YYYY-MM-DD
+  category: ExpenseCategory;
+  label: string;
+  amount: number;
+  currency: string;
+  method?: PaymentMethod;
+  /** Share of VAT included in the amount, in % (deductible). */
+  vatRate?: number;
+}
+
+/** Money a gym pays a coach (for classes taught), in cash or by bank transfer. */
+export interface CoachPayout {
+  id: string;
+  gymId: string;
+  coachId: string;
+  date: string; // YYYY-MM-DD
+  amount: number;
+  currency: string;
+  method: PayoutMethod;
+  /** Bank transfer reference or receipt number. */
+  reference?: string;
+  /** Month the payout settles (YYYY-MM). */
+  period?: string;
+  note?: string;
 }
 
 /** Plans a gym sells to its clients. Managed by the gym admin. */
@@ -328,6 +380,8 @@ export interface PrivateSession {
   price: number;
   currency: string;
   createdAt: string;
+  /** The member paid the coach, and how. */
+  paid?: { method: PayoutMethod; at: string; reference?: string };
 }
 
 export type TrainingPlanKind = 'WORKOUT' | 'NUTRITION';
@@ -509,4 +563,6 @@ export interface DbState {
   announcements: Announcement[];
   joinRequests: JoinRequest[];
   audit: AuditEntry[];
+  expenses: Expense[];
+  coachPayouts: CoachPayout[];
 }

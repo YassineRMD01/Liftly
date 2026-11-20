@@ -1,0 +1,151 @@
+<app-page-header [title]="'My schedule' | t" [subtitle]="'Your classes at every gym and your private lessons, week by week. Click an empty slot to book a lesson.' | t">
+  <button pButton type="button" (click)="newLesson()" data-testid="new-lesson"><fa-icon icon="plus" />{{ 'New private lesson' | t }}</button>
+</app-page-header>
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shift(-1)" [attr.aria-label]="'Previous week' | t"><fa-icon icon="chevron-left" class="rtl:rotate-180" /></button>
+  <button pButton type="button" severity="secondary" [outlined]="true" size="small" (click)="today()">{{ 'This week' | t }}</button>
+  <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shift(1)" [attr.aria-label]="'Next week' | t"><fa-icon icon="chevron-right" class="rtl:rotate-180" /></button>
+  <span class="font-semibold ms-2" data-testid="week-label">{{ weekLabel() }}</span>
+  <span class="flex-1"></span>
+  @if (gyms().length > 1) {
+    <p-select [options]="gyms()" optionLabel="name" optionValue="id" [ngModel]="gymFilter()" (ngModelChange)="gymFilter.set($event)" [showClear]="true" [placeholder]="'All my gyms' | t" class="w-48" />
+  }
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm" data-testid="week-stats">
+  <div class="card !p-3"><div class="text-xl font-bold">{{ stats().classes }}</div><div class="muted">{{ 'classes' | t }}</div></div>
+  <div class="card !p-3"><div class="text-xl font-bold">{{ stats().sessions }}</div><div class="muted">{{ 'private lessons' | t }}</div></div>
+  <div class="card !p-3"><div class="text-xl font-bold">{{ stats().hours }} h</div><div class="muted">{{ 'coaching time' | t }}</div></div>
+  <div class="card !p-3"><div class="text-xl font-bold" [class.text-amber-600]="stats().requests">{{ stats().requests }}</div><div class="muted">{{ 'requests to answer' | t }}</div></div>
+</div>
+
+@if (clashes()) {
+  <div class="mb-3 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm flex items-center gap-2" data-testid="clash-banner">
+    <fa-icon icon="triangle-exclamation" />{{ 'Some of your classes or lessons overlap this week (outlined in red). Ask the gyms to move one of them.' | t }}
+  </div>
+}
+<div class="flex flex-wrap gap-4 text-xs muted mb-2">
+  @for (g of gyms(); track g.id) { <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded" [style.background]="g.theme.primary"></span>{{ g.name }}</span> }
+  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded border-2 border-dashed border-amber-500"></span>{{ 'Request' | t }}</span>
+  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-primary-100 dark:bg-primary-900"></span>{{ 'Available for lessons' | t }}</span>
+</div>
+
+<!-- week grid (md+) -->
+<div class="card !p-0 overflow-x-auto hidden md:block">
+  <div class="grid min-w-[56rem]" style="grid-template-columns: 3.5rem repeat(7, minmax(0, 1fr))">
+    <div class="border-b border-surface-200 dark:border-surface-700"></div>
+    @for (d of days(); track d.date) {
+      <div class="border-b border-s border-surface-200 dark:border-surface-700 px-2 py-2 text-center" [class.bg-primary-50]="d.today" [class.dark:bg-primary-950]="d.today">
+        <div class="text-xs muted">{{ d.d | date: 'EEE' }}</div><div class="font-bold" [class.text-primary]="d.today">{{ d.d | date: 'd' }}</div>
+      </div>
+    }
+    <div class="relative" [style.height.px]="hours().length * hourPx">
+      @for (h of hours(); track h; let i = $index) { <div class="absolute end-1 text-[10px] muted -translate-y-1/2" [style.top.px]="i * hourPx" dir="ltr">{{ i ? h : '' }}</div> }
+    </div>
+    @for (d of days(); track d.date) {
+      <div class="relative border-s border-surface-200 dark:border-surface-700 cursor-copy" [style.height.px]="hours().length * hourPx" (click)="onColumnClick(d.date, $event)" data-testid="day-column">
+        @for (h of hours(); track h; let i = $index) { <div class="absolute inset-x-0 border-t border-surface-100 dark:border-surface-800" [style.top.px]="i * hourPx"></div> }
+        @for (a of availOn(d.d); track a.id) {
+          <div class="absolute inset-x-0 bg-primary-50 dark:bg-primary-950/60 pointer-events-none" [style.top.px]="top(a.start)" [style.height.px]="height(a.start, a.end) + 2"></div>
+        }
+        @for (p of laid().get(d.date); track p.item.kind + p.item.id) {
+          @let i = p.item;
+          <button type="button" (click)="open(i, $event)" class="absolute rounded-lg px-1.5 py-1 text-start text-[11px] leading-tight overflow-hidden shadow-sm cursor-pointer hover:brightness-95"
+            [style.inset-inline-start]="'calc(' + (p.lane * 100 / p.lanes) + '% + 2px)'" [style.width]="'calc(' + (100 / p.lanes) + '% - 4px)'" [class.ring-2]="p.clash" [class.ring-red-500]="p.clash" [class.ring-offset-1]="p.clash"
+            [style.top.px]="top(i.start)" [style.height.px]="height(i.start, i.end)"
+            [style.background]="i.kind === 'CLASS' ? color(i.gymId) : i.status === 'REQUESTED' ? 'transparent' : color(i.gymId) + '26'"
+            [style.border]="i.kind === 'SESSION' ? (i.status === 'REQUESTED' ? '2px dashed #f59e0b' : '2px solid ' + color(i.gymId)) : 'none'"
+            [class.text-white]="i.kind === 'CLASS'" data-testid="agenda-item">
+            <div class="font-semibold truncate">@if (p.clash) { <fa-icon icon="triangle-exclamation" class="me-0.5" /> }@if (i.kind === 'SESSION') { <fa-icon icon="handshake" class="me-0.5" /> }{{ i.title }}</div>
+            <div class="truncate opacity-80" dir="ltr">{{ i.start }}–{{ i.end }}</div>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- day list (mobile) -->
+<div class="md:hidden space-y-3">
+  @for (d of days(); track d.date) {
+    <div class="card !p-3">
+      <div class="flex items-center justify-between mb-2"><span class="font-semibold" [class.text-primary]="d.today">{{ d.d | date: 'EEEE d MMM' }}</span>
+        <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" (click)="newLesson(d.date)" [attr.aria-label]="'New private lesson' | t"><fa-icon icon="plus" /></button></div>
+      @for (i of itemsOn(d.date); track i.kind + i.id) {
+        <button type="button" (click)="open(i)" class="w-full text-start flex items-center gap-2 py-1.5 text-sm cursor-pointer">
+          <span class="w-1.5 self-stretch rounded" [style.background]="color(i.gymId)"></span>
+          <span class="w-24 tabular-nums" dir="ltr">{{ i.start }}–{{ i.end }}</span>
+          <span class="flex-1 truncate">{{ i.title }}</span>
+          @if (i.status) { <p-tag [value]="i.status | t" [severity]="sevOf(i.status)" /> }
+        </button>
+      } @empty { <p class="text-xs muted">{{ 'Nothing planned.' | t }}</p> }
+    </div>
+  }
+</div>
+
+<!-- details -->
+<p-dialog [header]="selected()?.title ?? ''" [visible]="!!selected()" (visibleChange)="closeDetails($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (selected(); as i) {
+    <div class="space-y-3 text-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="w-3 h-3 rounded" [style.background]="color(i.gymId)"></span><span class="font-medium">{{ store.gym(i.gymId)?.name }}</span>
+        <span class="muted">· {{ i.date | date: 'EEEE d MMMM' }} · <span dir="ltr">{{ i.start }}–{{ i.end }}</span></span>
+      </div>
+      @if (cls(); as c) {
+        <p-tag [value]="'Class' | t" />
+        <div class="muted">@if (c.room) { {{ c.room }} · }{{ 'Capacity' | t }} {{ c.capacity }} · {{ store.occupancy(c.id, i.date).taken }} {{ 'booked' | t }}@if (store.occupancy(c.id, i.date).waitlist) { · {{ store.occupancy(c.id, i.date).waitlist }} {{ 'waiting' | t }} }</div>
+        <a routerLink="/coach/classes" class="text-primary hover:underline">{{ 'Open the class roster' | t }}</a>
+      }
+      @if (session(); as s) {
+        <div class="flex flex-wrap items-center gap-2"><p-tag [value]="s.status | t" [severity]="sev[s.status]" /><span class="font-semibold">{{ s.price | money: s.currency }}</span>
+          @if (s.paid) { <p-tag [value]="('Paid' | t) + ' · ' + ((s.paid.method === 'CASH' ? 'Cash' : 'Bank transfer') | t)" severity="success" /> }</div>
+        @if (s.note) { <p class="p-2 rounded-lg bg-surface-50 dark:bg-surface-800">“{{ s.note }}”</p> }
+        @if (moving(); as m) {
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+            <input pInputText type="date" [(ngModel)]="m.date" class="col-span-3" />
+            <input pInputText type="time" [(ngModel)]="m.start" /><input pInputText type="time" [(ngModel)]="m.end" />
+            <button pButton type="button" size="small" (click)="confirmMove(s)">{{ 'Move' | t }}</button>
+          </div>
+        }
+        <div class="flex flex-wrap gap-2 pt-2">
+          @if (s.status === 'REQUESTED') {
+            <button pButton type="button" size="small" (click)="setStatus(s, 'CONFIRMED')">{{ 'Confirm' | t }}</button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="setStatus(s, 'DECLINED')">{{ 'Decline' | t }}</button>
+          }
+          @if (s.status === 'CONFIRMED') {
+            <button pButton type="button" size="small" severity="success" (click)="setStatus(s, 'DONE')"><fa-icon icon="check" />{{ 'Mark as done' | t }}</button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="startMove(s)"><fa-icon icon="clock" />{{ 'Reschedule' | t }}</button>
+            <button pButton type="button" size="small" severity="danger" [text]="true" (click)="setStatus(s, 'CANCELLED')">{{ 'Cancel' | t }}</button>
+          }
+          @if (!s.paid && (s.status === 'CONFIRMED' || s.status === 'DONE')) {
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="markPaid(s, 'CASH')" data-testid="paid-cash"><fa-icon icon="money-bill" />{{ 'Paid in cash' | t }}</button>
+            <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="markPaid(s, 'TRANSFER')"><fa-icon icon="building-columns" />{{ 'Paid by transfer' | t }}</button>
+          }
+          <a pButton [routerLink]="['/coach/messages']" [queryParams]="{ to: s.clientId }" size="small" [text]="true"><fa-icon icon="comments" />{{ 'Message' | t }}</a>
+        </div>
+      }
+    </div>
+  }
+</p-dialog>
+
+<!-- new private lesson -->
+<p-dialog [header]="'New private lesson' | t" [visible]="!!creating()" (visibleChange)="closeCreate($event)" [modal]="true" [style]="{ width: '30rem' }" [breakpoints]="{ '640px': '95vw' }">
+  @if (creating(); as c) {
+    <div class="grid grid-cols-2 gap-3">
+      <div class="field col-span-2"><label>{{ 'Member' | t }}</label>
+        <p-select [options]="clients()" optionLabel="label" optionValue="value" [ngModel]="c.clientId" (ngModelChange)="patch({ clientId: $event })" [filter]="true" filterBy="label" [placeholder]="'Choose a member (★ = your athletes)' | t" class="w-full" appendTo="body" data-testid="lesson-client" /></div>
+      <div class="field col-span-2"><label>{{ 'Gym' | t }}</label>
+        <p-select [options]="gymsFor(c.clientId)" optionLabel="label" optionValue="value" [ngModel]="c.gymId" (ngModelChange)="patch({ gymId: $event })" [placeholder]="'Where' | t" class="w-full" appendTo="body" /></div>
+      <div class="field"><label>{{ 'Date' | t }}</label><input pInputText type="date" [ngModel]="c.date" (ngModelChange)="patch({ date: $event })" data-testid="lesson-date" /></div>
+      <div class="field"><label>{{ 'Starts' | t }}</label><input pInputText type="time" [ngModel]="c.start" (ngModelChange)="patch({ start: $event })" data-testid="lesson-start" /></div>
+      <div class="field col-span-2"><label>{{ 'Session length' | t }}</label><p-selectbutton [options]="lengths" optionLabel="label" optionValue="value" [ngModel]="c.minutes" (ngModelChange)="patch({ minutes: $event })" [allowEmpty]="false" /></div>
+      <div class="field"><label>{{ 'Price' | t }}</label><p-inputnumber [ngModel]="c.price" (ngModelChange)="patch({ price: $event })" mode="currency" [currency]="store.coachProfile(me())?.currency ?? 'USD'" [min]="0" class="w-full" inputStyleClass="w-full" /></div>
+      <div class="field"><label>{{ 'Note (optional)' | t }}</label><input pInputText [ngModel]="c.note" (ngModelChange)="patch({ note: $event })" /></div>
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="creating.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="createLesson()" data-testid="lesson-save">{{ 'Book lesson' | t }}</button>
+  </ng-template>
+</p-dialog>
