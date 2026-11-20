@@ -2,6 +2,7 @@
   @if (locations().length) {
     <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="locationId()" (ngModelChange)="setLocation($event)" [showClear]="true" [placeholder]="'Which location?' | t" class="w-48" />
   }
+  <a pButton routerLink="/kiosk" severity="secondary" [outlined]="true" data-testid="open-kiosk"><fa-icon icon="tablet-screen-button" />{{ 'Kiosk mode' | t }}</a>
   <div class="text-sm"><span class="text-2xl font-bold tabular-nums">{{ todayOk() }}</span> {{ 'members in today' | t }}</div>
 </app-page-header>
 

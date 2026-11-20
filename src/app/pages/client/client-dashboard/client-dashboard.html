@@ -2,6 +2,14 @@
   <button pButton type="button" [outlined]="true" routerLink="/client/gyms"><fa-icon icon="magnifying-glass" />{{ 'Browse gyms' | t }}</button>
 </app-page-header>
 
+@for (g of waiversToSign(); track g.id) {
+  <div class="card mb-4 flex flex-wrap items-center gap-3 border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30" data-testid="waiver-banner">
+    <fa-icon icon="file-signature" class="text-amber-600 text-xl" />
+    <span class="flex-1 min-w-48"><b>{{ g.name }}</b> {{ 'asks you to sign its waiver before your next visit.' | t }}</span>
+    <button pButton type="button" size="small" (click)="openWaiver(g.id)" data-testid="open-waiver">{{ 'Read and sign' | t }}</button>
+  </div>
+}
+
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
   @for (m of active(); track m.id) {
     @let g = store.gym(m.gymId);
@@ -19,6 +27,12 @@
         <p-progressbar [value]="progress(m)" [showValue]="false" class="!h-2" />
         <div class="text-xs muted">{{ daysLeft(m) }} {{ 'days left · paid' | t }} {{ m.pricePaid | money: store.membershipCurrency(m) }}
           @if (store.promo(m.promoCodeId); as p) { {{ 'with' | t }} <b>{{ p.code }}</b> }</div>
+        @if (m.credits !== undefined) { <div class="text-sm flex items-center gap-2" data-testid="credits"><fa-icon icon="ticket" class="text-primary" /> <b>{{ m.credits }}</b> {{ 'visits left' | t }}</div> }
+        @if (m.familyMembers?.length || store.plan(m.planId)?.familyMax) {
+          <div class="text-sm flex items-center gap-2"><fa-icon icon="people-roof" class="text-primary" /> {{ 'Family plan' | t }}:
+            {{ m.clientId === auth.user()?.id ? (m.familyMembers ?? []).length + 1 + ' / ' + store.plan(m.planId)?.familyMax : ('Covered by' | t) + ' ' + store.fullName(m.clientId) }}</div>
+        }
+        @if (store.lockerOf(m.gymId, auth.user()?.id ?? ''); as l) { <div class="text-sm flex items-center gap-2"><fa-icon icon="key" class="text-primary" /> {{ 'Locker' | t }} <b>{{ l.number }}</b>@if (l.until) { <span class="muted"> · {{ 'until' | t }} {{ l.until | date: 'mediumDate' }}</span> }</div> }
         @if (m.coachId) {
           <div class="text-sm flex items-center gap-2"><fa-icon icon="user-tie" class="text-primary" /> {{ 'Coach:' | t }} <b>{{ store.fullName(m.coachId) }}</b></div>
         }
@@ -97,5 +111,20 @@
   <div modal-footer>
     <button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)">{{ 'Cancel' | t }}</button>
     <button pButton type="button" (click)="sendFreeze()" data-testid="send-freeze">{{ 'Send request' | t }}</button>
+  </div>
+</app-modal>
+
+<app-modal [visible]="!!signing()" (visibleChange)="!$event && signing.set(null)" [header]="store.gym(signing() ?? undefined)?.waiver?.title ?? ('Waiver' | t)" [subtitle]="store.gym(signing() ?? undefined)?.name" tone="primary" icon="file-signature" width="36rem">
+  @if (store.gym(signing() ?? undefined)?.waiver; as w) {
+    <div class="space-y-4">
+      <div class="max-h-64 overflow-y-auto p-4 rounded-xl bg-surface-50 dark:bg-surface-800 text-sm whitespace-pre-line font-serif leading-relaxed" data-testid="waiver-body">{{ w.text }}</div>
+      <div class="field"><label>{{ 'Full name' | t }}</label><input pInputText [(ngModel)]="signName" /></div>
+      <div class="field"><label>{{ 'Signature' | t }}</label><app-signature-pad (signed)="signature = $event" /></div>
+      <p class="text-xs muted">{{ 'By signing you accept this text (version {v}). The signature is kept with your gym file.' | t: { v: w.version } }}</p>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="signing.set(null)">{{ 'Later' | t }}</button>
+    <button pButton type="button" (click)="signWaiver()" data-testid="sign-waiver"><fa-icon icon="file-signature" />{{ 'I agree and sign' | t }}</button>
   </div>
 </app-modal>

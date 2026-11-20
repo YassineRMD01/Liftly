@@ -1,0 +1,55 @@
+<div class="min-h-screen flex flex-col bg-surface-950 text-white select-none" data-testid="kiosk">
+  <header class="flex items-center gap-4 px-8 py-5">
+    @if (gym(); as g) { <app-gym-logo [theme]="g.theme" [name]="g.name" [size]="56" /><div class="text-2xl font-bold">{{ g.name }}</div> }
+    <span class="flex-1"></span>
+    <div class="text-end"><div class="text-3xl font-bold tabular-nums">{{ now() | date: 'HH:mm' }}</div><div class="text-sm opacity-60">{{ now() | date: 'EEEE d MMMM' }}</div></div>
+    <button type="button" class="ms-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer relative z-50" (click)="askExit()" [attr.aria-label]="'Exit kiosk' | t" data-testid="kiosk-exit"><fa-icon icon="right-from-bracket" /></button>
+  </header>
+
+  <main class="flex-1 grid place-items-center px-6 pb-10">
+    @if (!started()) {
+      <div class="text-center space-y-6 max-w-lg">
+        <span class="w-24 h-24 mx-auto rounded-3xl bg-primary text-primary-contrast grid place-items-center text-5xl"><fa-icon icon="qrcode" /></span>
+        <h1 class="text-4xl font-extrabold">{{ 'Self check-in' | t }}</h1>
+        <p class="opacity-70">{{ 'Put this tablet at the entrance. Members show the QR code from their app and get in on their own.' | t }}</p>
+        <button pButton type="button" size="large" (click)="start()" data-testid="kiosk-start"><fa-icon icon="play" />{{ 'Start kiosk' | t }}</button>
+      </div>
+    } @else {
+      <div class="w-full max-w-3xl grid gap-6 justify-items-center">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center">{{ 'Show your QR code to the camera' | t }}</h1>
+        <app-qr-camera class="w-full" frameClass="aspect-video" [cooldownMs]="15000" (scanned)="onScan($event)" />
+        <p class="opacity-60 text-center">{{ 'Open the Liftly app → My QR card. No card? Ask at the front desk.' | t }} · <b>{{ todayCount() }}</b> {{ 'members in today' | t }}</p>
+      </div>
+    }
+  </main>
+
+  @if (result(); as r) {
+    <div class="fixed inset-0 grid place-items-center p-6 backdrop-blur-sm" [class]="r.ok ? (r.reason ? 'bg-amber-500/90' : 'bg-green-600/95') : 'bg-red-600/95'" (click)="result.set(null)" data-testid="kiosk-result">
+      <div class="text-center space-y-4">
+        <span class="w-32 h-32 mx-auto rounded-full bg-white/20 grid place-items-center text-7xl"><fa-icon [icon]="r.ok ? 'check' : 'xmark'" /></span>
+        <div class="text-5xl font-extrabold">{{ r.ok ? (('Welcome, {name}!' | t: { name: info()?.firstName ?? '' })) : ('Access denied' | t) }}</div>
+        @if (r.reason) { <div class="text-2xl font-semibold">{{ r.reason | t }}</div> }
+        @if (info(); as i) {
+          <div class="text-xl opacity-90 space-x-4">
+            @if (i.plan) { <span>{{ i.plan }}</span> }
+            @if (i.credits !== undefined) { <span><fa-icon icon="ticket" /> {{ i.credits }} {{ 'visits left' | t }}</span> }
+            @if (i.locker) { <span><fa-icon icon="key" /> {{ 'Locker' | t }} {{ i.locker }}</span> }
+          </div>
+        }
+        @if (!r.ok) { <div class="text-xl opacity-90">{{ 'Please see the front desk.' | t }}</div> }
+      </div>
+    </div>
+  }
+</div>
+
+<app-modal [(visible)]="exiting" [header]="'Exit kiosk' | t" tone="danger" icon="lock" width="24rem">
+  <div class="space-y-3">
+    <p class="text-sm muted">{{ 'Staff only: enter your Liftly password.' | t }}</p>
+    <input pInputText type="password" class="w-full" [(ngModel)]="password" (keydown.enter)="exit()" autocomplete="current-password" data-testid="kiosk-password" />
+    @if (exitError()) { <p class="text-sm text-red-600">{{ exitError() }}</p> }
+  </div>
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="exiting.set(false)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" severity="danger" (click)="exit()" data-testid="kiosk-exit-confirm">{{ 'Exit' | t }}</button>
+  </div>
+</app-modal>

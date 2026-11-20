@@ -1,4 +1,4 @@
-import { toCsv } from './csv';
+import { parseCsv, toCsv } from './csv';
 
 describe('toCsv', () => {
   it('joins rows with CRLF and leaves simple cells alone', () => {
@@ -9,5 +9,15 @@ describe('toCsv', () => {
   });
   it('writes empty cells for null and undefined', () => {
     expect(toCsv(['a', 'b', 'c'], [[null, undefined, false]])).toBe('a,b,c\r\n,,false');
+  });
+});
+
+describe('parseCsv', () => {
+  it('detects ; separators and handles quotes and line breaks', () => {
+    expect(parseCsv('\uFEFFPrénom;Nom\r\n"Lopez; Sara";"a ""b"""\n\nTom;"two\nlines"')).toEqual([['Prénom', 'Nom'], ['Lopez; Sara', 'a "b"'], ['Tom', 'two\nlines']]);
+  });
+  it('round-trips with toCsv', () => {
+    const rows = [['a', 'b, c'], ['d "e"', '']];
+    expect(parseCsv(toCsv(rows[0], [rows[1]]))).toEqual(rows);
   });
 });

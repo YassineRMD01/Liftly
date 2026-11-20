@@ -1,0 +1,36 @@
+<app-page-header [title]="'Waiver' | t" [subtitle]="'Members read and sign it in the app before training. Changing the text publishes a new version that everyone signs again.' | t" />
+<div class="grid xl:grid-cols-[minmax(0,1fr)_26rem] gap-6">
+  <div class="card space-y-4">
+    @if (gym()?.waiver; as w) { <p-tag [value]="('Version' | t) + ' ' + w.version + ' · ' + (w.updatedAt | date: 'mediumDate')" severity="info" /> }
+    <div class="field"><label>{{ 'Title' | t }}</label><input pInputText [ngModel]="title()" (ngModelChange)="title.set($event)" /></div>
+    <div class="field"><label>{{ 'Text' | t }}</label><textarea pTextarea rows="14" class="w-full font-serif" [ngModel]="text()" (ngModelChange)="text.set($event)" data-testid="waiver-text"></textarea></div>
+    <div class="flex gap-2">
+      <button pButton type="button" (click)="save()" [disabled]="!dirty()" data-testid="waiver-save"><fa-icon icon="file-signature" />{{ (gym()?.waiver ? 'Publish new version' : 'Publish') | t }}</button>
+      @if (gym()?.waiver) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()">{{ 'Remove waiver' | t }}</button> }
+    </div>
+  </div>
+  <div class="card h-fit">
+    <div class="flex items-center gap-2 mb-3">
+      <h2 class="font-semibold flex-1">{{ 'Signatures' | t }} <span class="muted font-normal">{{ signedCount() }}/{{ total() }}</span></h2>
+      <p-selectbutton [options]="filters" optionLabel="label" optionValue="value" [ngModel]="filter()" (ngModelChange)="filter.set($event)" [allowEmpty]="false" />
+    </div>
+    @for (x of members(); track x.user.id) {
+      <div class="py-2 flex items-center gap-2 text-sm border-t border-surface-100 dark:border-surface-800 first:border-0" data-testid="waiver-member">
+        <span class="flex-1">{{ x.user.firstName }} {{ x.user.lastName }}</span>
+        @if (x.sig; as s) {
+          <button type="button" class="text-green-700 dark:text-green-400 hover:underline cursor-pointer" (click)="viewing.set(s)"><fa-icon icon="circle-check" /> {{ s.signedAt | date: 'mediumDate' }}</button>
+        } @else { <p-tag [value]="'Not signed' | t" severity="warn" /> }
+      </div>
+    } @empty { <p class="text-sm muted py-4">{{ 'Everyone has signed.' | t }}</p> }
+  </div>
+</div>
+
+<app-modal [visible]="!!viewing()" (visibleChange)="!$event && viewing.set(null)" [header]="'Signature' | t" [subtitle]="viewing()?.name" tone="success" icon="file-signature" width="26rem">
+  @if (viewing(); as s) {
+    <div class="space-y-2 text-center">
+      <img [src]="s.signature" [alt]="'Signature' | t" class="mx-auto max-h-32 bg-white rounded-lg border border-surface-200 p-2" />
+      <div class="text-sm">{{ s.name }} · {{ 'Version' | t }} {{ s.version }}</div>
+      <div class="text-xs muted">{{ s.signedAt | date: 'medium' }}</div>
+    </div>
+  }
+</app-modal>

@@ -51,6 +51,7 @@ const ENUM_EN: Record<string, string> = {
   BANNED: 'Banned', OPEN: 'Open', RESOLVED: 'Resolved', DISMISSED: 'Dismissed',
   NEW: 'New', CONTACTED: 'Contacted', CONVERTED: 'Converted',
   RUNNING: 'Running', UPCOMING: 'Upcoming', ENDED: 'Ended', PENDING: 'Pending', APPROVED: 'Approved',
+  SERVICE_DUE: 'Service due', OUT_OF_ORDER: 'Out of order',
   REQUESTED: 'Requested', CONFIRMED: 'Confirmed', DECLINED: 'Declined', DONE: 'Done', WORKOUT: 'Workout', NUTRITION: 'Nutrition',
   STAFF: 'Front desk', FROZEN: 'Frozen', WAITLIST: 'Waitlist', BOOKED: 'Booked', ATTENDED: 'Attended', NO_SHOW: 'No-show',
 };

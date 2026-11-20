@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import { Component, ElementRef, OnDestroy, computed, inject, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +18,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 /** Front-desk check-in: scan a member's QR card with the camera, or search by name. */
 @Component({
   selector: 'app-admin-checkin',
-  imports: [TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Select, Tag, PageHeader],
+  imports: [RouterLink, TranslatePipe, DatePipe, FormsModule, FaIconComponent, ButtonDirective, InputText, Select, Tag, PageHeader],
   templateUrl: './admin-checkin.html',
   styleUrl: './admin-checkin.css',
 })

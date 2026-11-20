@@ -146,6 +146,59 @@ export interface Gym {
   published?: boolean;
   /** What members get for bringing a friend (shown on their referral card). */
   referralReward?: string;
+  /** Liability waiver members sign in the app (a new version asks everyone to sign again). */
+  waiver?: { title: string; text: string; version: number; updatedAt: string };
+}
+
+/** A member's signature of a gym waiver version. */
+export interface WaiverSignature {
+  id: string;
+  gymId: string;
+  clientId: string;
+  version: number;
+  /** Name typed by the member. */
+  name: string;
+  /** Drawn signature (PNG data URL). */
+  signature: string;
+  signedAt: string;
+}
+
+export type EquipmentStatus = 'OK' | 'SERVICE_DUE' | 'OUT_OF_ORDER';
+export interface Equipment {
+  id: string;
+  gymId: string;
+  name: string;
+  category: string;
+  locationId?: string;
+  status: EquipmentStatus;
+  purchasedAt?: string;
+  /** Service interval in days (a reminder shows when it is due). */
+  serviceEveryDays?: number;
+  lastServiceAt?: string;
+  notes?: string;
+  log: { date: string; note: string; cost?: number }[];
+}
+
+export interface Locker {
+  id: string;
+  gymId: string;
+  number: string;
+  locationId?: string;
+  clientId?: string;
+  /** Rented until (YYYY-MM-DD). */
+  until?: string;
+}
+
+/** A front-desk / staff work shift. */
+export interface StaffShift {
+  id: string;
+  gymId: string;
+  userId: string;
+  date: string; // YYYY-MM-DD
+  start: string;
+  end: string;
+  locationId?: string;
+  note?: string;
 }
 
 /** A branch / site of a gym. */
@@ -245,7 +298,15 @@ export interface MembershipPlan {
   active: boolean;
   /** Currency of this plan's price (ISO 4217). Defaults to the gym currency. */
   currency?: string;
+  /** TIME = unlimited for the duration (default), PACK = N visits, DROPIN = a single visit. */
+  kind?: PlanKind;
+  /** Visits included in a PACK. */
+  credits?: number;
+  /** Family plan: how many people (holder included) it covers. */
+  familyMax?: number;
 }
+
+export type PlanKind = 'TIME' | 'PACK' | 'DROPIN';
 
 export type DiscountType = 'PERCENT' | 'FIXED';
 
@@ -281,6 +342,10 @@ export interface ClientMembership {
   status: MembershipStatus;
   /** Pauses (illness, travel…); each one pushes endDate back by its length. */
   freezes?: MembershipFreeze[];
+  /** Visits left on a pack / drop-in (one is used at each check-in). */
+  credits?: number;
+  /** Other members covered by a family plan. */
+  familyMembers?: string[];
 }
 
 export interface MembershipFreeze {
@@ -573,6 +638,10 @@ export interface DbState {
   challenges: GymChallenge[];
   classReviews: ClassReview[];
   freezeRequests: FreezeRequest[];
+  waiverSignatures: WaiverSignature[];
+  equipment: Equipment[];
+  lockers: Locker[];
+  shifts: StaffShift[];
 }
 
 export interface WorkoutSet { reps: number; weight: number; }

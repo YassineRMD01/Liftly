@@ -13,6 +13,7 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { SelectButton } from 'primeng/selectbutton';
 import { TableModule } from 'primeng/table';
+import { RouterLink } from '@angular/router';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { InputNumber } from 'primeng/inputnumber';
@@ -30,7 +31,7 @@ import { InviteDialog } from '../../../shared/invite-dialog/invite-dialog';
 
 @Component({
   selector: 'app-admin-clients',
-  imports: [TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Modal, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
+  imports: [RouterLink, TranslatePipe, MoneyPipe, FormsModule, DatePipe, FaIconComponent, ButtonDirective, Modal, IconField, InputIcon, InputText, Message, Select, SelectButton, TableModule, Tag, Textarea, Tooltip, InputNumber, PageHeader, PaymentCalendar, InviteDialog],
   templateUrl: './admin-clients.html',
   styleUrl: './admin-clients.css',
 })
@@ -198,6 +199,53 @@ export class AdminClients {
   banInfo(clientId: string) { return this.store.ban(this.gymId(), clientId); }
   clientSev(s: ClientStatus) { return ({ ACTIVE: 'success', FROZEN: 'info', EXPIRED: 'secondary', BANNED: 'danger' } as const)[s]; }
 
+  // ---------- bulk actions ----------
+  protected readonly selected = signal<{ m: ClientMembership; clientName: string }[]>([]);
+  protected readonly bulk = signal<'message' | 'extend' | 'freeze' | null>(null);
+  protected bulkText = '';
+  protected bulkDays = 7;
+  runBulk() {
+    const rows = this.selected();
+    const kind = this.bulk();
+    if (!rows.length || !kind) return;
+    const me = this.auth.user()!.id;
+    if (kind === 'message') {
+      if (!this.bulkText.trim()) return;
+      for (const id of new Set(rows.map((r) => r.m.clientId))) this.store.sendMessage(me, id, this.bulkText);
+      this.toast.add({ severity: 'success', summary: t('Message sent to {n} members', { n: new Set(rows.map((r) => r.m.clientId)).size }) });
+    } else if (kind === 'extend') {
+      this.store.extendMemberships(rows.map((r) => r.m.id), this.bulkDays);
+      this.toast.add({ severity: 'success', summary: t('{n} memberships extended by {d} days', { n: rows.length, d: this.bulkDays }) });
+    } else {
+      const active = rows.filter((r) => r.m.status === 'ACTIVE' && !this.hasFreeze(r.m));
+      for (const r of active) this.store.freezeMembership(r.m.id, isoDate(), this.bulkDays, this.bulkText.trim());
+      this.toast.add({ severity: 'info', summary: t('{n} memberships frozen', { n: active.length }) });
+    }
+    this.bulkText = ''; this.bulk.set(null); this.selected.set([]);
+  }
+
+  // ---------- passes & family plans ----------
+  topUp(m: ClientMembership) {
+    const n = this.store.plan(m.planId)?.credits ?? 1;
+    this.store.addCredits(m.id, n);
+    this.toast.add({ severity: 'success', summary: t('{n} visits added', { n }), detail: this.store.fullName(m.clientId), life: 1500 });
+  }
+  protected readonly family = signal<ClientMembership | null>(null);
+  protected readonly currentFamily = computed(() => { const f = this.family(); return f ? this.store.memberships().find((x) => x.id === f.id)?.familyMembers ?? [] : []; });
+  protected familyPick: string | null = null;
+  protected readonly familyCandidates = computed(() => {
+    const f = this.family();
+    const taken = new Set([f?.clientId, ...this.currentFamily()]);
+    return this.store.clients().filter((c) => !taken.has(c.id)).map((c) => ({ id: c.id, label: `${c.firstName} ${c.lastName} · ${c.email}` }));
+  });
+  addFamily() {
+    const f = this.family();
+    if (!f || !this.familyPick) return;
+    const r = this.store.addFamilyMember(f.id, this.familyPick);
+    if (!r.ok) this.toast.add({ severity: 'error', summary: t(r.reason) });
+    this.familyPick = null;
+  }
+
   // ---------- freeze requests from members ----------
   protected readonly freezeRequests = computed(() => this.store.freezeRequestsOf(this.gymId()).filter((r) => r.status === 'PENDING'));
   handleFreeze(id: string, approve: boolean) {
@@ -231,9 +279,9 @@ export class AdminClients {
     });
   }
 
-  exportCsv() {
+  exportCsv(onlySelected = false) {
     downloadCsv(`clients-${this.auth.activeGym()?.name ?? ''}`, ['Client', 'Email', 'Phone', 'Plan', 'Coach', 'Paid', 'Currency', 'Start', 'End', 'Membership', 'Client status', 'Referral code'],
-      this.rows().map((r) => [r.clientName, r.email, this.store.user(r.m.clientId)?.phone, r.planName, r.m.coachId ? this.store.fullName(r.m.coachId) : '', r.m.pricePaid, this.store.membershipCurrency(r.m),
+      (onlySelected ? this.rows().filter((r) => this.selected().some((x) => x.m.id === r.m.id)) : this.rows()).map((r) => [r.clientName, r.email, this.store.user(r.m.clientId)?.phone, r.planName, r.m.coachId ? this.store.fullName(r.m.coachId) : '', r.m.pricePaid, this.store.membershipCurrency(r.m),
         r.m.startDate.slice(0, 10), r.m.endDate.slice(0, 10), r.m.status, r.clientStatus, this.store.refCode(r.m.clientId)]));
   }
 }

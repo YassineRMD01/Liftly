@@ -1,5 +1,6 @@
 @if (gym(); as g) {
   <app-page-header [title]="('Welcome back, ' | t) + auth.user()?.firstName" [subtitle]="g.name + ' · ' + store.sportNames(g) + ' · ' + g.city">
+    <a pButton [routerLink]="['/report', thisMonth]" severity="secondary" [outlined]="true" data-testid="monthly-report"><fa-icon icon="file-lines" />{{ 'Monthly report' | t }}</a>
     <button pButton type="button" [outlined]="true" routerLink="/admin/promos">{{ 'New promo code' | t }}</button>
     <button pButton type="button" routerLink="/admin/clients">{{ 'Add client' | t }}</button>
   </app-page-header>

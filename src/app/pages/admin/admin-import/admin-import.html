@@ -1,0 +1,64 @@
+<app-page-header [title]="'Import clients' | t" [subtitle]="'Bring your members from a spreadsheet: CSV or Excel. Each new member gets an invitation link to activate their account.' | t">
+  <a pButton routerLink="/admin/clients" [text]="true" severity="secondary"><fa-icon icon="arrow-left" class="rtl:rotate-180" />{{ 'Clients' | t }}</a>
+</app-page-header>
+
+@if (done(); as d) {
+  <div class="card space-y-3 mb-6 border-green-300 dark:border-green-800" data-testid="import-done">
+    <h2 class="font-semibold text-lg flex items-center gap-2"><fa-icon icon="circle-check" class="text-green-600" />{{ 'Import finished' | t }}</h2>
+    <p>{{ '{created} new members, {linked} existing members, {memberships} memberships created.' | t: { created: d.created, linked: d.linked, memberships: d.memberships } }}</p>
+    @if (d.invites.length) {
+      <button pButton type="button" (click)="downloadInvites()"><fa-icon icon="file-csv" />{{ 'Download invitation links' | t }}</button>
+      <p class="text-xs muted">{{ 'Send each member their link (e-mail, SMS…). Automatic e-mails need a backend.' | t }}</p>
+    }
+  </div>
+}
+
+<div class="card space-y-4 mb-6">
+  <div class="flex flex-wrap items-center gap-3">
+    <label pButton class="cursor-pointer"><fa-icon icon="upload" />{{ 'Choose a file' | t }}<input type="file" accept=".csv,.txt,.xlsx,text/csv" class="hidden" (change)="onFile($event)" data-testid="import-file" /></label>
+    @if (fileName()) { <span class="text-sm"><fa-icon icon="file" class="muted me-1" />{{ fileName() }} · {{ data().length }} {{ 'rows' | t }}</span> }
+    <span class="flex-1"></span>
+    <button pButton type="button" [text]="true" size="small" (click)="template()"><fa-icon icon="download" />{{ 'Download a template' | t }}</button>
+  </div>
+  <p class="text-xs muted">{{ 'First row = column names. Columns are matched automatically (English, French, Spanish, Arabic); check them below.' | t }}</p>
+</div>
+
+@if (header().length) {
+  <div class="card mb-6">
+    <h2 class="font-semibold mb-3">{{ 'Match the columns' | t }}</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      @for (h of header(); track $index; let i = $index) {
+        <div class="field"><label class="truncate">“{{ h }}”</label>
+          <p-select [options]="fieldOptions()" optionLabel="label" optionValue="value" [ngModel]="mapping()[i]" (ngModelChange)="setMapping(i, $event)" class="w-full" appendTo="body" [attr.data-testid]="'map-' + i" /></div>
+      }
+    </div>
+  </div>
+
+  <div class="card mb-6 flex flex-wrap items-center gap-4">
+    <label class="flex items-center gap-2"><p-checkbox [binary]="true" [ngModel]="createMemberships()" (ngModelChange)="createMemberships.set($event)" /> {{ 'Create memberships' | t }}</label>
+    @if (createMemberships()) {
+      <p-select [options]="plans()" optionLabel="name" optionValue="id" [ngModel]="defaultPlan()" (ngModelChange)="defaultPlan.set($event)" [showClear]="true" [placeholder]="'Plan when the file has none' | t" class="w-64" />
+    }
+    <span class="flex-1"></span>
+    <span class="text-sm"><p-tag [value]="counts().new + ' ' + ('new' | t)" severity="success" /> <p-tag [value]="counts().existing + ' ' + ('existing' | t)" severity="info" /> <p-tag [value]="counts().errors + ' ' + ('errors' | t)" severity="danger" /></span>
+    <button pButton type="button" (click)="run()" [disabled]="!counts().selected" data-testid="import-run"><fa-icon icon="file-import" />{{ 'Import {n} members' | t: { n: counts().selected } }}</button>
+  </div>
+
+  <div class="card !p-0 overflow-x-auto">
+    <table class="w-full text-sm min-w-[52rem]" data-testid="import-preview">
+      <thead><tr class="text-xs muted border-b border-surface-200 dark:border-surface-700">
+        <th class="p-2 w-10"></th><th class="text-start font-medium">#</th><th class="text-start font-medium">{{ 'Name' | t }}</th><th class="text-start font-medium">{{ 'Email' | t }}</th><th class="text-start font-medium">{{ 'Phone' | t }}</th><th class="text-start font-medium">{{ 'Plan' | t }}</th><th class="text-start font-medium">{{ 'Status' | t }}</th></tr></thead>
+      <tbody>
+        @for (r of rows(); track r.line) {
+          <tr class="border-b border-surface-100 dark:border-surface-800" [class.opacity-50]="!r.selected">
+            <td class="p-2 text-center"><p-checkbox [binary]="true" [ngModel]="r.selected" (ngModelChange)="toggle(r)" [disabled]="r.status === 'ERROR'" /></td>
+            <td class="muted">{{ r.line }}</td>
+            <td>{{ r.firstName }} {{ r.lastName }}</td><td class="font-mono text-xs">{{ r.email }}</td><td>{{ r.phone }}</td>
+            <td>{{ planName(r.planId) ?? (createMemberships() && defaultPlan() ? planName(defaultPlan()!) : '—') }}@if (r.start) { <span class="text-xs muted"> · {{ r.start }}</span> }</td>
+            <td><p-tag [value]="(r.status === 'NEW' ? 'New member' : r.status === 'EXISTING' ? 'Already on Liftly' : 'Error') | t" [severity]="sev(r.status)" />@if (r.error) { <span class="text-xs text-red-600 ms-2">{{ r.error }}</span> }</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,3 +1,4 @@
+import { SignaturePad } from '../../../shared/signature-pad/signature-pad';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { isoDate } from '../../../core/schedule';
@@ -28,7 +29,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Modal, InputNumber, InputText],
+  imports: [GymLogo, FormsModule, Rating, Textarea, Stars, TranslatePipe, MoneyPipe, DatePipe, RouterLink, FaIconComponent, ButtonDirective, ProgressBar, Tag, PageHeader, OpenStatusBadge, WeekCalendar, PaymentCalendar, Modal, InputNumber, InputText, SignaturePad],
   templateUrl: './client-dashboard.html',
   styleUrl: './client-dashboard.css',
 })
@@ -39,6 +40,19 @@ export class ClientDashboard {
   protected readonly payments = viewChild(PaymentCalendar);
   protected readonly scheduleVisible = signal(false);
   /** Freeze request being written. */
+  /** Gyms whose current waiver the member has not signed. */
+  protected readonly waiversToSign = computed(() => this.store.gymsOfClient(this.auth.user()?.id ?? '').filter((g) => this.store.needsWaiver(g.id, this.auth.user()!.id)));
+  protected readonly signing = signal<string | null>(null);
+  protected signName = '';
+  protected signature = '';
+  openWaiver(gymId: string) { const u = this.auth.user(); this.signName = u ? `${u.firstName} ${u.lastName}` : ''; this.signature = ''; this.signing.set(gymId); }
+  signWaiver() {
+    const g = this.signing();
+    if (!g || !this.signature || !this.signName.trim()) { this.toast.add({ severity: 'error', summary: t('Type your name and sign in the box.') }); return; }
+    this.store.signWaiver(g, this.auth.user()!.id, this.signName, this.signature);
+    this.toast.add({ severity: 'success', summary: t('Waiver signed'), life: 1800 });
+    this.signing.set(null);
+  }
   protected readonly freezing = signal<{ m: ClientMembership; start: string; days: number; reason: string } | null>(null);
   pendingFreeze(m: ClientMembership) { return this.store.freezeRequestsOfClient(this.auth.user()?.id ?? '').find((r) => r.membershipId === m.id && r.status === 'PENDING'); }
   askFreeze(m: ClientMembership) { this.freezing.set({ m, start: isoDate(new Date(Date.now() + 86400000)), days: 14, reason: '' }); }

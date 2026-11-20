@@ -1,0 +1,47 @@
+<app-page-header [title]="(canEdit() ? 'Staff shifts' : 'My shifts') | t" [subtitle]="(canEdit() ? 'Plan who works at the front desk. Click a cell to add a shift.' : 'Your planned shifts at the front desk.') | t">
+  @if (canEdit()) { <button pButton type="button" severity="secondary" [outlined]="true" (click)="copyWeek()" data-testid="copy-week"><fa-icon icon="copy" />{{ 'Copy to next week' | t }}</button> }
+</app-page-header>
+<div class="flex items-center gap-2 mb-4">
+  <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shift(-1)" [attr.aria-label]="'Previous week' | t"><fa-icon icon="chevron-left" class="rtl:rotate-180" /></button>
+  <span class="font-semibold w-40 text-center">{{ weekLabel() }}</span>
+  <button pButton type="button" iconOnly [text]="true" [rounded]="true" (click)="shift(1)" [attr.aria-label]="'Next week' | t"><fa-icon icon="chevron-right" class="rtl:rotate-180" /></button>
+</div>
+<div class="card !p-0 overflow-x-auto">
+  <table class="w-full text-sm min-w-[60rem] table-fixed">
+    <thead><tr class="border-b border-surface-200 dark:border-surface-700">
+      <th class="text-start p-3 w-44 font-medium muted">{{ 'Staff' | t }}</th>
+      @for (d of days(); track d.date) { <th class="p-2 font-medium" [class.text-primary]="d.today"><div class="text-xs muted">{{ d.d | date: 'EEE' }}</div>{{ d.d | date: 'd' }}</th> }
+      <th class="w-20 font-medium muted">{{ 'Hours' | t }}</th></tr></thead>
+    <tbody>
+      @for (u of people(); track u.id) {
+        <tr class="border-b border-surface-100 dark:border-surface-800 align-top">
+          <td class="p-3 font-medium">{{ u.firstName }} {{ u.lastName }}</td>
+          @for (d of days(); track d.date) {
+            <td class="p-1.5 border-s border-surface-100 dark:border-surface-800 h-20" [class.cursor-copy]="canEdit()" [class.bg-primary-50]="d.today" [class.dark:bg-primary-950]="d.today" (click)="open(u.id, d.date)" data-testid="shift-cell">
+              @for (s of cell(u.id, d.date); track s.id) {
+                <button type="button" class="w-full mb-1 rounded-lg px-2 py-1 text-start text-xs bg-primary text-primary-contrast cursor-pointer" (click)="$event.stopPropagation(); open(u.id, d.date, s)" data-testid="shift">
+                  <div class="font-semibold tabular-nums" dir="ltr">{{ s.start }}–{{ s.end }}</div>@if (locName(s.locationId)) { <div class="opacity-80 truncate">{{ locName(s.locationId) }}</div> }</button>
+              }
+            </td>
+          }
+          <td class="p-3 text-center tabular-nums font-semibold">{{ (hours().get(u.id) ?? 0) | number: '1.0-1' }} h</td>
+        </tr>
+      } @empty { <tr><td colspan="9" class="text-center muted py-10">{{ 'No staff yet. Add front-desk accounts in Staff.' | t }}</td></tr> }
+    </tbody>
+  </table>
+</div>
+
+<app-modal [visible]="!!editing()" (visibleChange)="!$event && editing.set(null)" [header]="(editing()?.id ? 'Edit shift' : 'New shift') | t" [subtitle]="editing() ? store.fullName(editing()!.userId) + ' · ' + editing()!.date : ''" [tone]="editing()?.id ? 'edit' : 'primary'" icon="clock" width="26rem">
+  @if (editing(); as s) {
+    <div class="grid grid-cols-2 gap-3">
+      <div class="field"><label>{{ 'Starts' | t }}</label><input pInputText type="time" [(ngModel)]="s.start" /></div>
+      <div class="field"><label>{{ 'Ends' | t }}</label><input pInputText type="time" [(ngModel)]="s.end" /></div>
+      @if (locations().length) { <div class="field col-span-2"><label>{{ 'Location' | t }}</label><p-select [options]="locations()" optionLabel="name" optionValue="id" [(ngModel)]="s.locationId" [showClear]="true" class="w-full" appendTo="body" /></div> }
+      <div class="field col-span-2"><label>{{ 'Note (optional)' | t }}</label><input pInputText [(ngModel)]="s.note" /></div>
+    </div>
+  }
+  <div modal-footer>
+    @if (editing()?.id) { <button pButton type="button" severity="danger" [text]="true" (click)="remove()">{{ 'Delete' | t }}</button> }
+    <button pButton type="button" (click)="save()" data-testid="save-shift">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>

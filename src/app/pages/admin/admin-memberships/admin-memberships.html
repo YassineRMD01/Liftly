@@ -15,6 +15,9 @@
       <div class="flex flex-wrap gap-3 text-sm mt-4">
         <span><fa-icon icon="calendar-check" class="text-primary" /> {{ p.sessionsPerWeek === -1 ? ('Unlimited' | t) : p.sessionsPerWeek + '×/week' }}</span>
         @if (p.includesCoaching) { <span><fa-icon icon="user-tie" class="text-primary" /> {{ 'Coaching' | t }}</span> }
+        @if (p.kind === 'PACK') { <span><fa-icon icon="ticket" class="text-primary" /> {{ p.credits }} {{ 'visits' | t }}</span> }
+        @if (p.kind === 'DROPIN') { <span><fa-icon icon="ticket" class="text-primary" /> {{ 'Single visit' | t }}</span> }
+        @if (p.familyMax) { <span><fa-icon icon="people-roof" class="text-primary" /> {{ 'Family' | t }} · {{ p.familyMax }}</span> }
         <span><fa-icon icon="users" class="text-primary" /> {{ subscribers(p.id) }} {{ 'subscribers' | t }}</span>
       </div>
       <div class="flex gap-2 mt-5">
@@ -45,7 +48,15 @@
 </p-select></div>
       </div>
     </div>
-    <div class="field"><label>{{ 'Duration (days)' | t }}</label><p-inputnumber [(ngModel)]="draft().durationDays" [min]="1" [showButtons]="true" /></div>
+    <div class="field col-span-full"><label>{{ 'Type' | t }}</label>
+      <p-selectbutton [options]="kinds" optionLabel="label" optionValue="value" [ngModel]="draft().kind ?? 'TIME'" (ngModelChange)="setKind($event)" [allowEmpty]="false" data-testid="plan-kind" /></div>
+    @if (draft().kind === 'PACK') {
+      <div class="field"><label>{{ 'Visits included' | t }}</label><p-inputnumber [(ngModel)]="draft().credits" [min]="1" [showButtons]="true" /></div>
+    }
+    @if ((draft().kind ?? 'TIME') === 'TIME') {
+      <div class="field"><label>{{ 'Family plan: people covered (0 = single)' | t }}</label><p-inputnumber [ngModel]="draft().familyMax ?? 0" (ngModelChange)="draft().familyMax = $event || undefined" [min]="0" [max]="10" [showButtons]="true" /></div>
+    }
+    <div class="field"><label>{{ (draft().kind === 'DROPIN' ? 'Valid for (days)' : draft().kind === 'PACK' ? 'Valid for (days)' : 'Duration (days)') | t }}</label><p-inputnumber [(ngModel)]="draft().durationDays" [min]="1" [showButtons]="true" /></div>
     <div class="field"><label>{{ 'Sessions / week (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().sessionsPerWeek" [min]="-1" [showButtons]="true" /></div>
     <div class="flex flex-col gap-3 justify-end">
       <label class="flex items-center gap-3"><p-toggleswitch [(ngModel)]="draft().includesCoaching" /> {{ 'Includes coaching' | t }}</label>

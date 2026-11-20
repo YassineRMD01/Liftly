@@ -1,0 +1,54 @@
+<div class="min-h-screen bg-surface-100 dark:bg-surface-950 py-8 px-4 print:p-0 print:bg-white">
+  <div class="max-w-[52rem] mx-auto mb-4 flex items-center gap-2 print:hidden">
+    <a pButton routerLink="/admin" [text]="true" severity="secondary"><fa-icon icon="arrow-left" class="rtl:rotate-180" />{{ 'Back' | t }}</a>
+    <span class="flex-1"></span>
+    <a pButton [routerLink]="['/report', prev()]" [text]="true" severity="secondary" [attr.aria-label]="'Previous month' | t"><fa-icon icon="chevron-left" class="rtl:rotate-180" /></a>
+    <a pButton [routerLink]="['/report', nextMonth()]" [text]="true" severity="secondary" [attr.aria-label]="'Next month' | t"><fa-icon icon="chevron-right" class="rtl:rotate-180" /></a>
+    <button pButton type="button" (click)="print()"><fa-icon icon="print" />{{ 'Print / save as PDF' | t }}</button>
+  </div>
+  @if (gym(); as g) { @if (r(); as r) {
+    <article class="max-w-[52rem] mx-auto bg-white text-zinc-900 shadow-xl rounded-2xl p-10 print:shadow-none print:rounded-none print:max-w-none print:p-0 space-y-6" data-testid="report">
+      <header class="flex items-center gap-4 border-b border-zinc-200 pb-5">
+        <app-gym-logo [theme]="g.theme" [name]="g.name" [size]="52" />
+        <div class="flex-1"><div class="text-xl font-extrabold">{{ g.name }}</div><div class="text-sm text-zinc-500">{{ 'Monthly report' | t }}</div></div>
+        <div class="text-2xl font-extrabold capitalize" [style.color]="g.theme.primary">{{ label() | date: 'MMMM y' }}</div>
+      </header>
+
+      <section class="grid grid-cols-4 gap-3">
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Income' | t }}</div><div class="text-lg font-bold tabular-nums">{{ r.income | money: cur() }}</div>
+          @if (r.incomeChange !== null) { <div class="text-xs" [class.text-green-700]="r.incomeChange >= 0" [class.text-red-700]="r.incomeChange < 0">{{ r.incomeChange >= 0 ? '+' : '' }}{{ r.incomeChange }}% {{ 'vs last month' | t }}</div> }</div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Expenses' | t }}</div><div class="text-lg font-bold tabular-nums">{{ r.expenses | money: cur() }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Net result' | t }}</div><div class="text-lg font-bold tabular-nums" [class.text-red-700]="r.net < 0">{{ r.net | money: cur() }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Coach pay' | t }}</div><div class="text-lg font-bold tabular-nums">{{ r.coachPay | money: cur() }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Active members' | t }}</div><div class="text-lg font-bold">{{ r.active }}</div><div class="text-xs text-zinc-500">+{{ r.newMembers }} {{ 'new' | t }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Check-ins' | t }}</div><div class="text-lg font-bold">{{ r.visits }}</div><div class="text-xs text-zinc-500">{{ r.perDay | number: '1.0-1' }} / {{ 'day' | t }} · {{ r.visitors }} {{ 'members' | t }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Class show-up rate' | t }}</div><div class="text-lg font-bold">{{ r.showRate === null ? '—' : r.showRate + '%' }}</div><div class="text-xs text-zinc-500">{{ r.attended }} {{ 'attended' | t }}</div></div>
+        <div class="rounded-xl bg-zinc-50 p-3"><div class="text-xs text-zinc-500">{{ 'Gym rating' | t }}</div><div class="text-lg font-bold">★ {{ r.rating.avg || '—' }}</div><div class="text-xs text-zinc-500">{{ r.rating.count }} {{ 'reviews' | t }}</div></div>
+      </section>
+
+      <section class="grid grid-cols-2 gap-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-500 mb-2">{{ 'Busiest days' | t }}</h2>
+          @for (d of r.weekdays; track d.label) {
+            <div class="flex items-center gap-2 text-sm py-0.5"><span class="w-10">{{ d.label }}</span><span class="flex-1 h-3 rounded bg-zinc-100 overflow-hidden"><span class="block h-full rounded" [style.width.%]="(d.n / r.maxWeekday) * 100" [style.background]="g.theme.primary"></span></span><span class="w-8 text-end tabular-nums">{{ d.n }}</span></div>
+          }
+        </div>
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-500 mb-2">{{ 'Top classes' | t }}</h2>
+          @for (c of r.topClasses; track c[0]; let i = $index) { <div class="flex justify-between text-sm py-0.5"><span>{{ i + 1 }}. {{ c[0] }}</span><span class="tabular-nums">{{ c[1] }}</span></div> }
+          @empty { <p class="text-sm text-zinc-500">{{ 'No class attended this month.' | t }}</p> }
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-500 mb-2">{{ 'Expenses by category' | t }}</h2>
+        <table class="w-full text-sm"><tbody>
+          @for (e of r.expByCat; track e[0]) { <tr class="border-b border-zinc-100"><td class="py-1">{{ (cat[e[0]] ?? e[0]) | t }}</td><td class="text-end tabular-nums">{{ e[1] | money: cur() }}</td></tr> }
+          @empty { <tr><td class="py-1 text-zinc-500">{{ 'No expenses this month.' | t }}</td></tr> }
+        </tbody></table>
+      </section>
+
+      <footer class="text-xs text-zinc-400 border-t border-zinc-200 pt-3">{{ 'Generated by Liftly on' | t }} {{ generatedAt | date: 'medium' }}@if (r.freezes) { · {{ r.freezes }} {{ 'freeze requests' | t }} }</footer>
+    </article>
+  } }
+</div>

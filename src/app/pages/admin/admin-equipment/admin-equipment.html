@@ -1,0 +1,105 @@
+<app-page-header [title]="'Equipment & lockers' | t" [subtitle]="'Keep machines in shape with service reminders, and rent lockers to members.' | t">
+  <p-selectbutton [options]="tabs" optionLabel="label" optionValue="value" [ngModel]="tab()" (ngModelChange)="tab.set($event)" [allowEmpty]="false" />
+</app-page-header>
+
+@if (tab() === 'equipment') {
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    @if (attention()) { <p-tag [value]="attention() + ' ' + ('need attention' | t)" severity="warn" /> }
+    <span class="flex-1"></span>
+    <button pButton type="button" (click)="edit()" data-testid="add-equipment"><fa-icon icon="plus" />{{ 'Add equipment' | t }}</button>
+  </div>
+  <div class="card !p-0 overflow-x-auto">
+    <table class="w-full text-sm min-w-[52rem]">
+      <thead><tr class="text-xs muted border-b border-surface-200 dark:border-surface-700"><th class="text-start p-3 font-medium">{{ 'Equipment' | t }}</th><th class="text-start font-medium">{{ 'Location' | t }}</th><th class="text-start font-medium">{{ 'Last service' | t }}</th><th class="text-start font-medium">{{ 'Next service' | t }}</th><th class="text-start font-medium">{{ 'Status' | t }}</th><th></th></tr></thead>
+      <tbody>
+        @for (x of items(); track x.e.id) {
+          <tr class="border-b border-surface-100 dark:border-surface-800" data-testid="equipment-row">
+            <td class="p-3"><div class="font-medium">{{ x.e.name }}</div><div class="text-xs muted">{{ x.e.category }}@if (x.e.notes) { · {{ x.e.notes }} }</div></td>
+            <td>{{ locName(x.e.locationId) ?? '—' }}</td>
+            <td>{{ x.e.lastServiceAt ? (x.e.lastServiceAt | date: 'mediumDate') : '—' }}</td>
+            <td [class.text-amber-600]="x.state === 'SERVICE_DUE'" [class.font-semibold]="x.state === 'SERVICE_DUE'">{{ x.next ? (x.next | date: 'mediumDate') : '—' }}</td>
+            <td><p-tag [value]="x.state | t" [severity]="sev[x.state]" /></td>
+            <td class="text-end whitespace-nowrap pe-2">
+              <button pButton type="button" size="small" [outlined]="true" (click)="service(x.e)" data-testid="service-btn"><fa-icon icon="screwdriver-wrench" />{{ 'Service' | t }}</button>
+              @if (x.e.status !== 'OUT_OF_ORDER') { <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Mark out of order' | t" (click)="setStatus(x.e, 'OUT_OF_ORDER')"><fa-icon icon="ban" /></button> }
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" [pTooltip]="'Edit' | t" (click)="edit(x.e)"><fa-icon icon="pen" /></button>
+              <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" [pTooltip]="'Delete' | t" (click)="remove(x.e)"><fa-icon icon="trash" /></button>
+            </td>
+          </tr>
+          @if (x.e.log.length) {
+            <tr class="border-b border-surface-100 dark:border-surface-800"><td colspan="6" class="px-3 pb-2 text-xs muted">@for (l of x.e.log.slice(0, 3); track $index) { <span class="me-4"><fa-icon icon="wrench" /> {{ l.date | date: 'd MMM' }} · {{ l.note }}@if (l.cost) { · {{ l.cost | money: (gym()?.currency ?? 'USD') }} }</span> }</td></tr>
+          }
+        } @empty { <tr><td colspan="6" class="text-center muted py-10">{{ 'No equipment yet.' | t }}</td></tr> }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    @if (locations().length) { <p-select [options]="locations()" optionLabel="name" optionValue="id" [ngModel]="lockerLocation()" (ngModelChange)="lockerLocation.set($event)" [showClear]="true" [placeholder]="'All locations' | t" class="w-48" /> }
+    <span class="text-sm">{{ lockerStats().used }}/{{ lockerStats().total }} {{ 'rented' | t }}@if (lockerStats().expired) { · <span class="text-red-600">{{ lockerStats().expired }} {{ 'expired' | t }}</span> }</span>
+    <span class="flex-1"></span>
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="adding.set(true)"><fa-icon icon="plus" />{{ 'Add lockers' | t }}</button>
+  </div>
+  <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+    @for (l of lockers(); track l.id) {
+      <button type="button" (click)="openLocker(l)" class="aspect-square rounded-xl border-2 p-2 text-start flex flex-col cursor-pointer transition-colors"
+        [class]="expired(l) ? 'border-red-400 bg-red-50 dark:bg-red-950/40' : l.clientId ? 'border-primary bg-primary-50 dark:bg-primary-950' : 'border-surface-200 dark:border-surface-700 hover:border-primary'" data-testid="locker">
+        <span class="font-mono font-bold">{{ l.number }}</span>
+        @if (l.clientId) { <span class="text-[11px] mt-auto truncate w-full">{{ store.user(l.clientId)?.firstName }}</span><span class="text-[10px] muted">{{ l.until | date: 'd MMM' }}</span> }
+        @else { <span class="text-[11px] muted mt-auto">{{ 'Free' | t }}</span> }
+      </button>
+    } @empty { <p class="col-span-full text-center muted py-10">{{ 'No lockers yet.' | t }}</p> }
+  </div>
+}
+
+<app-modal [visible]="!!editing()" (visibleChange)="!$event && editing.set(null)" [header]="(editing()?.id ? 'Edit equipment' : 'Add equipment') | t" [tone]="editing()?.id ? 'edit' : 'primary'" [icon]="editing()?.id ? 'pen' : 'dumbbell'" width="32rem">
+  @if (editing(); as e) {
+    <div class="grid grid-cols-2 gap-3">
+      <div class="field col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="e.name" [placeholder]="'e.g. Treadmill #3' | t" data-testid="equipment-name" /></div>
+      <div class="field"><label>{{ 'Category' | t }}</label><input pInputText [(ngModel)]="e.category" list="eq-cats" /><datalist id="eq-cats">@for (c of categories(); track c) { <option [value]="c"></option> }</datalist></div>
+      @if (locations().length) { <div class="field"><label>{{ 'Location' | t }}</label><p-select [options]="locations()" optionLabel="name" optionValue="id" [(ngModel)]="e.locationId" [showClear]="true" class="w-full" appendTo="body" /></div> }
+      <div class="field"><label>{{ 'Service every (days)' | t }}</label><p-inputnumber [(ngModel)]="e.serviceEveryDays" [min]="0" inputStyleClass="w-full" /></div>
+      <div class="field"><label>{{ 'Last service' | t }}</label><input pInputText type="date" [(ngModel)]="e.lastServiceAt" /></div>
+      <div class="field"><label>{{ 'Purchased' | t }}</label><input pInputText type="date" [(ngModel)]="e.purchasedAt" /></div>
+      <div class="field col-span-2"><label>{{ 'Status' | t }}</label><p-selectbutton [options]="statuses" optionLabel="label" optionValue="value" [ngModel]="e.status === 'OUT_OF_ORDER' ? 'OUT_OF_ORDER' : 'OK'" (ngModelChange)="e.status = $event" [allowEmpty]="false" /></div>
+      <div class="field col-span-2"><label>{{ 'Notes' | t }}</label><input pInputText [(ngModel)]="e.notes" /></div>
+    </div>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="editing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="save()" data-testid="save-equipment">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>
+
+<app-modal [visible]="!!servicing()" (visibleChange)="!$event && servicing.set(null)" [header]="'Record a service' | t" [subtitle]="servicing()?.name" tone="success" icon="screwdriver-wrench" width="28rem">
+  <div class="space-y-3">
+    <div class="field"><label>{{ 'What was done' | t }}</label><input pInputText class="w-full" [(ngModel)]="serviceNote" [placeholder]="'e.g. Belt lubricated' | t" data-testid="service-note" /></div>
+    <div class="field"><label>{{ 'Cost (optional)' | t }}</label><p-inputnumber [(ngModel)]="serviceCost" mode="currency" [currency]="gym()?.currency ?? 'USD'" [min]="0" inputStyleClass="w-full" data-testid="service-cost" /></div>
+    <p class="text-xs muted">{{ 'The item is marked OK and the cost is booked as a maintenance expense.' | t }}</p>
+  </div>
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="servicing.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" severity="success" (click)="confirmService()" [disabled]="!serviceNote.trim()" data-testid="confirm-service">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>
+
+<app-modal [visible]="!!lockerEdit()" (visibleChange)="!$event && lockerEdit.set(null)" [header]="('Locker' | t) + ' ' + (lockerEdit()?.l?.number ?? '')" tone="primary" icon="key" width="26rem">
+  @if (lockerEdit(); as x) {
+    <div class="space-y-3">
+      <div class="field"><label>{{ 'Member' | t }}</label><p-select [options]="clients()" optionLabel="label" optionValue="id" [(ngModel)]="x.clientId" [filter]="true" filterBy="label" [showClear]="true" class="w-full" appendTo="body" data-testid="locker-member" /></div>
+      <div class="field"><label>{{ 'Until' | t }}</label><input pInputText type="date" class="w-full" [(ngModel)]="x.until" /></div>
+    </div>
+  }
+  <div modal-footer>
+    @if (lockerEdit()?.l?.clientId) { <button pButton type="button" severity="danger" [text]="true" (click)="release()">{{ 'Free the locker' | t }}</button> }
+    <button pButton type="button" (click)="saveLocker()" data-testid="save-locker">{{ 'Save' | t }}</button>
+  </div>
+</app-modal>
+
+<app-modal [(visible)]="adding" [header]="'Add lockers' | t" tone="primary" icon="plus" width="24rem">
+  <div class="grid grid-cols-2 gap-3">
+    <div class="field"><label>{{ 'Prefix' | t }}</label><input pInputText class="uppercase" [(ngModel)]="newPrefix" maxlength="3" /></div>
+    <div class="field"><label>{{ 'How many' | t }}</label><p-inputnumber [(ngModel)]="newCount" [min]="1" [max]="200" inputStyleClass="w-full" /></div>
+  </div>
+  <div modal-footer><button pButton type="button" (click)="addLockers()">{{ 'Add' | t }}</button></div>
+</app-modal>

@@ -269,4 +269,40 @@ describe('StoreService', () => {
       expect(store.clientStatus('g-iron', 'u-k6')).toBe('FROZEN');
     });
   });
+  describe('gym operations', () => {
+    it('uses one visit per check-in on a pass, and refuses when it is empty', () => {
+      const pass = () => store.memberships().find((m) => m.id === 'm-11')!;
+      const before = pass().credits!;
+      expect(store.checkIn('g-iron', 'u-k5', 'QR').ok).toBe(true);
+      expect(pass().credits).toBe(before - 1);
+      // scanning again right away does not use another visit
+      expect(store.checkIn('g-iron', 'u-k5', 'QR').reason).toBe('Already checked in');
+      expect(pass().credits).toBe(before - 1);
+    });
+    it('covers family members with the holder plan', () => {
+      const m = store.subscribeClient({ gymId: 'g-iron', clientId: 'u-k4', planId: 'mp-family' });
+      expect(store.clientStatus('g-iron', 'u-k2')).toBe('EXPIRED');
+      expect(store.addFamilyMember(m.id, 'u-k2').ok).toBe(true);
+      expect(store.clientStatus('g-iron', 'u-k2')).toBe('ACTIVE');
+      expect(store.addFamilyMember(m.id, 'u-k2')).toEqual({ ok: false, reason: 'Already covered by this plan.' });
+    });
+    it('asks members to sign a new waiver version', () => {
+      expect(store.needsWaiver('g-iron', 'u-k1')).toBe(false);
+      store.saveWaiver('g-iron', 'Liability waiver', 'New rules: always use the safety pins on the squat racks.');
+      expect(store.needsWaiver('g-iron', 'u-k1')).toBe(true);
+      expect(store.checkIn('g-iron', 'u-k1', 'MANUAL').reason).toBe('Waiver not signed');
+      store.signWaiver('g-iron', 'u-k1', 'Chris Evans', 'data:image/png;base64,AAAA');
+      expect(store.needsWaiver('g-iron', 'u-k1')).toBe(false);
+    });
+    it('books the cost of a service as a maintenance expense', () => {
+      store.serviceEquipment('eq-2', 'Belt lubricated', 45);
+      expect(store.equipmentState(store.equipment().find((e) => e.id === 'eq-2')!)).toBe('OK');
+      expect(store.expensesOf('GYM', 'g-iron').some((e) => e.category === 'MAINTENANCE' && e.amount === 45)).toBe(true);
+    });
+    it('refuses overlapping shifts for the same person', () => {
+      const day = store.shifts()[0];
+      expect(store.saveShift({ ...day, id: '', start: '10:00', end: '12:00' })).toEqual({ ok: false, reason: 'This person already works at that time.' });
+      expect(store.saveShift({ ...day, id: '', start: '15:00', end: '18:00' }).ok).toBe(true);
+    });
+  });
 });

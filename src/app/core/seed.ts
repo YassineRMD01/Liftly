@@ -44,6 +44,15 @@ const prevDate = (day: number, weeksBack = 0) => {
   const x = new Date(t.getFullYear(), t.getMonth(), t.getDate() - diff);
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
 };
+/** Date of `day` (0 = Sunday) in the week `weekOffset` days from this week's Monday. */
+const nextDateOffset = (day: number, weekOffset: number) => {
+  const t = new Date();
+  const monday = new Date(t.getFullYear(), t.getMonth(), t.getDate() - ((t.getDay() + 6) % 7) + weekOffset);
+  const x = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + ((day + 6) % 7));
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
+// a small hand-drawn signature (SVG) used for the demo waivers
+const SIGNATURE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="90"><path d="M10 60 C 40 10, 60 90, 90 40 S 140 20, 160 55 S 220 70, 290 30" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/></svg>');
 const nextDate = (day: number, weeksAhead = 0) => {
   const t = new Date();
   const diff = (day - t.getDay() + 7) % 7 + weeksAhead * 7;
@@ -203,7 +212,7 @@ export const SEED: DbState = {
     { id: 'sp-elite', name: 'Elite', description: 'Multi-location clubs and franchises.', monthlyPrice: 199, yearlyPrice: 1990, maxCoaches: -1, maxClients: -1, features: ['Everything in Pro', 'Unlimited coaches & clients', 'Dedicated account manager', 'API access'], customTheme: true, highlighted: false, active: true, countryPrices: [{ country: 'MA', monthly: 1790, yearly: 17900 }, { country: 'FR', monthly: 185, yearly: 1850 }, { country: 'ES', monthly: 179, yearly: 1790 }] },
   ],
   gyms: [
-    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sportIds: ['sport-bodybuilding', 'sport-fitness', 'sport-crossfit'], country: 'US', currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT', logoUrl: IRON_LOGO, appearance: 'system' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12), referralReward: '1 free month for you and your friend', locations: [{ id: 'loc-downtown', name: 'Downtown', address: '12 Lift St', city: 'Austin' }, { id: 'loc-north', name: 'North', address: '410 Lamar Blvd', city: 'Austin' }] },
+    { id: 'g-iron', ownerId: 'u-a1', name: 'Iron Temple', sportIds: ['sport-bodybuilding', 'sport-fitness', 'sport-crossfit'], country: 'US', currency: 'USD', city: 'Austin', address: '12 Lift St', description: 'Old-school iron paradise with modern equipment.', theme: { primary: '#ef4444', logoText: 'IT', logoUrl: IRON_LOGO, appearance: 'system' }, saasPlanId: 'sp-pro', billingCycle: 'MONTHLY', status: 'ACTIVE', subscribedAt: d(-300), renewsAt: d(12), referralReward: '1 free month for you and your friend', waiver: { title: 'Liability waiver', version: 1, updatedAt: d(-60), text: 'I take part in training at Iron Temple at my own risk.\n\n1. I confirm I am in good health and have no condition that makes exercise dangerous for me, or I have asked my doctor.\n2. I will follow the instructions of coaches and staff and use the equipment correctly.\n3. Iron Temple is not responsible for injuries caused by misuse of equipment or failure to follow instructions, nor for lost or stolen belongings.\n4. I allow staff to call emergency services on my behalf if needed.' }, locations: [{ id: 'loc-downtown', name: 'Downtown', address: '12 Lift St', city: 'Austin' }, { id: 'loc-north', name: 'North', address: '410 Lamar Blvd', city: 'Austin' }] },
     { id: 'g-wave', ownerId: 'u-a2', name: 'Blue Wave Aquatics', sportIds: ['sport-swimming', 'sport-aqua'], country: 'ES', currency: 'EUR', city: 'Barcelona', address: 'Passeig Marítim 4', description: 'Olympic pool, lessons for every level.', theme: { primary: '#0ea5e9', logoText: 'BW', logoUrl: WAVE_LOGO, appearance: 'light' }, saasPlanId: 'sp-elite', billingCycle: 'YEARLY', status: 'ACTIVE', subscribedAt: d(-200), renewsAt: d(165) },
     { id: 'g-kumite', ownerId: 'u-a3', name: 'Kumite Dojo', sportIds: ['sport-karate', 'sport-bjj', 'sport-kickboxing', 'sport-kids-karate'], country: 'MA', currency: 'MAD', city: 'Casablanca', address: '88 Bd Zerktouni', description: 'Karate, BJJ and kickboxing for all ages.', theme: { primary: '#10b981', logoText: 'KD' }, saasPlanId: 'sp-starter', billingCycle: 'MONTHLY', status: 'TRIAL', subscribedAt: d(-20), renewsAt: d(5) },
   ],
@@ -217,6 +226,9 @@ export const SEED: DbState = {
   ],
   membershipPlans: [
     { id: 'mp-1', gymId: 'g-iron', name: 'Monthly Open Gym', description: 'Unlimited access to the gym floor.', price: 49, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true },
+    { id: 'mp-pack', gymId: 'g-iron', name: '10-visit pass', description: '10 visits, valid 3 months.', price: 120, durationDays: 90, sessionsPerWeek: -1, includesCoaching: false, active: true, kind: 'PACK', credits: 10 },
+    { id: 'mp-drop', gymId: 'g-iron', name: 'Day pass', description: 'One visit today.', price: 15, durationDays: 1, sessionsPerWeek: -1, includesCoaching: false, active: true, kind: 'DROPIN', credits: 1 },
+    { id: 'mp-family', gymId: 'g-iron', name: 'Family monthly', description: 'Open gym for up to 4 people of the same family.', price: 129, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true, familyMax: 4 },
     { id: 'mp-2', gymId: 'g-iron', name: 'Coached Strength', description: '3 coached sessions per week + open gym.', price: 149, durationDays: 30, sessionsPerWeek: 3, includesCoaching: true, active: true },
     { id: 'mp-3', gymId: 'g-iron', name: 'Annual Pass', description: '12 months unlimited, best value.', price: 450, durationDays: 365, sessionsPerWeek: -1, includesCoaching: false, active: true },
     { id: 'mp-4', gymId: 'g-wave', name: 'Lap Swim', description: 'Open lanes, every day.', price: 39, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true },
@@ -237,6 +249,7 @@ export const SEED: DbState = {
     { id: 'm-5', gymId: 'g-wave', clientId: 'u-k4', planId: 'mp-5', coachId: 'u-c2', pricePaid: 99, startDate: d(-3), endDate: d(27), status: 'ACTIVE' },
     { id: 'm-6', gymId: 'g-kumite', clientId: 'u-k5', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-7), endDate: d(23), status: 'ACTIVE' },
     { id: 'm-8', gymId: 'g-kumite', clientId: 'u-k6', planId: 'mp-6', coachId: 'u-c3', pricePaid: 450, startDate: d(-12), endDate: d(18), status: 'ACTIVE' },
+    { id: 'm-11', gymId: 'g-iron', clientId: 'u-k5', planId: 'mp-pack', pricePaid: 120, startDate: d(-20), endDate: d(70), status: 'ACTIVE', credits: 6 },
     { id: 'm-10', gymId: 'g-iron', clientId: 'u-k6', planId: 'mp-1', pricePaid: 49, startDate: d(-5), endDate: d(25), status: 'ACTIVE' },
     { id: 'm-9', gymId: 'g-iron', clientId: 'u-k7', planId: 'mp-1', pricePaid: 49, startDate: d(-60), endDate: d(-12), status: 'CANCELLED' },
     { id: 'm-7', gymId: 'g-kumite', clientId: 'u-k2', planId: 'mp-6', coachId: 'u-c1', pricePaid: 450, startDate: d(-2), endDate: d(28), status: 'ACTIVE' },
@@ -436,5 +449,23 @@ export const SEED: DbState = {
   ],
   freezeRequests: [
     { id: 'fr-1', membershipId: 'm-4', gymId: 'g-iron', clientId: 'u-k3', start: isoDay(3), days: 21, reason: 'Knee surgery — doctor says 3 weeks off.', status: 'PENDING', createdAt: d(-1) },
+  ],
+  waiverSignatures: [
+    { id: 'ws-1', gymId: 'g-iron', clientId: 'u-k1', version: 1, name: 'Chris Evans', signature: SIGNATURE, signedAt: d(-58) },
+    { id: 'ws-2', gymId: 'g-iron', clientId: 'u-k3', version: 1, name: 'Ethan Park', signature: SIGNATURE, signedAt: d(-50) },
+  ],
+  equipment: [
+    { id: 'eq-1', gymId: 'g-iron', name: 'Treadmill #1', category: 'Cardio', locationId: 'loc-downtown', status: 'OK', purchasedAt: isoDay(-700), serviceEveryDays: 90, lastServiceAt: isoDay(-14), log: [{ date: isoDay(-14), note: 'Belt replaced', cost: 160 }] },
+    { id: 'eq-2', gymId: 'g-iron', name: 'Treadmill #2', category: 'Cardio', locationId: 'loc-downtown', status: 'SERVICE_DUE', purchasedAt: isoDay(-700), serviceEveryDays: 90, lastServiceAt: isoDay(-120), log: [] },
+    { id: 'eq-3', gymId: 'g-iron', name: 'Rowing machine', category: 'Cardio', locationId: 'loc-north', status: 'OK', serviceEveryDays: 180, lastServiceAt: isoDay(-40), log: [] },
+    { id: 'eq-4', gymId: 'g-iron', name: 'Competition squat rack A', category: 'Strength', locationId: 'loc-downtown', status: 'OK', purchasedAt: isoDay(-40), log: [] },
+    { id: 'eq-5', gymId: 'g-iron', name: 'Cable crossover', category: 'Strength', locationId: 'loc-north', status: 'OUT_OF_ORDER', serviceEveryDays: 120, lastServiceAt: isoDay(-200), notes: 'Left cable frayed — do not use.', log: [] },
+  ],
+  lockers: [
+    ...Array.from({ length: 16 }, (_, i) => ({ id: `lk-d${i + 1}`, gymId: 'g-iron', number: `D${String(i + 1).padStart(2, '0')}`, locationId: 'loc-downtown' })),
+    ...Array.from({ length: 8 }, (_, i) => ({ id: `lk-n${i + 1}`, gymId: 'g-iron', number: `N${String(i + 1).padStart(2, '0')}`, locationId: 'loc-north' })),
+  ].map((l) => (l.id === 'lk-d3' ? { ...l, clientId: 'u-k1', until: isoDay(40) } : l.id === 'lk-d7' ? { ...l, clientId: 'u-k3', until: isoDay(10) } : l)),
+  shifts: [
+    ...[-7, 0, 7].flatMap((w) => [1, 2, 3, 4, 5].map((day) => ({ id: `sh-${w}-${day}`, gymId: 'g-iron', userId: 'u-s1', date: nextDateOffset(day, w), start: '06:00', end: '14:00', locationId: 'loc-downtown' }))),
   ],
 };

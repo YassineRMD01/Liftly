@@ -1,3 +1,4 @@
+import { SelectButton } from 'primeng/selectbutton';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MoneyPipe } from '../../../core/currency';
@@ -20,7 +21,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
 
 @Component({
   selector: 'app-admin-memberships',
-  imports: [TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
+  imports: [SelectButton, TranslatePipe, Select, MoneyPipe, FormsModule, FaIconComponent, ButtonDirective, Modal, InputNumber, InputText, Tag, Textarea, ToggleSwitch, PageHeader],
   templateUrl: './admin-memberships.html',
   styleUrl: './admin-memberships.css',
 })
@@ -40,6 +41,10 @@ export class AdminMemberships {
     return { id: '', gymId: this.auth.activeGym()?.id ?? '', name: '', description: '', price: 50, currency: this.auth.activeGym()?.currency, durationDays: 30, sessionsPerWeek: -1, includesCoaching: false, active: true };
   }
   subscribers(planId: string) { return this.store.memberships().filter((m) => m.planId === planId && m.status === 'ACTIVE').length; }
+  protected readonly kinds = [{ label: t('Unlimited (time)'), value: 'TIME' }, { label: t('Pass (N visits)'), value: 'PACK' }, { label: t('Drop-in (1 visit)'), value: 'DROPIN' }];
+  setKind(kind: 'TIME' | 'PACK' | 'DROPIN') {
+    this.draft.update((d) => ({ ...d, kind, credits: kind === 'PACK' ? d.credits ?? 10 : kind === 'DROPIN' ? 1 : undefined, familyMax: kind === 'TIME' ? d.familyMax : undefined, durationDays: kind === 'DROPIN' ? 1 : d.durationDays }));
+  }
   edit(p?: MembershipPlan) { this.draft.set(p ? structuredClone(p) : this.empty()); this.visible.set(true); }
   save() {
     this.store.saveMembershipPlan(this.draft());

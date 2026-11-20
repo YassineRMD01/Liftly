@@ -1,14 +1,14 @@
 import { CURRENT_LANGUAGE, t } from './i18n/i18n';
 import { Injectable, computed, effect, signal } from '@angular/core';
 import {
-  Announcement, AppNotification, AuditEntry, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
+  Announcement, AppNotification, AuditEntry, Equipment, Locker, StaffShift, WaiverSignature, ChallengeMetric, ClassReview, FreezeRequest, GymChallenge, WorkoutLog, CoachPayout, Expense, ExpenseOwner, PayoutMethod, GymLocation, JoinRequest, JoinRequestStatus, BillingCycle, ChatMessage, CoachAvailability, PrivateSession, ProgressEntry, SessionStatus, TrainingPlan, CheckIn, ClassBooking, ClientMembership, ClientStatus, GymClass, CoachProfile, CoachReport, CoachReview, Country, CurrencySetting, DbState, Gender, Gym, GymReview,
   MembershipPlan, Payment, PlatformSettings, PromoCode, SaasPlan, ScheduleClosure, ScheduleSlot, Sport, User,
 } from './models';
 import { canAttend, isoDate, openStatus, toMin } from './schedule';
 import { DEFAULT_CURRENCY, countryName, currencyName, formatMoney, formatTotals } from './currency';
 import { SEED } from './seed';
 
-const STORAGE_KEY = 'liftly-db-v17';
+const STORAGE_KEY = 'liftly-db-v18';
 
 export const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -65,6 +65,10 @@ export class StoreService {
   readonly challenges = computed(() => this.state().challenges);
   readonly classReviews = computed(() => this.state().classReviews);
   readonly freezeRequests = computed(() => this.state().freezeRequests);
+  readonly waiverSignatures = computed(() => this.state().waiverSignatures);
+  readonly equipment = computed(() => this.state().equipment);
+  readonly lockers = computed(() => this.state().lockers);
+  readonly shifts = computed(() => this.state().shifts);
   /** Signed-in user, set by AuthService: recorded as the actor of audit entries. */
   readonly actorId = signal<string | null>(null);
 
@@ -142,9 +146,11 @@ export class StoreService {
     return this.gyms().filter((g) => ids.includes(g.id));
   }
   membershipsOfGym(gymId: string) { return this.memberships().filter((m) => m.gymId === gymId); }
-  membershipsOfClient(clientId: string) { return this.memberships().filter((m) => m.clientId === clientId); }
+  /** The membership is the member's own, or a family plan they are added to. */
+  covers(m: ClientMembership, clientId: string) { return m.clientId === clientId || !!m.familyMembers?.includes(clientId); }
+  membershipsOfClient(clientId: string) { return this.memberships().filter((m) => this.covers(m, clientId)); }
   clientsOfGym(gymId: string) {
-    const ids = new Set(this.membershipsOfGym(gymId).map((m) => m.clientId));
+    const ids = new Set(this.membershipsOfGym(gymId).flatMap((m) => [m.clientId, ...(m.familyMembers ?? [])]));
     return this.users().filter((u) => ids.has(u.id));
   }
   gymsOfClient(clientId: string) {
@@ -285,6 +291,7 @@ export class StoreService {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
       status: 'ACTIVE',
+      ...(plan.kind === 'PACK' || plan.kind === 'DROPIN' ? { credits: plan.credits ?? 1 } : {}),
     };
     const payment: Payment = { id: uid('p'), gymId: m.gymId, clientId: m.clientId, date: m.startDate.slice(0, 10), amount: m.pricePaid, currency: m.currency, method: 'CASH', note: plan.name };
     this.patch((s) => ({
@@ -454,9 +461,13 @@ export class StoreService {
   clientStatus(gymId: string, clientId: string): ClientStatus {
     if (this.isBanned(gymId, clientId)) return 'BANNED';
     const now = new Date().toISOString();
-    const active = this.memberships().filter((m) => m.gymId === gymId && m.clientId === clientId && m.status === 'ACTIVE' && m.startDate <= now && m.endDate >= now);
+    const active = this.activeMemberships(gymId, clientId, now);
     if (!active.length) return 'EXPIRED';
     return active.every((m) => this.frozenToday(m)) ? 'FROZEN' : 'ACTIVE';
+  }
+  /** Running memberships covering a member at a gym (packs need credits left). */
+  activeMemberships(gymId: string, clientId: string, now = new Date().toISOString()) {
+    return this.memberships().filter((m) => m.gymId === gymId && this.covers(m, clientId) && m.status === 'ACTIVE' && m.startDate <= now && m.endDate >= now && (m.credits === undefined || m.credits > 0));
   }
   /** Is today inside one of the membership's freezes? */
   frozenToday(m: ClientMembership) {
@@ -650,14 +661,33 @@ export class StoreService {
       const status = this.clientStatus(gymId, clientId);
       if (status === 'BANNED') { ok = false; reason = 'Banned from this gym'; }
       else if (status === 'FROZEN') { ok = false; reason = 'Membership frozen'; }
-      else if (status === 'EXPIRED') { ok = false; reason = 'No active membership'; }
+      else if (status === 'EXPIRED') {
+        ok = false;
+        const now = new Date().toISOString();
+        const emptyPack = this.memberships().some((m) => m.gymId === gymId && this.covers(m, clientId) && m.status === 'ACTIVE' && m.endDate >= now && m.credits === 0);
+        reason = emptyPack ? 'No visits left on the pass' : 'No active membership';
+      }
+      else if (this.needsWaiver(gymId, clientId)) reason = 'Waiver not signed';
       else if (!this.gymOpenStatus(gymId, user.gender).open) reason = 'Outside the sessions open to this member';
+    }
+    // scanned twice (or standing in front of the kiosk): no second entry, no second visit used
+    if (ok && user) {
+      const since = new Date(Date.now() - 15 * 60000).toISOString();
+      const recent = this.checkIns().find((c) => c.ok && c.gymId === gymId && c.clientId === clientId && c.at >= since);
+      if (recent) return { ...recent, reason: 'Already checked in' };
+    }
+    // passes: a visit is used, unless the member also has an unlimited membership
+    let creditFrom: string | undefined;
+    if (ok) {
+      const active = this.activeMemberships(gymId, clientId).filter((m) => !this.frozenToday(m));
+      if (active.length && active.every((m) => m.credits !== undefined)) creditFrom = active.sort((a, b) => a.endDate.localeCompare(b.endDate))[0].id;
     }
     const entry: CheckIn = { id: uid('ci'), gymId, clientId, at: new Date().toISOString(), method, ok, ...(reason ? { reason } : {}), ...(staffId ? { staffId } : {}), ...(locationId ? { locationId } : {}) };
     const today = isoDate();
     this.patch((s) => ({
       checkIns: [...s.checkIns, entry],
       bookings: ok ? s.bookings.map((b) => (b.gymId === gymId && b.clientId === clientId && b.date === today && b.status === 'BOOKED' ? { ...b, status: 'ATTENDED' as const } : b)) : s.bookings,
+      memberships: creditFrom ? s.memberships.map((m) => (m.id === creditFrom ? { ...m, credits: Math.max(0, (m.credits ?? 1) - 1) } : m)) : s.memberships,
     }));
     return entry;
   }
@@ -1302,6 +1332,133 @@ export class StoreService {
     this.patch((s) => ({ freezeRequests: s.freezeRequests.map((x) => (x.id === id ? { ...x, status: approve ? 'APPROVED' as const : 'DECLINED' as const, handledAt: new Date().toISOString() } : x)) }));
     if (approve) this.freezeMembership(r.membershipId, r.start, r.days, r.reason);
     else this.notify(r.clientId, 'Freeze request declined', '{gym} could not pause your membership. Contact the front desk.', { gym: this.gym(r.gymId)?.name ?? '' }, '/client');
+  }
+
+  // ---------- family plans & passes ----------
+  addFamilyMember(membershipId: string, clientId: string) {
+    const m = this.memberships().find((x) => x.id === membershipId);
+    const max = this.plan(m?.planId)?.familyMax ?? 0;
+    if (!m || !max) return { ok: false as const, reason: 'This plan is not a family plan.' };
+    const members = m.familyMembers ?? [];
+    if (members.includes(clientId) || m.clientId === clientId) return { ok: false as const, reason: 'Already covered by this plan.' };
+    if (members.length + 1 >= max) return { ok: false as const, reason: 'The family plan is full.' };
+    this.patch((s) => ({ memberships: s.memberships.map((x) => (x.id === membershipId ? { ...x, familyMembers: [...members, clientId] } : x)) }));
+    this.log('Family member added', `${this.fullName(clientId)} → ${this.fullName(m.clientId)}`, m.gymId);
+    return { ok: true as const };
+  }
+  removeFamilyMember(membershipId: string, clientId: string) {
+    this.patch((s) => ({ memberships: s.memberships.map((x) => (x.id === membershipId ? { ...x, familyMembers: (x.familyMembers ?? []).filter((c) => c !== clientId) } : x)) }));
+  }
+  /** Top up a pass with extra visits. */
+  addCredits(membershipId: string, credits: number) {
+    this.patch((s) => ({ memberships: s.memberships.map((x) => (x.id === membershipId ? { ...x, credits: (x.credits ?? 0) + credits } : x)) }));
+  }
+  /** Extend memberships by N days (bulk action). */
+  extendMemberships(ids: string[], days: number) {
+    const set = new Set(ids);
+    this.patch((s) => ({ memberships: s.memberships.map((m) => (set.has(m.id) ? { ...m, endDate: new Date(new Date(m.endDate).getTime() + days * 86400000).toISOString() } : m)) }));
+    this.log('Memberships extended', `${ids.length} × ${days} d`);
+  }
+
+  // ---------- waivers ----------
+  saveWaiver(gymId: string, title: string, text: string) {
+    const g = this.gym(gymId);
+    if (!g) return;
+    const changed = !g.waiver || g.waiver.text !== text || g.waiver.title !== title;
+    if (!changed) return;
+    const version = (g.waiver?.version ?? 0) + 1;
+    this.updateGym({ ...g, waiver: { title, text, version, updatedAt: new Date().toISOString() } });
+    this.log('Waiver updated', `${g.name} · v${version}`, gymId);
+    for (const c of this.clientsOfGym(gymId)) this.notify(c.id, 'Please sign the waiver', '{gym} updated its waiver. Sign it before your next visit.', { gym: g.name }, '/client', `waiver-${gymId}-${version}`);
+  }
+  removeWaiver(gymId: string) { const g = this.gym(gymId); if (g) this.updateGym({ ...g, waiver: undefined }); }
+  waiverSignature(gymId: string, clientId: string) {
+    const v = this.gym(gymId)?.waiver?.version;
+    return v ? this.waiverSignatures().find((w) => w.gymId === gymId && w.clientId === clientId && w.version === v) : undefined;
+  }
+  needsWaiver(gymId: string, clientId: string) { return !!this.gym(gymId)?.waiver && !this.waiverSignature(gymId, clientId); }
+  signWaiver(gymId: string, clientId: string, name: string, signature: string) {
+    const v = this.gym(gymId)?.waiver?.version;
+    if (!v || !name.trim() || !signature) return null;
+    const w: WaiverSignature = { id: uid('ws'), gymId, clientId, version: v, name: name.trim(), signature, signedAt: new Date().toISOString() };
+    this.patch((s) => ({ waiverSignatures: [...s.waiverSignatures.filter((x) => !(x.gymId === gymId && x.clientId === clientId && x.version === v)), w] }));
+    return w;
+  }
+
+  // ---------- equipment & lockers ----------
+  equipmentOf(gymId: string) { return this.equipment().filter((e) => e.gymId === gymId).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); }
+  /** Next service date, if the item has an interval. */
+  nextService(e: Equipment) {
+    if (!e.serviceEveryDays) return undefined;
+    const base = e.lastServiceAt ?? e.purchasedAt ?? isoDate();
+    return isoDate(new Date(new Date(base + 'T00:00:00').getTime() + e.serviceEveryDays * 86400000));
+  }
+  /** OUT_OF_ORDER stays; otherwise SERVICE_DUE once the next service date is reached. */
+  equipmentState(e: Equipment): Equipment['status'] {
+    if (e.status === 'OUT_OF_ORDER') return e.status;
+    const next = this.nextService(e);
+    return next && next <= isoDate() ? 'SERVICE_DUE' : 'OK';
+  }
+  saveEquipment(e: Equipment) {
+    const isNew = !e.id;
+    const saved = isNew ? { ...e, id: uid('eq') } : e;
+    this.patch((s) => ({ equipment: isNew ? [...s.equipment, saved] : s.equipment.map((x) => (x.id === saved.id ? saved : x)) }));
+    return saved;
+  }
+  deleteEquipment(id: string) { this.patch((s) => ({ equipment: s.equipment.filter((x) => x.id !== id) })); }
+  /** Record a service; its cost is booked as a maintenance expense of the gym. */
+  serviceEquipment(id: string, note: string, cost?: number) {
+    const e = this.equipment().find((x) => x.id === id);
+    if (!e) return;
+    const date = isoDate();
+    this.patch((s) => ({ equipment: s.equipment.map((x) => (x.id === id ? { ...x, status: 'OK' as const, lastServiceAt: date, log: [{ date, note, ...(cost ? { cost } : {}) }, ...x.log] } : x)) }));
+    if (cost) this.saveExpense({ id: '', owner: 'GYM', ownerId: e.gymId, date, category: 'MAINTENANCE', label: `${e.name} — ${note}`, amount: cost, currency: this.currencyOf(e.gymId), method: 'CARD' });
+  }
+  lockersOf(gymId: string) { return this.lockers().filter((l) => l.gymId === gymId).sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true })); }
+  assignLocker(id: string, clientId: string | undefined, until?: string) {
+    this.patch((s) => ({ lockers: s.lockers.map((l) => (l.id === id ? { ...l, clientId, until: clientId ? until : undefined } : l)) }));
+  }
+  addLockers(gymId: string, prefix: string, count: number, locationId?: string) {
+    const existing = new Set(this.lockersOf(gymId).map((l) => l.number));
+    const added: Locker[] = [];
+    for (let i = 1; added.length < count && i < 1000; i++) {
+      const number = `${prefix}${String(i).padStart(2, '0')}`;
+      if (!existing.has(number)) added.push({ id: uid('lk'), gymId, number, ...(locationId ? { locationId } : {}) });
+    }
+    this.patch((s) => ({ lockers: [...s.lockers, ...added] }));
+    return added.length;
+  }
+  deleteLocker(id: string) { this.patch((s) => ({ lockers: s.lockers.filter((l) => l.id !== id) })); }
+  lockerOf(gymId: string, clientId: string) { return this.lockersOf(gymId).find((l) => l.clientId === clientId); }
+
+  // ---------- staff shifts ----------
+  shiftsOf(gymId: string, from: string, to: string) { return this.shifts().filter((x) => x.gymId === gymId && x.date >= from && x.date <= to).sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)); }
+  shiftsOfUser(userId: string, from: string, to: string) { return this.shifts().filter((x) => x.userId === userId && x.date >= from && x.date <= to).sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)); }
+  saveShift(sh: StaffShift) {
+    if (toMin(sh.end) <= toMin(sh.start)) return { ok: false as const, reason: 'The end must be after the start.' };
+    const clash = this.shifts().find((x) => x.id !== sh.id && x.userId === sh.userId && x.date === sh.date && toMin(x.start) < toMin(sh.end) && toMin(sh.start) < toMin(x.end));
+    if (clash) return { ok: false as const, reason: 'This person already works at that time.' };
+    const isNew = !sh.id;
+    const saved = isNew ? { ...sh, id: uid('sh') } : sh;
+    this.patch((s) => ({ shifts: isNew ? [...s.shifts, saved] : s.shifts.map((x) => (x.id === saved.id ? saved : x)) }));
+    return { ok: true as const, shift: saved };
+  }
+  deleteShift(id: string) { this.patch((s) => ({ shifts: s.shifts.filter((x) => x.id !== id) })); }
+  /** Copy a week of shifts 7 days later (skipping ones that would clash). */
+  copyShiftsWeek(gymId: string, weekStart: string) {
+    const end = isoDate(new Date(new Date(weekStart + 'T00:00:00').getTime() + 6 * 86400000));
+    let n = 0;
+    for (const sh of this.shiftsOf(gymId, weekStart, end)) {
+      const date = isoDate(new Date(new Date(sh.date + 'T00:00:00').getTime() + 7 * 86400000));
+      if (this.saveShift({ ...sh, id: '', date }).ok) n++;
+    }
+    return n;
+  }
+  /** Hours planned per person in a period. */
+  shiftHours(list: StaffShift[]) {
+    const map = new Map<string, number>();
+    for (const sh of list) map.set(sh.userId, (map.get(sh.userId) ?? 0) + (toMin(sh.end) - toMin(sh.start)) / 60);
+    return map;
   }
 
   // ---------- accounting currency ----------

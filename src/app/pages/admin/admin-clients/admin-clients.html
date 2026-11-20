@@ -1,4 +1,5 @@
 <app-page-header [title]="'Clients' | t" [subtitle]="'Only you can register members — create their account and membership here.' | t">
+@if (isAdmin()) { <a pButton routerLink="/admin/import" severity="secondary" [outlined]="true" data-testid="go-import"><fa-icon icon="file-import" />{{ 'Import' | t }}</a> }
 <button pButton type="button" severity="secondary" [outlined]="true" (click)="exportCsv()"><fa-icon icon="file-csv" />{{ 'Export CSV' | t }}</button>
   @if (isAdmin()) { <button pButton type="button" (click)="open()"><fa-icon icon="user-plus" />{{ 'Add client' | t }}</button> }
 </app-page-header>
@@ -19,7 +20,18 @@
 }
 
 <div class="card">
-  <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [globalFilterFields]="['clientName', 'planName']" [tableStyle]="{ 'min-width': '64rem' }">
+  @if (isAdmin() && selected().length) {
+    <div class="flex flex-wrap items-center gap-2 mb-3 p-3 rounded-xl bg-primary-50 dark:bg-primary-950" data-testid="bulk-bar">
+      <span class="font-semibold me-2">{{ '{n} selected' | t: { n: selected().length } }}</span>
+      <button pButton type="button" size="small" (click)="bulk.set('message')" data-testid="bulk-message"><fa-icon icon="comments" />{{ 'Message' | t }}</button>
+      <button pButton type="button" size="small" severity="success" (click)="bulk.set('extend')" data-testid="bulk-extend"><fa-icon icon="calendar-plus" />{{ 'Extend' | t }}</button>
+      <button pButton type="button" size="small" severity="info" (click)="bulk.set('freeze')"><fa-icon icon="snowflake" />{{ 'Freeze' | t }}</button>
+      <button pButton type="button" size="small" severity="secondary" [outlined]="true" (click)="exportCsv(true)"><fa-icon icon="file-csv" />{{ 'Export' | t }}</button>
+      <span class="flex-1"></span>
+      <button pButton type="button" size="small" [text]="true" severity="secondary" (click)="selected.set([])">{{ 'Clear selection' | t }}</button>
+    </div>
+  }
+  <p-table #dt [value]="rows()" dataKey="m.id" [selection]="selected()" (selectionChange)="selected.set($event)" [paginator]="true" [rows]="10" [globalFilterFields]="['clientName', 'planName']" [tableStyle]="{ 'min-width': '64rem' }">
     <ng-template #caption>
       <div class="flex flex-wrap gap-3 items-center">
         <p-iconfield>
@@ -32,17 +44,27 @@
     </ng-template>
     <ng-template #header>
       <tr>
+        @if (isAdmin()) { <th class="w-10"><p-table-header-checkbox /></th> }
         <th pSortableColumn="clientName">{{ 'Client' | t }} <p-sorticon field="clientName" /></th>
         <th>{{ 'Plan' | t }}</th><th>{{ 'Coach' | t }}</th><th>{{ 'Paid' | t }}</th><th pSortableColumn="endDate">{{ 'Period' | t }} <p-sorticon field="endDate" /></th><th>{{ 'Membership' | t }}</th><th>{{ 'Client status' | t }}</th><th></th>
       </tr>
     </ng-template>
     <ng-template #body let-r>
       <tr>
+        @if (isAdmin()) { <td><p-table-checkbox [value]="r" /></td> }
         <td>
           <div class="font-medium">{{ r.clientName }}</div>
           <div class="text-xs muted">{{ r.email }}</div>
         </td>
-        <td>{{ r.planName }}</td>
+        <td>{{ r.planName }}
+          @if (r.m.credits !== undefined) {
+            <div class="text-xs flex items-center gap-1" [class.text-red-600]="r.m.credits === 0" [class.muted]="r.m.credits > 0"><fa-icon icon="ticket" /> {{ r.m.credits }} {{ 'visits left' | t }}
+              @if (isAdmin()) { <button type="button" class="text-primary font-semibold hover:underline cursor-pointer" (click)="topUp(r.m)" data-testid="top-up">+{{ store.plan(r.m.planId)?.credits ?? 1 }}</button> }</div>
+          }
+          @if (store.plan(r.m.planId)?.familyMax) {
+            <button type="button" class="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1" (click)="family.set(r.m)" data-testid="family-btn"><fa-icon icon="people-roof" /> {{ 'Family' | t }} {{ 1 + (r.m.familyMembers?.length ?? 0) }}/{{ store.plan(r.m.planId)?.familyMax }}</button>
+          }
+        </td>
         <td>
           <p-select [options]="coaches()" [optionLabel]="'label'" optionValue="id" [ngModel]="r.m.coachId" (ngModelChange)="setCoach(r.m, $event)" [disabled]="!isAdmin()"
             [placeholder]="'Assign' | t" [showClear]="true" size="small" appendTo="body" class="w-40" />
@@ -83,7 +105,7 @@
         </td>
       </tr>
     </ng-template>
-    <ng-template #emptymessage><tr><td colspan="8" class="text-center muted py-8">{{ 'No clients found.' | t }}</td></tr></ng-template>
+    <ng-template #emptymessage><tr><td colspan="9" class="text-center muted py-8">{{ 'No clients found.' | t }}</td></tr></ng-template>
   </p-table>
 </div>
 
@@ -223,4 +245,37 @@
   }
   <div modal-footer><button pButton type="button" [text]="true" severity="secondary" (click)="freezing.set(null)">{{ 'Cancel' | t }}</button>
     <button pButton type="button" (click)="confirmFreeze()">{{ 'Freeze' | t }}</button></div>
+</app-modal>
+
+<app-modal [visible]="bulk() !== null" (visibleChange)="!$event && bulk.set(null)" [header]="(bulk() === 'message' ? 'Message {n} members' : bulk() === 'extend' ? 'Extend {n} memberships' : 'Freeze {n} memberships') | t: { n: selected().length }"
+  [tone]="bulk() === 'extend' ? 'success' : bulk() === 'freeze' ? 'info' : 'primary'" [icon]="bulk() === 'message' ? 'comments' : bulk() === 'extend' ? 'calendar-plus' : 'snowflake'" width="30rem">
+  @if (bulk() === 'message') {
+    <textarea pTextarea class="w-full" rows="4" [(ngModel)]="bulkText" [placeholder]="'Write your message…' | t" data-testid="bulk-text"></textarea>
+    <p class="text-xs muted mt-2">{{ 'Each member gets it as a direct message from you.' | t }}</p>
+  } @else {
+    <div class="field"><label>{{ 'Days' | t }}</label><p-inputnumber [(ngModel)]="bulkDays" [min]="1" [max]="365" [showButtons]="true" inputStyleClass="w-full" /></div>
+    @if (bulk() === 'freeze') { <div class="field mt-3"><label>{{ 'Reason (optional)' | t }}</label><input pInputText class="w-full" [(ngModel)]="bulkText" /></div> }
+    <p class="text-xs muted mt-2">{{ (bulk() === 'extend' ? 'The end date of each selected membership moves back by this many days (e.g. after a closure).' : 'Each active membership is paused from today.') | t }}</p>
+  }
+  <div modal-footer>
+    <button pButton type="button" [text]="true" severity="secondary" (click)="bulk.set(null)">{{ 'Cancel' | t }}</button>
+    <button pButton type="button" (click)="runBulk()" data-testid="bulk-run">{{ 'Apply' | t }}</button>
+  </div>
+</app-modal>
+
+<app-modal [visible]="!!family()" (visibleChange)="!$event && family.set(null)" [header]="'Family plan' | t" [subtitle]="family() ? store.fullName(family()!.clientId) : ''" tone="primary" icon="people-roof" width="30rem">
+  @if (family(); as m) {
+    <div class="space-y-3">
+      <div class="flex items-center gap-2 text-sm"><fa-icon icon="crown" class="text-amber-500" /><span class="font-medium flex-1">{{ store.fullName(m.clientId) }}</span><span class="muted">{{ 'Holder' | t }}</span></div>
+      @for (id of currentFamily(); track id) {
+        <div class="flex items-center gap-2 text-sm" data-testid="family-member"><fa-icon icon="user" class="muted" /><span class="flex-1">{{ store.fullName(id) }}</span>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" size="small" severity="danger" (click)="store.removeFamilyMember(m.id, id)" [attr.aria-label]="'Remove' | t"><fa-icon icon="xmark" /></button></div>
+      }
+      <div class="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+        <p-select [options]="familyCandidates()" optionLabel="label" optionValue="id" [(ngModel)]="familyPick" [filter]="true" filterBy="label" [placeholder]="'Add a member' | t" class="flex-1" appendTo="body" data-testid="family-pick" />
+        <button pButton type="button" (click)="addFamily()" [disabled]="!familyPick" data-testid="family-add">{{ 'Add' | t }}</button>
+      </div>
+      <p class="text-xs muted">{{ 'Family members check in and book classes with this plan.' | t }}</p>
+    </div>
+  }
 </app-modal>

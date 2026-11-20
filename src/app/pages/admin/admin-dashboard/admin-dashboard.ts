@@ -1,3 +1,4 @@
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { TranslatePipe, t } from '../../../core/i18n/i18n';
 import { ChartCard, ChartSeries } from '../../../shared/chart-card/chart-card';
 import { CohortTable } from '../../../shared/cohort-table/cohort-table';
@@ -21,7 +22,7 @@ import { statusSeverity } from '../../super-admin/sa-gyms/sa-gyms';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CohortTable, ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, ButtonDirective, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
+  imports: [FaIconComponent, CohortTable, ChartCard, TranslatePipe, MoneyPipe, DatePipe, RouterLink, ButtonDirective, ProgressBar, TableModule, Tag, PageHeader, StatCard, Stars],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
@@ -29,6 +30,7 @@ export class AdminDashboard {
   protected readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   protected readonly sev = statusSeverity;
+  protected readonly thisMonth = new Date().toISOString().slice(0, 7);
   private readonly toast = inject(MessageService);
   /** Memberships ending in the next 7 days (renewal reminders). */
   protected readonly referrers = computed(() => (this.gym() ? this.store.topReferrers(this.gym()!.id).slice(0, 5) : []));

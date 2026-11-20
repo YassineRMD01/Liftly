@@ -17,3 +17,30 @@ export function downloadCsv(filename: string, headers: string[], rows: (string |
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+
+/** Parse CSV text (quotes, escaped quotes, line breaks inside quotes). The separator (, ; or tab) is detected. */
+export function parseCsv(text: string): string[][] {
+  const src = text.replace(/^﻿/, '');
+  const firstLine = src.split(/\r?\n/, 1)[0] ?? '';
+  const sep = [',', ';', '\t'].map((c) => ({ c, n: firstLine.split(c).length })).sort((a, b) => b.n - a.n)[0].c;
+  const rows: string[][] = [];
+  let row: string[] = [], cell = '', quoted = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (quoted) {
+      if (ch === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === sep) { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && src[i + 1] === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some((c) => c.trim())) rows.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  row.push(cell);
+  if (row.some((c) => c.trim())) rows.push(row);
+  return rows.map((r) => r.map((c) => c.trim()));
+}
