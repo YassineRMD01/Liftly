@@ -1,3 +1,4 @@
+import { OfflineQueueService } from '../../core/offline-queue.service';
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +23,7 @@ import { QrCamera } from '../../shared/qr-camera/qr-camera';
   styleUrl: './kiosk.css',
 })
 export class Kiosk {
+  protected readonly offline = inject(OfflineQueueService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly router = inject(Router);
@@ -59,9 +61,11 @@ export class Kiosk {
     if (!g) return;
     const id = parseMemberQr(text) ?? '';
     const loc = this.store.locationsOf(g.id).some((l) => l.id === this.locationId) ? this.locationId! : undefined;
-    this.result.set(this.store.checkIn(g.id, id, 'QR', undefined, loc));
-    clearTimeout(this.resetTimer);
-    this.resetTimer = setTimeout(() => this.result.set(null), 4500);
+    this.offline.checkIn(g.id, id, 'QR', undefined, loc).then((r) => {
+      this.result.set(r);
+      clearTimeout(this.resetTimer);
+      this.resetTimer = setTimeout(() => this.result.set(null), 4500);
+    });
   }
 
   // ---------- exit ----------

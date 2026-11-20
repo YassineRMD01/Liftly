@@ -1,3 +1,4 @@
+import { OfflineQueueService } from '../../../core/offline-queue.service';
 import { RouterLink } from '@angular/router';
 import { Component, ElementRef, OnDestroy, computed, inject, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
@@ -23,6 +24,7 @@ import { PageHeader } from '../../../shared/page-header/page-header';
   styleUrl: './admin-checkin.css',
 })
 export class AdminCheckin implements OnDestroy {
+  protected readonly offline = inject(OfflineQueueService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(StoreService);
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
@@ -162,7 +164,7 @@ export class AdminCheckin implements OnDestroy {
     const g = this.gym();
     if (!g) return;
     const loc = this.locations().some((l) => l.id === this.locationId()) ? this.locationId()! : undefined;
-    this.result.set(this.store.checkIn(g.id, clientId, method, this.auth.user()?.id, loc));
+    this.offline.checkIn(g.id, clientId, method, this.auth.user()?.id, loc).then((r) => this.result.set(r));
   }
 
   ngOnDestroy() { this.stopCamera(); }

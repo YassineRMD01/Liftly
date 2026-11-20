@@ -6,6 +6,7 @@ import { LanguageSwitcher } from '../../shared/language-switcher/language-switch
 import { TranslatePipe, t, CURRENT_LANGUAGE } from '../../core/i18n/i18n';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { CommandPalette } from '../../shared/command-palette/command-palette';
+import { OfflineQueueService } from '../../core/offline-queue.service';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
@@ -128,6 +129,7 @@ export class Shell {
   protected readonly banners = computed(() => this.store.platformBannersFor(this.auth.user()?.id ?? ''));
   dismissBanner(id: string) { this.store.dismissPlatformAnnouncement(id, this.auth.user()!.id); }
   protected readonly palette = viewChild.required(CommandPalette);
+  protected readonly offline = inject(OfflineQueueService);
   skip(e: Event) { e.preventDefault(); document.getElementById('main')?.focus(); }
   protected readonly brandName = computed(() => this.auth.activeGym()?.name ?? 'Liftly');
 }

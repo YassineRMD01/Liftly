@@ -154,6 +154,7 @@ import {
   faWandMagicSparkles,
   faWater,
   faWeightScale,
+  faWifi,
   faWrench,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
@@ -314,6 +315,7 @@ export const APP_ICONS: IconDefinition[] = [
   faWandMagicSparkles,
   faWater,
   faWeightScale,
+  faWifi,
   faWrench,
   faXmark,
 ];

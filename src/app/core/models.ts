@@ -411,6 +411,8 @@ export interface CheckIn {
   reason?: string;
   staffId?: string;
   locationId?: string;
+  /** recorded while offline, sent when the connection is back */
+  queued?: boolean;
 }
 
 /** In-app notification. Title/body are English keys translated for the reader, with params. */

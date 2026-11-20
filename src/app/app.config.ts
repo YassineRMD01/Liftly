@@ -7,6 +7,8 @@ import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { mockBackendInterceptor } from './core/mock-backend.interceptor';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
@@ -31,6 +33,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideAnimationsAsync(),
+    provideHttpClient(withFetch(), withInterceptors([mockBackendInterceptor])),
     { provide: LOCALE_ID, useValue: CURRENT_LANGUAGE.locale },
     providePrimeNG({
       ripple: true,
