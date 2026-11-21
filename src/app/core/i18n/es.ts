@@ -1708,4 +1708,7 @@ export const ES: Record<string, string> = {
   "Requests, confirmations and changes": "Solicitudes, confirmaciones y cambios",
   "Renewals, freezes, payments and waivers": "Renovaciones, congelaciones, pagos y exenciones",
   "News from your gym, the platform and challenges": "Novedades de tu gimnasio, la plataforma y retos",
+  "Plan prices are set in USD and converted to {currency} with the platform exchange rates.": "Los precios de los planes se fijan en USD y se convierten a {currency} con los tipos de cambio de la plataforma.",
+  "Use the converted USD price": "Usar el precio en USD convertido",
+  "Converted from USD: {monthly} / {yearly}": "Convertido desde USD: {monthly} / {yearly}",
 };

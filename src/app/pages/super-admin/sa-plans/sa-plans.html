@@ -2,6 +2,16 @@
   <button pButton type="button" (click)="edit()"><fa-icon icon="plus" />{{ 'New plan' | t }}</button>
 </app-page-header>
 
+<div class="flex flex-wrap items-center gap-2 mb-5 text-sm" data-testid="plans-currency">
+  <span class="muted">{{ 'Amounts in' | t }}</span>
+  <span class="font-mono font-semibold px-2 py-1 rounded-md bg-surface-100 dark:bg-surface-800">{{ currency() }}</span>
+  <p-select [options]="countries()" optionLabel="label" optionValue="code" [ngModel]="country()" (ngModelChange)="setCountry($event)" [filter]="true" filterBy="label"
+    [placeholder]="'My country' | t" class="w-56" appendTo="body" [attr.aria-label]="'My country' | t" />
+  @if (currency() !== 'USD') {
+    <span class="muted text-xs w-full sm:w-auto">{{ 'Plan prices are set in USD and converted to {currency} with the platform exchange rates.' | t: { currency: currency() } }}</span>
+  }
+</div>
+
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
   @for (p of store.saasPlans(); track p.id) {
     <div class="card flex flex-col" [class.opacity-60]="!p.active">
@@ -15,8 +25,9 @@
           @if (!p.active) { <p-tag [value]="'Hidden' | t" severity="secondary" /> }
         </div>
       </div>
-      <div class="mt-4 text-3xl font-extrabold">{{ p.monthlyPrice | currency }}<span class="text-sm font-normal muted">{{ '/mo' | t }}</span></div>
-      <div class="text-sm muted">{{ p.yearlyPrice | currency }}{{ '/yr' | t }}</div>
+      <div class="mt-4 text-3xl font-extrabold" data-testid="plan-price">{{ shown(p.monthlyPrice) }}<span class="text-sm font-normal muted">{{ '/mo' | t }}</span></div>
+      <div class="text-sm muted">{{ shown(p.yearlyPrice) }}{{ '/yr' | t }}</div>
+      @if (currency() !== 'USD') { <div class="text-xs muted mt-0.5" data-testid="plan-usd">{{ usd(p.monthlyPrice) }}{{ '/mo' | t }} · {{ usd(p.yearlyPrice) }}{{ '/yr' | t }}</div> }
       <ul class="mt-4 space-y-1.5 text-sm flex-1">
         <li>{{ p.maxCoaches === -1 ? ('Unlimited' | t) : p.maxCoaches }} {{ 'coaches ·' | t }} {{ p.maxClients === -1 ? ('Unlimited' | t) : p.maxClients }} {{ 'clients' | t }}</li>
         <li>{{ 'Custom theme:' | t }} <b>{{ p.customTheme ? ('Yes' | t) : 'No' }}</b></li>
@@ -46,8 +57,10 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="field sm:col-span-2"><label>{{ 'Name' | t }}</label><input pInputText [(ngModel)]="draft().name" /></div>
     <div class="field sm:col-span-2"><label>{{ 'Description' | t }}</label><textarea pTextarea rows="2" [(ngModel)]="draft().description"></textarea></div>
-    <div class="field"><label>{{ 'Monthly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" /></div>
-    <div class="field"><label>{{ 'Yearly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" /></div>
+    <div class="field"><label>{{ 'Monthly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().monthlyPrice" mode="currency" currency="USD" />
+      @if (currency() !== 'USD') { <small class="muted">≈ {{ shown(draft().monthlyPrice) }}</small> }</div>
+    <div class="field"><label>{{ 'Yearly price' | t }} (USD)</label><p-inputnumber [(ngModel)]="draft().yearlyPrice" mode="currency" currency="USD" />
+      @if (currency() !== 'USD') { <small class="muted">≈ {{ shown(draft().yearlyPrice) }}</small> }</div>
     <div class="field"><label>{{ 'Max coaches (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxCoaches" [min]="-1" /></div>
     <div class="field"><label>{{ 'Max clients (-1 = ∞)' | t }}</label><p-inputnumber [(ngModel)]="draft().maxClients" [min]="-1" /></div>
     <div class="sm:col-span-2 rounded-xl border border-surface-200 dark:border-surface-700 p-3 space-y-2">
@@ -59,10 +72,10 @@
         <button pButton type="button" size="small" [outlined]="true" (click)="addCountryPrice()">{{ 'Add country' | t }}</button>
       </div>
       @for (cp of draft().countryPrices; track $index; let i = $index) {
-        <div class="grid grid-cols-[1fr_8rem_8rem_auto] gap-2 items-end">
+        <div class="grid grid-cols-[1fr_8rem_8rem_auto_auto] gap-2 items-end" data-testid="country-price">
           <div class="field">
             @if (i === 0) { <label class="!text-xs">{{ 'Country' | t }}</label> }
-            <p-select [options]="countriesFor(cp.country)" optionLabel="label" optionValue="code" [(ngModel)]="cp.country" [filter]="true" filterBy="label,code" appendTo="body" class="w-full" />
+            <p-select [options]="countriesFor(cp.country)" optionLabel="label" optionValue="code" [ngModel]="cp.country" (ngModelChange)="setRowCountry(i, $event)" [filter]="true" filterBy="label,code" appendTo="body" class="w-full" />
           </div>
           <div class="field">
             @if (i === 0) { <label class="!text-xs">{{ 'Monthly' | t }}</label> }
@@ -72,7 +85,14 @@
             @if (i === 0) { <label class="!text-xs">{{ 'Yearly' | t }}</label> }
             <p-inputnumber [(ngModel)]="cp.yearly" mode="currency" [currency]="countryCurrency(cp.country)" [min]="0" inputStyleClass="w-full" class="w-full" />
           </div>
+          <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="secondary" (click)="convertRow(i)" data-testid="convert-row"
+            [pTooltip]="'Use the converted USD price' | t" [attr.aria-label]="'Use the converted USD price' | t"><fa-icon icon="rotate" /></button>
           <button pButton type="button" iconOnly [text]="true" [rounded]="true" severity="danger" (click)="removeCountryPrice(i)" [attr.aria-label]="'Remove' | t"><fa-icon icon="trash" /></button>
+          @let g = gap(draft().monthlyPrice, cp.monthly, cp.country);
+          <div class="col-span-full -mt-1 text-xs muted" data-testid="converted-hint">
+            {{ 'Converted from USD: {monthly} / {yearly}' | t: { monthly: fmtLocal(convertedFor(draft().monthlyPrice, cp.country), cp.country), yearly: fmtLocal(convertedFor(draft().yearlyPrice, cp.country), cp.country) } }}
+            @if (g !== 0) { · <span [class.text-green-600]="g < 0" [class.text-amber-600]="g > 0">{{ (g > 0 ? '+' : '') + g }}%</span> }
+          </div>
         </div>
       } @empty {
         <div class="text-xs muted">{{ 'No local prices — every country pays the USD price.' | t }}</div>

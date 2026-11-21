@@ -1708,4 +1708,7 @@ export const TR: Record<string, string> = {
   "Requests, confirmations and changes": "Talepler, onaylar ve değişiklikler",
   "Renewals, freezes, payments and waivers": "Yenilemeler, dondurmalar, ödemeler ve feragatnameler",
   "News from your gym, the platform and challenges": "Salonunuzdan, platformdan haberler ve meydan okumalar",
+  "Plan prices are set in USD and converted to {currency} with the platform exchange rates.": "Plan fiyatları USD olarak belirlenir ve platform kurlarıyla {currency} birimine çevrilir.",
+  "Use the converted USD price": "Çevrilmiş USD fiyatını kullan",
+  "Converted from USD: {monthly} / {yearly}": "USD'den çevrilen: {monthly} / {yearly}",
 };

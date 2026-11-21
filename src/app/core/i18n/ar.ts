@@ -1708,4 +1708,7 @@ export const AR: Record<string, string> = {
   "Requests, confirmations and changes": "الطلبات والتأكيدات والتغييرات",
   "Renewals, freezes, payments and waivers": "التجديدات والتجميد والمدفوعات والإقرارات",
   "News from your gym, the platform and challenges": "أخبار ناديك والمنصة والتحديات",
+  "Plan prices are set in USD and converted to {currency} with the platform exchange rates.": "تُحدَّد أسعار الخطط بالدولار الأمريكي وتُحوَّل إلى {currency} بأسعار صرف المنصة.",
+  "Use the converted USD price": "استخدام السعر المحوَّل من الدولار",
+  "Converted from USD: {monthly} / {yearly}": "محوَّل من الدولار: {monthly} / {yearly}",
 };
